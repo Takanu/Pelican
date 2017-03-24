@@ -1,9 +1,9 @@
 # Pelican Alpha
 ## (Vapor 1.5x) Telegram API Wrapper for Swift x Vapor.
 
-Hi 2-3 people that somehow both like Telegram, Swift and Vapor!   This is a Provider that gives your Vapor drop a complete solution for creating and managing Telegram bots.  **It's still a little rough and not everything has been finished, so be careful**
+Hi 2-3 people that somehow both like Telegram, Swift and Vapor!   This is a Provider that gives your Droplet a complete solution for creating and managing Telegram bots.  **It's still a little rough and not everything has been finished, so be careful**
 
-If you’ve never heard of Telegram (telegram.org) it’s an awesome non-profit, secure messaging service that offers so many cool features that it’s kind of hard to list them all but i’ll try:
+If you’ve never heard of [Telegram](telegram.org) it’s an awesome non-profit, secure messaging service that offers so many cool features that it’s kind of hard to list them all but i’ll try:
 
 
 * Open Stickers Platform 
@@ -12,12 +12,12 @@ If you’ve never heard of Telegram (telegram.org) it’s an awesome non-profit,
 * 1.5GB File Transfer 
 * HTML5 Game Platform 
 * Apps For Literally Everything (Tablets, Desktop, Smartwatches)
-* The fact that you can talk to someone without giving out your phone number through the magic of usernames like t.me/takanu (hey thats me).
+* The fact that you can talk to someone without giving out your phone number through the magic of usernames like [t.me/takanu](t.me/takanu) (hey thats me).
 * Channels where you can publish content to an unlimited number of followers
 
-Where bots are concerned though, Telegram offers an open and free API system where you can do all kinds of stuff from making bots to help schedule posts on a channel of yours to publishing your own online HTML5 games that are playable right inside the app (and since you’re using Vapor, you could manage all of that in one app!)
+Where bots are concerned though, Telegram offers an open and free API system where you can make bots for all kinds of tasks, from helping schedule channel posts to operating your own online HTML5 games that are playable inside the app (and since you’re using Vapor, you could conceivably manage everything in one app).
 
-So, what does Pelican do you ask?
+So, what does Pelican do?
 
 
 **Most Bot Types/Methods (Is this a feature?)**
@@ -26,7 +26,7 @@ Nearly everything is represented and what is can be databased.  What isn't avail
 
 **User Session System**
 
-It handles the act of creating, updating and destroying individual sessions with any number of users.  The criteria for creating a session and the scope of users that can use it are customisable, and it includes Whitelists, Blacklists, Timeouts, Flood Limits and a bunch of other neat things.  Sessions can also be databased for later use if the user wants to stop and you want to free up active sessions.
+This handles the act of creating, updating and destroying individual sessions with any number of users.  The criteria for creating a session and the scope of users that can use it are customisable, and it includes Whitelists, Blacklists, Timeouts, Flood Limits and a bunch of other neat things.  Sessions can also be databased for later use if the user wants to stop and you want to free up active sessions.
 
 Sessions in a later update will also conform to Model so they can be databased, if you want to save bot states and free up live sessions.
 
@@ -53,6 +53,6 @@ Even if you don’t want to make a Telegram bot at all, this provider in the fut
 When finished i'll have just one:
 
 - No Webhook Support
-Sorry, maybe later…
+Sorry, but maybe later…
 
 Special thanks to Marvin, my other web developer friends and the Vapor Slack group for putting up with my dumb questions over the last few months.
