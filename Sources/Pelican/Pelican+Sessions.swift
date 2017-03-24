@@ -5,12 +5,12 @@ import Vapor
 // Holds the information for a bot session, when someone is immediately interacting with the bot
 // Ignore this if you want?  What am i, a doctor?
 public class TelegramBotSession {
-    var id: Node?           // Database ID
-    var bot: Pelican        // The bot associated with this session
-    var chat: Chat          // The chat ID associated with the session.
-    var primaryUser : User? // The primary user associated with this session, not applicable for channels or potentially other things.
-    var users: [User] = []  // Other users associated with this session.  The primary user is likely in this list.
-    var data: NSCopying?    // User-defined data chunk.
+    public var id: Node?           // Database ID
+    public var bot: Pelican        // The bot associated with this session
+    public var chat: Chat          // The chat ID associated with the session.
+    public var primaryUser : User? // The primary user associated with this session, not applicable for channels or potentially other things.
+    public var users: [User] = []  // Other users associated with this session.  The primary user is likely in this list.
+    public var data: NSCopying?    // User-defined data chunk.
     
     // Session settings
     internal var maxSessionTime: Int = 0 // What the current maximum for the session time is.  Set 0 for no timer.
@@ -26,27 +26,27 @@ public class TelegramBotSession {
     private var responseTime: Int = 0 // The time at which a response has currently been made
     
     // Current session state
-    var messageState: ((Message, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
-    var editedMessageState: ((Message, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
-    var channelState: ((Message, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
-    var editedChannelState: ((Message, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
+    public var messageState: ((Message, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
+    public var editedMessageState: ((Message, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
+    public var channelState: ((Message, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
+    public var editedChannelState: ((Message, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
     
-    var inlineQueryState: ((InlineQuery, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
-    var chosenInlineQueryState: ((ChosenInlineResult, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
-    var callbackQueryState: ((CallbackQuery, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
+    public var inlineQueryState: ((InlineQuery, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
+    public var chosenInlineQueryState: ((ChosenInlineResult, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
+    public var callbackQueryState: ((CallbackQuery, TelegramBotSession) -> ())? // Used by the internal polling system to iterate over commands
     
-    var sessionEndAction: ((TelegramBotSession) -> ())? // A command to be used when the session ends.
+    public var sessionEndAction: ((TelegramBotSession) -> ())? // A command to be used when the session ends.
     var actionQueue: [TelegramBotSessionAction] = [] // Any queued actions that need to be monitored.
     
     // Stored requests
-    var currentMessage: Message?
-    var lastSentMessage: Message?
+    public var currentMessage: Message?
+    public var lastSentMessage: Message?
     var lastDialog: String = ""                     // A way to use the last given piece of dialog as a delay timer for the next.
     var plusTimer: Int = 0                          // A way to allow sequentially stated delays to naturally stack up.
-    var wordsPerMinute: Int = 190                   // Used as an implicit timer for a set of dialog actions.
+    public var wordsPerMinute: Int = 190                   // Used as an implicit timer for a set of dialog actions.
     
     // Setup the session by passing a function that modifies itself with the required commands.
-    init(bot: Pelican, chat: Chat, data: NSCopying?, floodLimit: FloodLimit, setup: @escaping (TelegramBotSession) -> (), sessionEndAction: ((TelegramBotSession) -> ())? ) {
+    public init(bot: Pelican, chat: Chat, data: NSCopying?, floodLimit: FloodLimit, setup: @escaping (TelegramBotSession) -> (), sessionEndAction: ((TelegramBotSession) -> ())? ) {
         self.bot = bot
         self.chat = chat
         self.floodLimit = FloodLimit(clone: floodLimit) // A precaution to only copy the range values
@@ -67,30 +67,30 @@ public class TelegramBotSession {
     }
     
     // Functions for managing what users are associated to this session.
-    func hasUser(_ user: User) -> Bool {
+    public func hasUser(_ user: User) -> Bool {
         if users.count == 0 { return false }
         if users.contains(where: { $0.tgID == user.tgID } ) == true { return true }
         return false
     }
     
-    func addUser(_ user: User) {
+    public func addUser(_ user: User) {
         users.append(user)
     }
 
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
     
     // Clears all states.
-    func clearStates() {
+    public func clearStates() {
         self.messageState = nil
         self.editedMessageState = nil
         self.channelState = nil
@@ -169,7 +169,7 @@ public class TelegramBotSession {
     
     
     // Sends a normal message.  A convenience method to keep core program code clean.
-    func send(message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) -> Message? {
+    public func send(message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) -> Message? {
         if currentMessage != nil {
             
             var makeReply = 0
@@ -185,7 +185,7 @@ public class TelegramBotSession {
     }
     
     // Sends a normal file.  A convenience method to keep core program code clean.
-    func send(file: SendType, markup: MarkupType? = nil, caption: String = "", reply: Bool = false, disableNtf: Bool = false) -> Message? {
+    public func send(file: SendType, markup: MarkupType? = nil, caption: String = "", reply: Bool = false, disableNtf: Bool = false) -> Message? {
         if currentMessage != nil {
             
             var makeReply = 0
@@ -201,7 +201,7 @@ public class TelegramBotSession {
     }
     
     // Uploads and sends a link.  The upload is also then stored on the file cache for re-use.
-    func send(link: TGFileUpload, markup: MarkupType? = nil, caption: String = "", reply: Bool = false, disableNtf: Bool = false) {
+    public func send(link: TGFileUpload, markup: MarkupType? = nil, caption: String = "", reply: Bool = false, disableNtf: Bool = false) {
         if currentMessage != nil {
             
             var makeReply = 0
@@ -215,12 +215,12 @@ public class TelegramBotSession {
     
     
     // Sends inline results based on a query request.
-    func send(inline: [InlineResult], queryID: String, cache: Int = 300, isPersonal: Bool = false, nextOffset: Int = 0, switchPM: String = "", switchPMParam: String = "") {
+    public func send(inline: [InlineResult], queryID: String, cache: Int = 300, isPersonal: Bool = false, nextOffset: Int = 0, switchPM: String = "", switchPMParam: String = "") {
         bot.answerInlineQuery(inlineQueryID: queryID, results: inline, cacheTime: cache, isPersonal: isPersonal, nextOffset: nextOffset, switchPM: switchPM, switchPMParam: switchPMParam)
     }
     
     // Edits the text contents of a message.  A current message must be available.
-    func edit(message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
+    public func edit(message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
         
         if lastSentMessage != nil {
             bot.editMessageText(chatID: chat.tgID, messageID: lastSentMessage!.tgID, text: message, replyMarkup: markup, parseMode: parseMode, disableWebPreview: disableNtf, replyMessageID: 0)
@@ -228,19 +228,19 @@ public class TelegramBotSession {
     }
     
     // Edits the inline contents of a message, using a provides message object.
-    func edit(message: Message, markup: MarkupType? = nil) {
+    public func edit(message: Message, markup: MarkupType? = nil) {
         bot.editMessageReplyMarkup(chatID: message.chat.tgID, messageID: message.tgID, replyMarkup: markup, replyMessageID: 0)
     }
     
     // Edits the markup of a message.
-    func edit(markup: MarkupType, reply: Bool = false) {
+    public func edit(markup: MarkupType, reply: Bool = false) {
         if lastSentMessage != nil {
             bot.editMessageReplyMarkup(chatID: chat.tgID, messageID: lastSentMessage!.tgID, replyMarkup: markup, replyMessageID: 0)
         }
     }
     
     // Responds to a Callback Query through an alert
-    func answer(query: CallbackQuery, text: String, popup: Bool = false, gameURL: String = "") {
+    public func answer(query: CallbackQuery, text: String, popup: Bool = false, gameURL: String = "") {
         bot.answerCallbackQuery(queryID: query.id, text: text, showAlert: popup, url: gameURL, cacheTime: 0)
     }
     
@@ -249,7 +249,7 @@ public class TelegramBotSession {
 
     
     // Delays execution of an action by the specified time
-    func delay(by time: Int, stack: Bool, name: String = "", action: @escaping (TelegramBotSession) -> ()) {
+    public func delay(by time: Int, stack: Bool, name: String = "", action: @escaping (TelegramBotSession) -> ()) {
         
         // Calculate what kind of delay we're using
         var delay = 0
@@ -289,7 +289,7 @@ public class TelegramBotSession {
     }
     
     // A shorthand function for sending a single message in a delayed fashion, through the action system.  Looks a lot neater :D
-    func delaySend(by: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
+    public func delaySend(by: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
         self.delay(by: by, stack: false, action: { session in
             _ = session.send(message: message, markup: markup, reply: reply, parseMode: parseMode, webPreview: webPreview, disableNtf: disableNtf)
         })
@@ -297,7 +297,7 @@ public class TelegramBotSession {
     
     // A shorthand function for sending a single message in a delayed fashion with an additional stack option that adds the delay
     // to the top of the stack using a timer, instead of measuring the delay from the moment the request is made.
-    func delaySend(by: Int, stack: Bool, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
+    public func delaySend(by: Int, stack: Bool, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
         
         self.delay(by: by, stack: stack, action: { session in
             _ = session.send(message: message, markup: markup, reply: reply, parseMode: parseMode, webPreview: webPreview, disableNtf: disableNtf)
@@ -305,7 +305,7 @@ public class TelegramBotSession {
     }
     
     // Properly calculates a delay to send this dialog based on a pause and the previous dialog length.
-    func delayDialog(pause: Int = 0, dialog: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
+    public func delayDialog(pause: Int = 0, dialog: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
         
         // Work out the average reading time, this uses it's own stack
         let wordCount = lastDialog.components(separatedBy: NSCharacterSet.whitespaces).count
@@ -322,7 +322,7 @@ public class TelegramBotSession {
     }
     
     // Edits the text contents of a message in a delayed fashion.  A last sent message must be available.
-    func delayEdit(by: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
+    public func delayEdit(by: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
         
         if lastSentMessage != nil {
             self.delay(by: by, stack: false, action: { session in
@@ -332,7 +332,7 @@ public class TelegramBotSession {
     }
     
     // Edits the text contents of a message in a delayed fashion, using a message object.
-    func delayEdit(by: Int, message: Message, markup: MarkupType? = nil) {
+    public func delayEdit(by: Int, message: Message, markup: MarkupType? = nil) {
         self.delay(by: by, stack: false, action: { session in
             self.bot.editMessageReplyMarkup(chatID: message.chat.tgID, messageID: message.tgID, replyMarkup: markup, replyMessageID: 0)
         })
@@ -340,7 +340,7 @@ public class TelegramBotSession {
     
     // A shorthand function for editing a single message in a delayed fashion with an additional stack option that adds the delay
     // to the top of the stack using a timer, instead of measuring the delay from the moment the request is made.
-    func delayEdit(by: Int, stack: Bool, message: Message, markup: MarkupType? = nil) {
+    public func delayEdit(by: Int, stack: Bool, message: Message, markup: MarkupType? = nil) {
         
         self.delay(by: by, stack: stack, action: { session in
             self.bot.editMessageReplyMarkup(chatID: message.chat.tgID, messageID: message.tgID, replyMarkup: markup, replyMessageID: 0)
@@ -348,7 +348,7 @@ public class TelegramBotSession {
     }
     
     // Resets the assistive timers
-    func resetTimerAssists() {
+    public func resetTimerAssists() {
         self.plusTimer = 0
         self.lastDialog = ""
     }
@@ -401,7 +401,7 @@ public class TelegramBotSession {
     }
     
     // Im not sure about this, but whatever
-    func removeAction(name: String) {
+    public func removeAction(name: String) {
         for (index, sessionAction) in actionQueue.enumerated() {
             if sessionAction.name == name {
                 actionQueue.remove(at: index)
@@ -410,12 +410,12 @@ public class TelegramBotSession {
     }
     
     // Clears all actions (the bot process will clean it up next tick)
-    func clearActions() {
+    public func clearActions() {
         actionQueue.removeAll()
     }
     
     // Ends the current session
-    func endSession(useAction: Bool = true) {
+    public func endSession(useAction: Bool = true) {
         if self.sessionEndAction != nil {
             self.sessionEndAction!(self)
         }
