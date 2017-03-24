@@ -1,7 +1,7 @@
 # Pelican Alpha
 ## (Vapor 1.5x) Telegram API Wrapper for Swift x Vapor.
 
-Hi 2-3 people that somehow both like Telegram, Swift and Vapor!   This is a Provider that gives your Vapor drop a complete solution for creating and managing Telegram bots.  **It's still a little rough and not everything has been finished, 
+Hi 2-3 people that somehow both like Telegram, Swift and Vapor!   This is a Provider that gives your Vapor drop a complete solution for creating and managing Telegram bots.  **It's still a little rough and not everything has been finished, so be careful**
 
 If you’ve never heard of Telegram (telegram.org) it’s an awesome non-profit, secure messaging service that offers so many cool features that it’s kind of hard to list them all but i’ll try:
 
@@ -20,35 +20,39 @@ Where bots are concerned though, Telegram offers an open and free API system whe
 So, what does Pelican do you ask?
 
 
-**Provides All Bot Types/Methods (Is this a feature?)**
+**Most Bot Types/Methods (Is this a feature?)**
 
-Everything is represented, everything can be databased, and it can also be called on either the session for quick calls or on the bot if you want to do something special
+Nearly everything is represented and what is can be databased.  What isn't available will be coming very soon.
 
 **User Session System**
 
 It handles the act of creating, updating and destroying individual sessions with any number of users.  The criteria for creating a session and the scope of users that can use it are customisable, and it includes Whitelists, Blacklists, Timeouts, Flood Limits and a bunch of other neat things.  Sessions can also be databased for later use if the user wants to stop and you want to free up active sessions.
 
-**Moderately Advanced State System (MASS)**
+Sessions in a later update will also conform to Model so they can be databased, if you want to save bot states and free up live sessions.
 
-Lets you create function states for any kind of response that Telegram receive, as well as quickly block and switch them and schedule delays for method calls and closures on a per-session basis.
+**State and Timer Systems**
 
-**Asynchronous File Uploads and File Caches**
+You can create function states for any kind of response that Telegram receive, as well as quickly clear, block and switch them, plus you can schedule delays for method calls and closures.
 
-Any time you attempt to upload a file from the server, it will always upload in separate threads and pause the session or sessions that are waiting for those files to come through.  Once a file is uploaded, it will save the File ID internally and automatically use that ID instead of re-upload when the file is referenced again later.
+**Asynchronous File Uploads and File Cache System**
+
+Any time you attempt to upload a file from the server, it will always upload in separate threads and pause the session or sessions that are waiting for those files to come through.  Once a file is uploaded, it will save the File ID internally and automatically use that ID instead of re-uploading when the file is referenced again later.
+
+(not all link and upload types are currently supported, and this needs a little more work)
 
 **Maintenance Bot Features (coming soon)**
 
-You can also provide Pelican with a secondary bot token to be used to monitor the bot, check things like active sessions and general activity, perform basic moderation tasks like blacklisting or whitelisting users or chats, as well as receive alerts when abnormal behaviour is detected or if your bot is on fire.
+Soon, you will be able to provide Pelican with a secondary bot token to be used to monitor bot activity and check things like active sessions and general activity, as well as perform basic moderation tasks like blacklisting or whitelisting users or chats and receive alerts when abnormal behaviour is detected or if your bot is on fire.
 
 **Server Monitoring (coming soon)**
 
-Even if you don’t want to make a Telegram bot at all, you can still use this provider as a way to monitor how your servers are doing through Telegram.  Simply hook it up to a bot and you can get stats, perform basic commands and be notified if your server is on fire.
+Even if you don’t want to make a Telegram bot at all, this provider in the future could still be used as a way to monitor how your servers are doing through Telegram.  Simply hook it up to a bot and you can get stats, perform basic commands and be notified if your server is on fire.
 
 
 ### Limitations
-It has just one:
+When finished i'll have just one:
 
 - No Webhook Support
 Sorry, maybe later…
 
-Special thanks to Marvin and my other web developer friends for putting up with my newb questions the last few months.
+Special thanks to Marvin, my other web developer friends and the Vapor Slack group for putting up with my dumb questions over the last few months.
