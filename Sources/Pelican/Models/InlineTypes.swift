@@ -3,15 +3,15 @@ import Foundation
 import Vapor
 
 // Represents an incoming inline query. When the user sends an empty query, your bot could return some default or trending results.
-class InlineQuery: NodeConvertible, JSONConvertible {
-    var id: String // Unique identifier for this query.
-    var from: User // The sender.
-    var query: String // Text of the query (up to 512 characters).
-    var offset: String // Offset of the results to be returned, is bot-controllable.
-    var location: Location? // Sender location, only for bots that request it.
+public class InlineQuery: NodeConvertible, JSONConvertible {
+    public var id: String // Unique identifier for this query.
+    public var from: User // The sender.
+    public var query: String // Text of the query (up to 512 characters).
+    public var offset: String // Offset of the results to be returned, is bot-controllable.
+    public var location: Location? // Sender location, only for bots that request it.
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         id = try node.extract("id")
         
         guard let subUser = node["from"] else { throw TGTypeError.ExtractFailed }
@@ -24,7 +24,7 @@ class InlineQuery: NodeConvertible, JSONConvertible {
             self.location = try .init(node: subLocation, in: context) as Location }
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable] = [
             "id": id,
             "from": from,
@@ -36,14 +36,14 @@ class InlineQuery: NodeConvertible, JSONConvertible {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
 
 /* Represents a result of an inline query that was chosen by the user and sent to their chat partner. */
-struct ChosenInlineResult {
+public struct ChosenInlineResult {
     var id: String // The unique identifier for the result that was chosen.
     var from: User // The user that chose the result.
     var query: String // The query that was used to obtain the result
@@ -86,23 +86,23 @@ struct ChosenInlineResult {
 
 
 // Used for a result/your response of an inline query.
-protocol InlineResult: NodeConvertible, JSONConvertible {
+public protocol InlineResult: NodeConvertible, JSONConvertible {
     
 }
 
-struct InlineResultArticle: InlineResult {
-    var type: String = "article"        // Type of the result being given.
-    var id: String                      // Unique Identifier for the result, 1-64 bytes.
-    var content: InputMessageContent    // Content of the message to be sent.
-    var replyMarkup: MarkupInline?      // Inline keyboard attached to the message
+public struct InlineResultArticle: InlineResult {
+    public var type: String = "article"        // Type of the result being given.
+    public var id: String                      // Unique Identifier for the result, 1-64 bytes.
+    public var content: InputMessageContent    // Content of the message to be sent.
+    public var replyMarkup: MarkupInline?      // Inline keyboard attached to the message
     
-    var title: String                   // TItle of the result.
-    var url: String?                    // URL of the result.
-    var hideUrl: Bool?                  // Set as true if you don't want the URL to be shown in the message.
-    var description: String?            // Short description of the result.
+    public var title: String                   // TItle of the result.
+    public var url: String?                    // URL of the result.
+    public var hideUrl: Bool?                  // Set as true if you don't want the URL to be shown in the message.
+    public var description: String?            // Short description of the result.
     var thumb: InlineThumbnail?         // Inline thumbnail type.
     
-    init(id: String, title: String, message: String, description: String, markup: MarkupInline?) {
+    public init(id: String, title: String, message: String, description: String, markup: MarkupInline?) {
         self.id = id
         self.title = title
         self.content = InputMessageText(text: message, parseMode: "", disableWebPreview: nil)
@@ -110,7 +110,7 @@ struct InlineResultArticle: InlineResult {
         self.description = description
     }
     
-    init(id: String, title: String, description: String, contents: String, markup: MarkupInline?) {
+    public init(id: String, title: String, description: String, contents: String, markup: MarkupInline?) {
         self.id = id
         self.title = title
         self.content = InputMessageText(text: contents, parseMode: "", disableWebPreview: nil)
@@ -119,7 +119,7 @@ struct InlineResultArticle: InlineResult {
     }
     
     // NodeRepresentable conforming methods
-    init(node: Node, in context: Context) throws {
+    public init(node: Node, in context: Context) throws {
         type = try node.extract("type")
         id = try node.extract("id")
         
@@ -138,7 +138,7 @@ struct InlineResultArticle: InlineResult {
     }
     
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable] = [
             "type": type,
             "id": id,
@@ -155,25 +155,25 @@ struct InlineResultArticle: InlineResult {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
     
 }
 
-struct InlineResultContact: InlineResult {
-    var type: String = "contact"        // Type of the result being given.
-    var id: String                      // Unique Identifier for the result, 1-64 bytes.
-    var content: InputMessageContent?   // Content of the message to be sent.
-    var replyMarkup: MarkupInline?      // Inline keyboard attached to the message
+public struct InlineResultContact: InlineResult {
+    public var type: String = "contact"        // Type of the result being given.
+    public var id: String                      // Unique Identifier for the result, 1-64 bytes.
+    public var content: InputMessageContent?   // Content of the message to be sent.
+    public var replyMarkup: MarkupInline?      // Inline keyboard attached to the message
     
-    var phoneNumber: String             // Contact's phone number.
-    var firstName: String               // Contact's first name.
-    var lastName: String?               //  Contact's last name.
+    public var phoneNumber: String             // Contact's phone number.
+    public var firstName: String               // Contact's first name.
+    public var lastName: String?               //  Contact's last name.
     var thumb: InlineThumbnail?         // Inline thumbnail type.
     
     // NodeRepresentable conforming methods
-    init(node: Node, in context: Context) throws {
+    public init(node: Node, in context: Context) throws {
         type = try node.extract("type")
         id = try node.extract("id")
         
@@ -190,7 +190,7 @@ struct InlineResultContact: InlineResult {
         
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable] = [
             "type": type,
             "id": id,
@@ -206,24 +206,24 @@ struct InlineResultContact: InlineResult {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
-struct InlineResultLocation: InlineResult {
+public struct InlineResultLocation: InlineResult {
     var type: String = "location"       // Type of the result being given.
-    var id: String                      // Unique Identifier for the result, 1-64 bytes.
-    var content: InputMessageContent?   // Content of the message to be sent.
-    var replyMarkup: MarkupInline?      // Inline keyboard attached to the message
+    public var id: String                      // Unique Identifier for the result, 1-64 bytes.
+    public var content: InputMessageContent?   // Content of the message to be sent.
+    public var replyMarkup: MarkupInline?      // Inline keyboard attached to the message
     
-    var title: String                   // Location title.
-    var latitude: Float                 // Location latitude in degrees.
-    var longitude: Float                // Location longitude in degrees.
+    public var title: String                   // Location title.
+    public var latitude: Float                 // Location latitude in degrees.
+    public var longitude: Float                // Location longitude in degrees.
     var thumb: InlineThumbnail?         // Inline thumbnail type.
     
     // NodeRepresentable conforming methods
-    init(node: Node, in context: Context) throws {
+    public init(node: Node, in context: Context) throws {
         type = try node.extract("type")
         id = try node.extract("id")
         
@@ -239,7 +239,7 @@ struct InlineResultLocation: InlineResult {
         thumb = try InlineThumbnail(node: node, in: TGContext.response)
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable] = [
             "type": type,
             "id": id,
@@ -255,26 +255,26 @@ struct InlineResultLocation: InlineResult {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
-struct InlineResultVenue: InlineResult {
+public struct InlineResultVenue: InlineResult {
     var type: String = "venue"          // Type of the result being given.
-    var id: String                      // Unique Identifier for the result, 1-64 bytes.
-    var content: InputMessageContent?   // Content of the message to be sent.
-    var replyMarkup: MarkupInline?      // Inline keyboard attached to the message
+    public var id: String                      // Unique Identifier for the result, 1-64 bytes.
+    public var content: InputMessageContent?   // Content of the message to be sent.
+    public var replyMarkup: MarkupInline?      // Inline keyboard attached to the message
     
-    var title: String                   // Location title.
-    var address: String                 // Address of the venue.
-    var latitude: Float                 // Location latitude in degrees.
-    var longitude: Float                // Location longitude in degrees.
-    var foursquareID: String?           // Foursquare identifier of the venue if know.
+    public var title: String                   // Location title.
+    public var address: String                 // Address of the venue.
+    public var latitude: Float                 // Location latitude in degrees.
+    public var longitude: Float                // Location longitude in degrees.
+    public var foursquareID: String?           // Foursquare identifier of the venue if know.
     var thumb: InlineThumbnail?         // Inline thumbnail type.
     
     // NodeRepresentable conforming methods
-    init(node: Node, in context: Context) throws {
+    public init(node: Node, in context: Context) throws {
         type = try node.extract("type")
         id = try node.extract("id")
         
@@ -293,7 +293,7 @@ struct InlineResultVenue: InlineResult {
         
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable] = [
             "type": type,
             "id": id,
@@ -311,19 +311,19 @@ struct InlineResultVenue: InlineResult {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
-struct InlineResultGame: InlineResult {
+public struct InlineResultGame: InlineResult {
     var type: String = "game"           // Type of the result being given.
-    var id: String                      // Unique Identifier for the result, 1-64 bytes.
-    var replyMarkup: MarkupInline?      // Inline keyboard attached to the message
-    var name: String                    // Short name of the game
+    public var id: String                      // Unique Identifier for the result, 1-64 bytes.
+    public var replyMarkup: MarkupInline?      // Inline keyboard attached to the message
+    public var name: String                    // Short name of the game
     
     // NodeRepresentable conforming methods
-    init(node: Node, in context: Context) throws {
+    public init(node: Node, in context: Context) throws {
         type = try node.extract("type")
         id = try node.extract("id")
         replyMarkup = try node.extract("reply_markup")
@@ -331,7 +331,7 @@ struct InlineResultGame: InlineResult {
         
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable] = [
             "type": type,
             "id": id,
@@ -342,7 +342,7 @@ struct InlineResultGame: InlineResult {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
@@ -692,24 +692,24 @@ struct InlineResultVoice: InlineResult {
 */
 
 // Represents the content of a message to be sent as a result of an inline query.
-class InputMessageContent: NodeConvertible, JSONConvertible {
+public class InputMessageContent: NodeConvertible, JSONConvertible {
     
     init() {}
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         return try Node(node:["":0])
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
-class InputMessageText: InputMessageContent {
+public class InputMessageText: InputMessageContent {
     var text: String // Text of the message to be sent.  1-4096 characters.
     var parseMode: String? // Send Markdown or HTML, if you want Telegram apps to show bold, italic, fixed-width text or inline URLs in your bot's message.
     var disableWebPreview: Bool? // Disables link previews for links in the sent message.
@@ -722,14 +722,14 @@ class InputMessageText: InputMessageContent {
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         text = try node.extract("message_text")
         parseMode = try node.extract("parse_mode")
         disableWebPreview = try node.extract("disable_web_page_preview")
         try super.init(node: node, in: context)
     }
     
-    override func makeNode() throws -> Node {
+    public override func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable] = [
             "message_text": text]
         
@@ -739,12 +739,12 @@ class InputMessageText: InputMessageContent {
         return try Node(node: keys)
     }
     
-    override func makeNode(context: Context) throws -> Node {
+    public override func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
-class InputMessageLocation: InputMessageContent {
+public class InputMessageLocation: InputMessageContent {
     var latitude: Float // Latitude of the venue in degrees.
     var longitude: Float // Longitude of the venue in degrees.
     
@@ -755,27 +755,27 @@ class InputMessageLocation: InputMessageContent {
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         latitude = try node.extract("latitude")
         longitude = try node.extract("longitude")
         try super.init(node: node, in: context)
     }
     
-    override func makeNode() throws -> Node {
+    public override func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable] = [
             "latitude": latitude,
             "longitude": longitude]
         return try Node(node: keys)
     }
     
-    override func makeNode(context: Context) throws -> Node {
+   public override func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
 
 
-class InputMessageVenue: InputMessageContent {
+public class InputMessageVenue: InputMessageContent {
     var latitude: Float // Latitude of the venue in degrees.
     var longitude: Float // Longitude of the venue in degrees.
     var title: String // Name of the venue.
@@ -791,7 +791,7 @@ class InputMessageVenue: InputMessageContent {
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         latitude = try node.extract("latitude")
         longitude = try node.extract("longitude")
         title = try node.extract("title")
@@ -800,7 +800,7 @@ class InputMessageVenue: InputMessageContent {
         try super.init(node: node, in: context)
     }
     
-    override func makeNode() throws -> Node {
+    public override func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable] = [
             "latitude": latitude,
             "longitude": longitude,
@@ -811,7 +811,7 @@ class InputMessageVenue: InputMessageContent {
         return try Node(node: keys)
     }
     
-    override func makeNode(context: Context) throws -> Node {
+    public override func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
     
@@ -830,14 +830,14 @@ class InputMessageContact: InputMessageContent {
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         phoneNumber = try node.extract("phone_number")
         firstName = try node.extract("first_name")
         lastName = try node.extract("last_name")
         try super.init(node: node, in: context)
     }
     
-    override func makeNode() throws -> Node {
+    public override func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable] = [
             "phone_number": phoneNumber,
             "first_name": firstName,
@@ -846,7 +846,7 @@ class InputMessageContact: InputMessageContent {
         return try Node(node: keys)
     }
     
-    override func makeNode(context: Context) throws -> Node {
+    public override func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
     

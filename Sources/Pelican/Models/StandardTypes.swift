@@ -9,22 +9,22 @@ enum TGTypeError: String, Error {
 }
 
 // Represents a Telegram bot or user.
-class User: TelegramType {
-    var id: Node? // The type used for the model to identify between database entries
-    var messageTypeName = "user"
+public class User: TelegramType {
+    public var id: Node? // The type used for the model to identify between database entries
+    public var messageTypeName = "user"
     
-    var tgID: Int // Unique identifier for the user or bot
-    var firstName: String // User's or bot's first name
-    var lastName: String? // (Optional) User's or bot's last name
-    var username: String? // (Optional) User's or bot's username
+    public var tgID: Int // Unique identifier for the user or bot
+    public var firstName: String // User's or bot's first name
+    public var lastName: String? // (Optional) User's or bot's last name
+    public var username: String? // (Optional) User's or bot's username
     
-    init(id: Int, firstName: String) {
+    public init(id: Int, firstName: String) {
         self.tgID = id
         self.firstName = firstName
     }
     
     // NodeRepresentable conforming methods to transist to and from storage.
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         
         // Tries to extract depending on what context is being used (I GET IT NOW, CLEVER)
         switch context {
@@ -41,7 +41,7 @@ class User: TelegramType {
         
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable?] = [
             "id": id,
             "user_id" : tgID,
@@ -53,7 +53,7 @@ class User: TelegramType {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         
         switch context {
         case TGContext.response:
@@ -69,7 +69,7 @@ class User: TelegramType {
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
             users.string("user_id")
@@ -79,29 +79,29 @@ class User: TelegramType {
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 }
 
-class Chat: TelegramType {
-    var id: Node? // The type used for the model to identify between database entries
+public class Chat: TelegramType {
+    public var id: Node? // The type used for the model to identify between database entries
     
-    var tgID: Int // Unique identifier for the chat, 52-bit integer when received.
-    var type: String // Type of chat, can be either "private", "group", "supergroup", or "channel".
-    var title: String? // Title, for supergroups, channels and group chats
-    var username: String? // Username, for private chats, supergroups and channels if available.
-    var firstName: String? // First name of the other participant in a private chat
-    var lastName: String? // Last name of the other participant in a private chat
-    var allMembersAdmins: Bool? // True if a group has "All Members Are Admins" enabled.
+    public var tgID: Int // Unique identifier for the chat, 52-bit integer when received.
+    public var type: String // Type of chat, can be either "private", "group", "supergroup", or "channel".
+    public var title: String? // Title, for supergroups, channels and group chats
+    public var username: String? // Username, for private chats, supergroups and channels if available.
+    public var firstName: String? // First name of the other participant in a private chat
+    public var lastName: String? // Last name of the other participant in a private chat
+    public var allMembersAdmins: Bool? // True if a group has "All Members Are Admins" enabled.
     
-    init(id idIn: Int, type typeIn: String) {
+    public init(id idIn: Int, type typeIn: String) {
         tgID = idIn
         type = typeIn
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         
         // Tries to extract depending on what context is being used (I GET IT NOW, CLEVER)
         switch context {
@@ -120,7 +120,7 @@ class Chat: TelegramType {
         allMembersAdmins = try node.extract("all_members_are_admins")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable?] = [
             "id": id,
             "chat_id": tgID,
@@ -133,7 +133,7 @@ class Chat: TelegramType {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         switch context {
         case TGContext.response:
             var node = try self.makeNode()
@@ -147,18 +147,18 @@ class Chat: TelegramType {
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 }
 
-enum MessageType {
+public enum MessageType {
     case audio(Audio)
     case contact(Contact)
     case document(Document)
@@ -172,41 +172,41 @@ enum MessageType {
     case text
 }
 
-class Message: TelegramType {
-    var id: Node? // Unique message identifier for the database
+public class Message: TelegramType {
+    public var id: Node? // Unique message identifier for the database
     
-    var tgID: Int // Unique identifier for the Telegram message.
-    var from: User? // Sender, can be empty for messages sent to channels
-    var date: Int // Date the message was sent, in UNIX time.
-    var chat: Chat // Conversation the message belongs to.
+    public var tgID: Int // Unique identifier for the Telegram message.
+    public var from: User? // Sender, can be empty for messages sent to channels
+    public var date: Int // Date the message was sent, in UNIX time.
+    public var chat: Chat // Conversation the message belongs to.
     
     // Message Metadata
-    var forwardFrom: User? // The sender of the original message, if forwarded
-    var forwardFromChat: Chat? // For messages forwarded from a channel, info about the original channel.
-    var forwardedFromMessageID: Int? // For forwarded channel posts, identifier of the original message.
-    var forwardDate: Int? // For forwarded messages, date of the original message sent in UNIX time.
+    public var forwardFrom: User? // The sender of the original message, if forwarded
+    public var forwardFromChat: Chat? // For messages forwarded from a channel, info about the original channel.
+    public var forwardedFromMessageID: Int? // For forwarded channel posts, identifier of the original message.
+    public var forwardDate: Int? // For forwarded messages, date of the original message sent in UNIX time.
     
-    var replyToMessage: Message? // For replies, the original message.  Note that this object will not contain further fields of this type.
-    var editDate: Int? // Date the message was last edited in UNIX time.
+    public var replyToMessage: Message? // For replies, the original message.  Note that this object will not contain further fields of this type.
+    public var editDate: Int? // Date the message was last edited in UNIX time.
     
     // Message Body
-    var type: MessageType // The type of the message, can be anything that matches the protocol
-    var text: String?
-    var entities: [MessageEntity]? // For text messages, special entities like usernames that appear in the text.
-    var caption: String? // Caption for the document, photo or video, 0-200 characters.
+    public var type: MessageType // The type of the message, can be anything that matches the protocol
+    public var text: String?
+    public var entities: [MessageEntity]? // For text messages, special entities like usernames that appear in the text.
+    public var caption: String? // Caption for the document, photo or video, 0-200 characters.
     
     // Status Message Info
-    var newChatMember: User?                // A status message specifying information about a new user added to the group.
-    var leftChatMember: User?               // A status message specifying information about a user who left the group.
-    var newChatTitle: String?               // A status message specifying the new title for the chat.
-    var newChatPhoto: [PhotoSize]?          // A status message showing the new chat photo.
-    var deleteChatPhoto: Bool = false       // Service Message: the chat photo was deleted.
-    var groupChatCreated: Bool = false      // Service Message: the group has been created.
-    var supergroupChatCreated: Bool = false // I dont get this field...
-    var channelChatCreated: Bool = false    // I DONT GET THIS EITHER
-    var migrateToChatID: Int?               // The group has been migrated to a supergroup with the specified identifier.  This can be greater than 32-bits so you have been warned...
-    var migrateFromChatID: Int?             // The supergroup has been migrated from a group with the specified identifier.
-    var pinnedMessage: Message?             // Specified message was pinned?
+    public var newChatMember: User?                // A status message specifying information about a new user added to the group.
+    public var leftChatMember: User?               // A status message specifying information about a user who left the group.
+    public var newChatTitle: String?               // A status message specifying the new title for the chat.
+    public var newChatPhoto: [PhotoSize]?          // A status message showing the new chat public photo.
+    public var deleteChatPhoto: Bool = false       // Service Message: the chat photo was deleted.
+    public var groupChatCreated: Bool = false      // Service Message: the group has been created.
+    public var supergroupChatCreated: Bool = false // I dont get this field...
+    public var channelChatCreated: Bool = false    // I DONT GET THIS EITHER
+    public var migrateToChatID: Int?               // The group has been migrated to a supergroup with the specified identifier.  This can be greater than 32-bits so you have been warned...
+    public var migrateFromChatID: Int?             // The supergroup has been migrated from a group with the specified identifier.
+    public var pinnedMessage: Message?             // Specified message was pinned?
     
     init(id: Int, date: Int, chat:Chat) {
         self.tgID = id
@@ -217,7 +217,7 @@ class Message: TelegramType {
  
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         // Tries to extract depending on what context is being used (I GET IT NOW, CLEVER)
         switch context {
         case TGContext.response:
@@ -310,7 +310,7 @@ class Message: TelegramType {
         }
     }
  
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable?] = [:]
         keys["id"] = id
         keys["message_id"] = tgID
@@ -345,7 +345,7 @@ class Message: TelegramType {
         return try Node(node: keys)
     }
  
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         switch context {
         case TGContext.response:
             var node = try self.makeNode()
@@ -359,34 +359,34 @@ class Message: TelegramType {
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 }
 
 
 // Represents one special entity in a text message, such as a hashtag, username or URL.
-class MessageEntity: NodeConvertible, JSONConvertible {
-    var type: String // Type of the entity.  Can be a mention, hashtag, bot command, URL, email, special text formatting or a text mention.
-    var offset: Int // Offset in UTF-16 code units to the start of the entity.
-    var length: Int // Length of the entity in UTF-16 code units.
-    var url: String? // For text links only, will be opened when the user taps on it.
-    var user: User? // For text mentions only, the mentioned user.
+public class MessageEntity: NodeConvertible, JSONConvertible {
+    public var type: String // Type of the entity.  Can be a mention, hashtag, bot command, URL, email, special text formatting or a text mention.
+    public var offset: Int // Offset in UTF-16 code units to the start of the entity.
+    public var length: Int // Length of the entity in UTF-16 code units.
+    public var url: String? // For text links only, will be opened when the user taps on it.
+    public var user: User? // For text mentions only, the mentioned user.
     
-    init(type: String, offset: Int, length: Int) {
+    public init(type: String, offset: Int, length: Int) {
         self.type = type
         self.offset = offset
         self.length = length
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         type = try node.extract("type")
         offset = try node.extract("offset")
         length = try node.extract("length")
@@ -394,7 +394,7 @@ class MessageEntity: NodeConvertible, JSONConvertible {
         user = try node.extract("user")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable?] = [
             "type": type,
             "offset": offset,
@@ -406,26 +406,26 @@ class MessageEntity: NodeConvertible, JSONConvertible {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
 
 // This doesn't belong to any Telegram type, just a convenience class for enclosing PhotoSize
-class Photo: TelegramType, SendType {
-    var id: Node?
+public class Photo: TelegramType, SendType {
+    public var id: Node?
     
     var messageTypeName: String = "photo" // MessageType conforming variable for Message class filtering.
-    var method: String = "/sendPhoto" // SendType conforming variable for use when sent
-    var photos: [PhotoSize] = []
+    public var method: String = "/sendPhoto" // SendType conforming variable for use when sent
+    public var photos: [PhotoSize] = []
     
-    init(photos: [PhotoSize]) {
+    public init(photos: [PhotoSize]) {
         self.photos = photos
     }
     
     // SendType conforming methods
-    func getQuery() -> [String:CustomStringConvertible] {
+    public func getQuery() -> [String:CustomStringConvertible] {
         let keys: [String:CustomStringConvertible] = [
             "photo": photos[0].fileID]
         
@@ -433,7 +433,7 @@ class Photo: TelegramType, SendType {
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         switch context {
         case TGContext.response:
             let array = node.nodeArray!
@@ -448,7 +448,7 @@ class Photo: TelegramType, SendType {
         
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable?] = [
             "id": id,
             "photos": try photos.makeNode()]
@@ -456,18 +456,18 @@ class Photo: TelegramType, SendType {
         return try Node(node:keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 }
@@ -475,22 +475,22 @@ class Photo: TelegramType, SendType {
 
 
 /// THERES A PROBLEM HERE
-class PhotoSize: TelegramType {
-    var id: Node?
+public class PhotoSize: TelegramType {
+    public var id: Node?
     
-    var fileID: String // Unique identifier for this file.
-    var width: Int // Photo width
-    var height: Int // Photo height
-    var fileSize: Int? // File size
+    public var fileID: String // Unique identifier for this file.
+    public var width: Int // Photo width
+    public var height: Int // Photo height
+    public var fileSize: Int? // File size
     
-    init(fileID: String, width: Int, height: Int) {
+    public init(fileID: String, width: Int, height: Int) {
         self.fileID = fileID
         self.width = width
         self.height = height
     }
 
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         id = try node.extract("id")
         fileID = try node.extract("file_id")
         width = try node.extract("width")
@@ -498,7 +498,7 @@ class PhotoSize: TelegramType {
         fileSize = try node.extract("file_size")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable?] = [
             "id": id,
             //"file_id": fileID,
@@ -509,7 +509,7 @@ class PhotoSize: TelegramType {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         switch context {
         case TGContext.response:
             var node = try self.makeNode()
@@ -522,37 +522,37 @@ class PhotoSize: TelegramType {
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 }
 
 
-class Audio: TelegramType, SendType {
-    var id: Node?
+public class Audio: TelegramType, SendType {
+    public var id: Node?
     var messageTypeName: String = "audio" // MessageType conforming variable for Message class filtering.
-    var method: String = "/sendAudio" // SendType conforming variable for use when sent
+    public var method: String = "/sendAudio" // SendType conforming variable for use when sent
     
-    var fileID: String // Unique identifier for the file
-    var duration: Int // Duration of the audio in seconds as defined by the sender
-    var performer: String? // Performer of the audio as defined by the sender or by audio tags
-    var title: String? // Title of the audio as defined by the sender or by audio tags.
-    var mimeType: String? // MIME type of the file as defined by the sender.
-    var fileSize: Int? // File size.
+    public var fileID: String // Unique identifier for the file
+    public var duration: Int // Duration of the audio in seconds as defined by the sender
+    public var performer: String? // Performer of the audio as defined by the sender or by audio tags
+    public var title: String? // Title of the audio as defined by the sender or by audio tags.
+    public var mimeType: String? // MIME type of the file as defined by the sender.
+    public var fileSize: Int? // File size.
     
-    init(fileID: String, duration: Int = 0) {
+    public init(fileID: String, duration: Int = 0) {
         self.fileID = fileID
         self.duration = duration
     }
     
     // SendType conforming methods
-    func getQuery() -> [String:CustomStringConvertible] {
+    public func getQuery() -> [String:CustomStringConvertible] {
         var keys: [String:CustomStringConvertible] = [
             "audio": fileID]
         
@@ -564,7 +564,7 @@ class Audio: TelegramType, SendType {
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         id = try node.extract("id")
         fileID = try node.extract("file_id")
         duration = try node.extract("duration")
@@ -574,7 +574,7 @@ class Audio: TelegramType, SendType {
         fileSize = try node.extract("file_size")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable?] = [
             "id": id,
             "file_id": fileID,
@@ -587,7 +587,7 @@ class Audio: TelegramType, SendType {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         switch context {
         case TGContext.response:
             var node = try self.makeNode()
@@ -600,35 +600,35 @@ class Audio: TelegramType, SendType {
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 
 }
 
-class Document: TelegramType, SendType {
-    var id: Node?
+public class Document: TelegramType, SendType {
+    public var id: Node?
     var messageTypeName: String = "document" // MessageType conforming variable for Message class filtering.
-    var method: String = "/sendDocument" // SendType conforming variable for use when sent
+    public var method: String = "/sendDocument" // SendType conforming variable for use when sent
     
-    var fileID: String // Unique file identifier.
-    var thumb: PhotoSize? // Document thumbnail as defined by the sender.
-    var fileName: String? // Original filename as defined by the sender.
-    var mimeType: String? // MIME type of the file as defined by the sender.
-    var fileSize: String? // File size.
+    public var fileID: String // Unique file identifier.
+    public var thumb: PhotoSize? // Document thumbnail as defined by the sender.
+    public var fileName: String? // Original filename as defined by the sender.
+    public var mimeType: String? // MIME type of the file as defined by the sender.
+    public var fileSize: String? // File size.
     
-    init(fileID: String) {
+    public init(fileID: String) {
         self.fileID = fileID
     }
     
     // SendType conforming methods
-    func getQuery() -> [String:CustomStringConvertible] {
+    public func getQuery() -> [String:CustomStringConvertible] {
         let keys: [String:CustomStringConvertible] = [
             "document": fileID]
         
@@ -636,7 +636,7 @@ class Document: TelegramType, SendType {
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         id = try node.extract("id")
         fileID = try node.extract("file_id")
         thumb = try node.extract("thumb")
@@ -645,7 +645,7 @@ class Document: TelegramType, SendType {
         fileSize = try node.extract("file_size")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable?] = [
             "id": id,
             "file_id": fileID,
@@ -657,7 +657,7 @@ class Document: TelegramType, SendType {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         switch context {
         case TGContext.response:
             var node = try self.makeNode()
@@ -670,38 +670,38 @@ class Document: TelegramType, SendType {
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 
 }
 
-class Sticker: TelegramType, SendType {
-    var id: Node?
+public class Sticker: TelegramType, SendType {
+    public var id: Node?
     var messageTypeName: String = "sticker" // MessageType conforming variable for Message class filtering.
-    var method: String = "/sendSticker" // SendType conforming variable for use when sent
+    public var method: String = "/sendSticker" // SendType conforming variable for use when sent
     
-    var fileID: String // Unique file identifier
-    var width: Int
-    var height: Int
-    var thumb: PhotoSize? // Sticker thumbnail in .webp or .jpg format.
-    var emoji: String? // Emoji associated with the sticker.
-    var fileSize: Int?
+    public var fileID: String // Unique file identifier
+    public var width: Int
+    public var height: Int
+    public var thumb: PhotoSize? // Sticker thumbnail in .webp or .jpg format.
+    public var emoji: String? // Emoji associated with the sticker.
+    public var fileSize: Int?
     
-    init(fileID: String, width: Int, height: Int) {
+    public init(fileID: String, width: Int, height: Int) {
         self.fileID = fileID
         self.width = width
         self.height = height
     }
     
     // SendType conforming methods to send itself to Telegram under the provided method.
-    func getQuery() -> [String:CustomStringConvertible] {
+    public func getQuery() -> [String:CustomStringConvertible] {
         let keys: [String:CustomStringConvertible] = [
             "file_id": fileID]
         
@@ -710,7 +710,7 @@ class Sticker: TelegramType, SendType {
     
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         fileID = try node.extract("file_id")
         width = try node.extract("width")
         height = try node.extract("height")
@@ -719,7 +719,7 @@ class Sticker: TelegramType, SendType {
         fileSize = try node.extract("file_size")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable?] = [
             "id": id,
             "file_id": fileID,
@@ -733,7 +733,7 @@ class Sticker: TelegramType, SendType {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         switch context {
         case TGContext.response:
             var node = try self.makeNode()
@@ -746,31 +746,31 @@ class Sticker: TelegramType, SendType {
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 }
 
-class Video: TelegramType, SendType {
-    var id: Node?
+public class Video: TelegramType, SendType {
+    public var id: Node?
     var messageTypeName: String = "video" // MessageType conforming variable for Message class filtering.
-    var method: String = "/sendVideo" // SendType conforming variable for use when sent
+    public var method: String = "/sendVideo" // SendType conforming variable for use when sent
     
-    var fileID: String
-    var width: Int
-    var height: Int
-    var duration: Int
-    var thumb: PhotoSize?
-    var mimeType: String?
-    var fileSize: Int?
+    public var fileID: String
+    public var width: Int
+    public var height: Int
+    public var duration: Int
+    public var thumb: PhotoSize?
+    public var mimeType: String?
+    public var fileSize: Int?
     
-    init(fileID: String, width: Int, height: Int, duration: Int) {
+    public init(fileID: String, width: Int, height: Int, duration: Int) {
         self.fileID = fileID
         self.width = width
         self.height = height
@@ -779,7 +779,7 @@ class Video: TelegramType, SendType {
     
     
     // SendType conforming methods to send itself to Telegram under the provided method.
-    func getQuery() -> [String:CustomStringConvertible] {
+    public func getQuery() -> [String:CustomStringConvertible] {
         var keys: [String:CustomStringConvertible] = [
             "video": fileID]
         
@@ -791,7 +791,7 @@ class Video: TelegramType, SendType {
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         id = try node.extract("id")
         fileID = try node.extract("file_id")
         width = try node.extract("width")
@@ -802,7 +802,7 @@ class Video: TelegramType, SendType {
         fileSize = try node.extract("file_size")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable?] = [
             "id": id,
             "file_id": fileID,
@@ -816,7 +816,7 @@ class Video: TelegramType, SendType {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         switch context {
         case TGContext.response:
             var node = try self.makeNode()
@@ -829,34 +829,34 @@ class Video: TelegramType, SendType {
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 }
 
-class Voice: TelegramType, SendType {
-    var id: Node?
+public class Voice: TelegramType, SendType {
+    public var id: Node?
     var messageTypeName: String = "voice" // MessageType conforming variable for Message class filtering.
-    var method: String = "/sendVoice" // SendType conforming variable for use when sent
+    public var method: String = "/sendVoice" // SendType conforming variable for use when sent
     
-    var fileID: String
-    var duration: Int
-    var mimeType: String?
-    var fileSize: Int?
+    public var fileID: String
+    public var duration: Int
+    public var mimeType: String?
+    public var fileSize: Int?
     
-    init(fileID: String, duration: Int) {
+    public init(fileID: String, duration: Int) {
         self.fileID = fileID
         self.duration = duration
     }
     
     // SendType conforming methods to send itself to Telegram under the provided method.
-    func getQuery() -> [String:CustomStringConvertible] {
+    public func getQuery() -> [String:CustomStringConvertible] {
         var keys: [String:CustomStringConvertible] = [
             "voice": fileID]
         
@@ -866,7 +866,7 @@ class Voice: TelegramType, SendType {
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         id = try node.extract("id")
         fileID = try node.extract("file_id")
         duration = try node.extract("duration")
@@ -874,7 +874,7 @@ class Voice: TelegramType, SendType {
         fileSize = try node.extract("file_size")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable?] = [
             "id": id,
             "file_id": fileID,
@@ -885,7 +885,7 @@ class Voice: TelegramType, SendType {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         switch context {
         case TGContext.response:
             var node = try self.makeNode()
@@ -898,34 +898,34 @@ class Voice: TelegramType, SendType {
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 }
 
-class Contact: TelegramType, SendType {
-    var id: Node?
+public class Contact: TelegramType, SendType {
+    public var id: Node?
     var messageTypeName: String = "contact" // MessageType conforming variable for Message class filtering.
-    var method: String = "/sendContact" // SendType conforming variable for use when sent
+    public var method: String = "/sendContact" // SendType conforming variable for use when sent
     
-    var phoneNumber: String
-    var firstName: String
-    var lastName: String?
-    var userID: Int?
+    public var phoneNumber: String
+    public var firstName: String
+    public var lastName: String?
+    public var userID: Int?
     
-    init(phoneNumber: String, firstName: String) {
+    public init(phoneNumber: String, firstName: String) {
         self.phoneNumber = phoneNumber
         self.firstName = firstName
     }
     
     // SendType conforming methods to send itself to Telegram under the provided method.
-    func getQuery() -> [String:CustomStringConvertible] {
+    public func getQuery() -> [String:CustomStringConvertible] {
         var keys: [String:CustomStringConvertible] = [
             "phone_number": phoneNumber,
             "first_name": firstName
@@ -937,7 +937,7 @@ class Contact: TelegramType, SendType {
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         id = try node.extract("id")
         phoneNumber = try node.extract("phone_number")
         firstName = try node.extract("first_name")
@@ -945,7 +945,7 @@ class Contact: TelegramType, SendType {
         userID = try node.extract("user_id")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable?] = [
             "id": id,
             "phone_number": phoneNumber,
@@ -957,7 +957,7 @@ class Contact: TelegramType, SendType {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         switch context {
         case TGContext.response:
             var node = try self.makeNode()
@@ -970,32 +970,32 @@ class Contact: TelegramType, SendType {
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 }
 
-class Location: NodeConvertible, JSONConvertible, SendType {
-    var id: Node?
+public class Location: NodeConvertible, JSONConvertible, SendType {
+    public var id: Node?
     var messageTypeName: String = "location" // MessageType conforming variable for Message class filtering.
-    var method: String = "/sendLocation" // SendType conforming variable for use when sent
+    public var method: String = "/sendLocation" // SendType conforming variable for use when sent
     
-    var latitude: Float
-    var longitude: Float
+    public var latitude: Float
+    public var longitude: Float
     
-    init(latitude: Float, longitude: Float) {
+    public init(latitude: Float, longitude: Float) {
         self.latitude = latitude
         self.longitude = longitude
     }
     
     // SendType conforming methods to send itself to Telegram under the provided method.
-    func getQuery() -> [String:CustomStringConvertible] {
+    public func getQuery() -> [String:CustomStringConvertible] {
         let keys: [String:CustomStringConvertible] = [
             "longitude": longitude,
             "latitude": latitude]
@@ -1004,12 +1004,12 @@ class Location: NodeConvertible, JSONConvertible, SendType {
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         latitude = try node.extract("latitude")
         longitude = try node.extract("longitude")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable?] = [
             "id": id,
             "latitude": latitude,
@@ -1019,7 +1019,7 @@ class Location: NodeConvertible, JSONConvertible, SendType {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         switch context {
         case TGContext.response:
             var node = try self.makeNode()
@@ -1032,36 +1032,36 @@ class Location: NodeConvertible, JSONConvertible, SendType {
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 
 }
 
-class Venue: TelegramType, SendType {
-    var id: Node?
+public class Venue: TelegramType, SendType {
+    public var id: Node?
     var messageTypeName: String = "venue" // MessageType conforming variable for Message class filtering.
-    var method: String = "/sendVenue" // SendType conforming variable for use when sent
+    public var method: String = "/sendVenue" // SendType conforming variable for use when sent
     
-    var location: Location
-    var title: String
-    var address: String
-    var foursquareID: String?
+    public var location: Location
+    public var title: String
+    public var address: String
+    public var foursquareID: String?
     
-    init(location: Location, title: String, address: String) {
+    public init(location: Location, title: String, address: String) {
         self.location = location
         self.title = title
         self.address = address
     }
     
     // SendType conforming methods to send itself to Telegram under the provided method.
-    func getQuery() -> [String:CustomStringConvertible] {
+    public func getQuery() -> [String:CustomStringConvertible] {
         var keys: [String:CustomStringConvertible] = [
             "latitude": location.latitude,
             "longitude": location.longitude,
@@ -1074,7 +1074,7 @@ class Venue: TelegramType, SendType {
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         id = try node.extract("id")
         location = try node.extract("location")
         title = try node.extract("title")
@@ -1082,7 +1082,7 @@ class Venue: TelegramType, SendType {
         foursquareID = try node.extract("foursquare_id")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable?] = [
             "id": id,
             "location": location,
@@ -1094,7 +1094,7 @@ class Venue: TelegramType, SendType {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         switch context {
         case TGContext.response:
             var node = try self.makeNode()
@@ -1107,22 +1107,22 @@ class Venue: TelegramType, SendType {
     }
     
     // Preparation conforming methods, for creating and deleting a database.
-    static func prepare(_ database: Database) throws {
+    public static func prepare(_ database: Database) throws {
         try database.create("users") { users in
             users.id()
         }
     }
     
-    static func revert(_ database: Database) throws {
+    public static func revert(_ database: Database) throws {
         try database.delete("users")
     }
 }
 
-class UserProfilePhotos: NodeConvertible, JSONConvertible {
-    var totalCount: Int
-    var photos: [[PhotoSize]] = []
+public class UserProfilePhotos: NodeConvertible, JSONConvertible {
+    public var totalCount: Int
+    public var photos: [[PhotoSize]] = []
     
-    init(photoSets: [PhotoSize]...) {
+    public init(photoSets: [PhotoSize]...) {
         for photo in photoSets {
             photos.append(photo)
         }
@@ -1131,19 +1131,19 @@ class UserProfilePhotos: NodeConvertible, JSONConvertible {
     
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         totalCount = try node.extract("total_count")
         
         /// FIX ME SENPAI
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         return try Node(node: [
             "total_count": totalCount
         ])
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
@@ -1201,23 +1201,23 @@ This object represents an incoming callback query from a callback button in an i
 If the button that originated the query was attached to a message sent by the bot, the field message will be present. If the button was attached to a message sent via the bot (in inline mode), the field inline_message_id will be present. Exactly one of the fields data or game_short_name will be present.
  */
 
-class CallbackQuery: NodeConvertible, JSONConvertible {
-    var id: String // Unique identifier for the query.
-    var from: User // The sender of the query.
-    var message: Message? // message with the callback button that originated from the query.  Won't be available if it's too old.
-    var inlineMessageID: String? // Identifier of the message sent via the bot in inline mode that originated the query.
-    var chatInstance: String? // Global identifier, uniquely corresponding to the chat to which the message with the callback button was sent.  Useful for high scores in games.
-    var data: String? // Data associated with the callback button.  Be aware that a bad client can send arbitrary data here.
-    var gameShortName: String? // Short name of a Game to be returned, serves as the unique identifier for the game.
+public class CallbackQuery: NodeConvertible, JSONConvertible {
+    public var id: String // Unique identifier for the query.
+    public var from: User // The sender of the query.
+    public var message: Message? // message with the callback button that originated from the query.  Won't be available if it's too old.
+    public var inlineMessageID: String? // Identifier of the message sent via the bot in inline mode that originated the query.
+    public var chatInstance: String? // Global identifier, uniquely corresponding to the chat to which the message with the callback button was sent.  Useful for high scores in games.
+    public var data: String? // Data associated with the callback button.  Be aware that a bad client can send arbitrary data here.
+    public var gameShortName: String? // Short name of a Game to be returned, serves as the unique identifier for the game.
     
     
-    init(id: String, from: User) {
+    public init(id: String, from: User) {
         self.id = id
         self.from = from
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         id = try node.extract("id")
         
         guard let subFrom = node["from"] else { throw TGTypeError.ExtractFailed }
@@ -1232,7 +1232,7 @@ class CallbackQuery: NodeConvertible, JSONConvertible {
         gameShortName = try node.extract("game_short_name")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable] = [
             "id": id,
             "from": from
@@ -1246,30 +1246,30 @@ class CallbackQuery: NodeConvertible, JSONConvertible {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
 
 // Status of a chat member, in a group.
-enum ChatMemberStatus: String {
+public enum ChatMemberStatus: String {
     case creator = "creator", administrator, member, left, kicked
 }
 
 // Contains information about one member of the chat.
-class ChatMember: NodeConvertible, JSONConvertible {
-    var user: User
-    var status: ChatMemberStatus // The member's status in the chat. Can be “creator”, “administrator”, “member”, “left” or “kicked”.
+public class ChatMember: NodeConvertible, JSONConvertible {
+    public var user: User
+    public var status: ChatMemberStatus // The member's status in the chat. Can be “creator”, “administrator”, “member”, “left” or “kicked”.
     
-    init(user: User, status: ChatMemberStatus) {
+    public init(user: User, status: ChatMemberStatus) {
         self.user = user
         self.status = status
     }
     
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         user = try node.extract("user")
         let text = try node.extract("status").string
         switch text {
@@ -1288,34 +1288,34 @@ class ChatMember: NodeConvertible, JSONConvertible {
         }
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         return try Node(node: [
             "user": user,
             "status": status.rawValue
         ])
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
 // Contains information about why a request was unsuccessfull.
-class ResponseParameters: NodeConvertible, JSONConvertible {
-    var migrateToChatID: Int? // ???
-    var retryAfter: Int? // ???
+public class ResponseParameters: NodeConvertible, JSONConvertible {
+    public var migrateToChatID: Int? // ???
+    public var retryAfter: Int? // ???
     
-    init(retryAfter: Int) {
+    public init(retryAfter: Int) {
         self.retryAfter = retryAfter
     }
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         migrateToChatID = try node.extract("migrate_to_chat_id")
         retryAfter = try node.extract("retry_after")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable] = [:]
         
         if migrateToChatID != nil { keys["migrate_to_chat_id"] = migrateToChatID }
@@ -1323,7 +1323,7 @@ class ResponseParameters: NodeConvertible, JSONConvertible {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }

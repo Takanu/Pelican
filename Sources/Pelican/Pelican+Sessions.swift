@@ -4,7 +4,7 @@ import Vapor
 
 // Holds the information for a bot session, when someone is immediately interacting with the bot
 // Ignore this if you want?  What am i, a doctor?
-class TelegramBotSession {
+public class TelegramBotSession {
     var id: Node?           // Database ID
     var bot: Pelican        // The bot associated with this session
     var chat: Chat          // The chat ID associated with the session.
@@ -457,7 +457,7 @@ class TelegramBotSessionAction {
 }
 
 // Used for creating groups of flood settings and keeping track of them.
-struct FloodLimit {
+public struct FloodLimit {
     private var floodLimit: Int = 0 // The number of messages it will accept before getting concerned.
     private var floodRange: Int = 0 // The time-frame that the flood limit and count applies to.
     private var floodCount: Int = 0 // The number of messages sent in the current window.
@@ -470,7 +470,7 @@ struct FloodLimit {
     private var breachResetStart: Int = 0 // The starting time that the reset applies to.
     
     // Initialises the flood limit type with a few settings
-    init(limit: Int, range: Int, breachLimit: Int, breachReset: Int) {
+    public init(limit: Int, range: Int, breachLimit: Int, breachReset: Int) {
         self.floodLimit = limit
         self.floodRange = range
         self.breachLimit = breachLimit
@@ -478,7 +478,7 @@ struct FloodLimit {
     }
     
     // Initialises it from another flood limit
-    init(clone: FloodLimit, withTime: Bool = false) {
+    public init(clone: FloodLimit, withTime: Bool = false) {
         self.floodLimit = clone.floodLimit
         self.floodRange = clone.floodRange
         self.breachLimit = clone.breachLimit
@@ -492,7 +492,7 @@ struct FloodLimit {
     }
     
     // Increments the flood count, and returns whether or not this increment breached the flood limit.
-    mutating func bump(globalTime: Int) -> Bool {
+    public mutating func bump(globalTime: Int) -> Bool {
         floodCount += 1
         
         // If we've hit the flood limit, increment the limit hits and set the flood and breach timers

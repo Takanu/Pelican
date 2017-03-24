@@ -42,7 +42,7 @@ private class UpdateQueue {
 }
 
 // Defined the kind of action you wish a chat action to specify.
-enum ChatAction: String {
+public enum ChatAction: String {
     case typing = "typing"
     case photo = "upload_photo"
     case uploadVideo = "upload_video"
@@ -71,18 +71,18 @@ private enum TGUpdateError: String, Error {
     case BadUpdate = "The message received from Telegram was malformed or unable to be processed by this bot."
 }
 
-enum TGUpdateType: String {
+public enum TGUpdateType: String {
     case message, edited_message, channel_post, edited_channel_post, inline_query, chosen_inline_result, callback_query
 }
 
 // Used to switch between node build types in
-enum TGContext: Context {
+public enum TGContext: Context {
     case response
     case db
 }
 
 // Holds the received updates in a set of sorted arrays.
-struct TelegramUpdateSet {
+public struct TelegramUpdateSet {
     var messages: [Message] = []
     var editedMessages: [Message] = []
     var channelPosts: [Message] = []
@@ -107,13 +107,13 @@ public final class Pelican: Vapor.Provider {
     private var customData: NSCopying?      // Defines an object to be used for custom data.
     
     // Variables used for long polling
-    var offset: Int = 0
-    var limit: Int = 100
-    var timeout: Int = 0
-    var allowedUpdates: [TGUpdateType] = []     // Leave empty if all are allowed, otherwise specify.
-    var ignoreInitialUpdates: Bool = true       // If the bot has just started, it will ignore all received messages since it has been offline.
+    public var offset: Int = 0
+    public var limit: Int = 100
+    public var timeout: Int = 0
+    public var allowedUpdates: [TGUpdateType] = []     // Leave empty if all are allowed, otherwise specify.
+    public var ignoreInitialUpdates: Bool = true       // If the bot has just started, it will ignore all received messages since it has been offline.
     private var started: Bool = false
-    var hasStarted: Bool { return started }
+    public var hasStarted: Bool { return started }
     
     // Timers
     fileprivate var updateQueue: UpdateQueue?
@@ -122,35 +122,35 @@ public final class Pelican: Vapor.Provider {
     var globalTimer: Int = 0        // Used for executing scheduled events.
     
     // Connection settings
-    var maxRequestAttempts: Int = 0 // The maximum number of times the bot will attempt to get a response before it logs an error.
+    public var maxRequestAttempts: Int = 0 // The maximum number of times the bot will attempt to get a response before it logs an error.
     
     // Sessions
     private var sessions: [Int:TelegramBotSession] = [:]        // The currently active sessions, ordered by how recently it was interacted with (longer = smaller index).
     private var sessionActivity: [TelegramBotSession] = []      // Records when a session was last used, to keep track of when sessions need to be closed.
     private var sessionsEvents: [Int:TelegramBotSession] = [:]  // Used for keeping track of sessions that have events.
     
-    var maxSessions: Int = 0                            // The maximum number of sessions the bot will support before it stops people from using it.  Leave at 0 for no limit.
-    var maxSessionsAction: ((Pelican, Chat) -> ())? // Define an action if desired to perform when someone tries this way
-    var defaultMaxSessionTime: Int = 0                  // The maximum amount of time in seconds that a session should last for.
+    public var maxSessions: Int = 0                            // The maximum number of sessions the bot will support before it stops people from using it.  Leave at 0 for no limit.
+    public var maxSessionsAction: ((Pelican, Chat) -> ())? // Define an action if desired to perform when someone tries this way
+    public var defaultMaxSessionTime: Int = 0                  // The maximum amount of time in seconds that a session should last for.
     
-    var sessionSetupAction: ((TelegramBotSession) -> ())?  // What happens when the session begins,
-    var sessionEndAction: ((TelegramBotSession) -> ())?  // What should be run when the session ends.  Could be nothing!
+    public var sessionSetupAction: ((TelegramBotSession) -> ())?  // What happens when the session begins,
+    public var sessionEndAction: ((TelegramBotSession) -> ())?  // What should be run when the session ends.  Could be nothing!
     
     // Flood Limit
-    var floodLimit: FloodLimit = FloodLimit(limit: 250, range: 300, breachLimit: 2, breachReset: 500)  // Settings that define flood limit restrictions for each session
-    var floodLimitWarning: ((TelegramBotSession) -> ())? // An optional warning to send to people the first time they hit the flood warning.
+    public var floodLimit: FloodLimit = FloodLimit(limit: 250, range: 300, breachLimit: 2, breachReset: 500)  // Settings that define flood limit restrictions for each session
+    public var floodLimitWarning: ((TelegramBotSession) -> ())? // An optional warning to send to people the first time they hit the flood warning.
     
     // Response Settings
-    var responseLimit: Int = 0  // The number of times a session will respond to a message in a given poll interval before ignoring them.  Set as 0 for no limit.
-    var restrictUsers: Bool = false // Restricts the users that can use a session to only those specified in the session list if true.
+    public var responseLimit: Int = 0  // The number of times a session will respond to a message in a given poll interval before ignoring them.  Set as 0 for no limit.
+    public var restrictUsers: Bool = false // Restricts the users that can use a session to only those specified in the session list if true.
     
     // Blacklist
-    var userBlacklist: [User] = []
-    var userWhitelist: [User] = []
-    var whitelistWarningAction: ((Pelican, Chat) -> ())? // Define an action if someone not on the whitelist messages it.
-    var blacklistPrepareAction: ((Pelican, Chat) -> ())? // Define an action if someone enters the blacklist.
-    var chatWhitelist: [Chat] = [] // Used for testing or small betas, where you'd only like the beta to occur for a specific chat or chats.
-    var chatBlacklist: [Chat] = [] // Used to block a chat if no user data is available.
+    public var userBlacklist: [User] = []
+    public var userWhitelist: [User] = []
+    public var whitelistWarningAction: ((Pelican, Chat) -> ())? // Define an action if someone not on the whitelist messages it.
+    public var blacklistPrepareAction: ((Pelican, Chat) -> ())? // Define an action if someone enters the blacklist.
+    public var chatWhitelist: [Chat] = [] // Used for testing or small betas, where you'd only like the beta to occur for a specific chat or chats.
+    public var chatBlacklist: [Chat] = [] // Used to block a chat if no user data is available.
     
     
     
@@ -201,11 +201,11 @@ public final class Pelican: Vapor.Provider {
     
     
     
-    func setCustomData(_ data: NSCopying) {
+    public func setCustomData(_ data: NSCopying) {
         self.customData = data.copy(with: nil) as? NSCopying
     }
     
-    func setPoll(interval: Int) {
+    public func setPoll(interval: Int) {
         updateQueue = UpdateQueue(interval: TimeInterval(interval)) {
             self.filterUpdates()
         }
@@ -231,7 +231,7 @@ public final class Pelican: Vapor.Provider {
     }
     
     // Processes and organises all updates into sets of tuples for easy filtering.
-    func getUpdateSets() -> (TelegramUpdateSet)? {
+    public func getUpdateSets() -> (TelegramUpdateSet)? {
         let query = makeUpdateQuery()
         
         guard let response = try? drop.client.get(apiURL + "/getUpdates", query: query) else {
@@ -623,7 +623,7 @@ public final class Pelican: Vapor.Provider {
     //// TELEGRAM CORE METHOD IMPLEMENTATIONS
     
     // A simple function used to test the authentication key
-    func getMe() -> User? {
+    public func getMe() -> User? {
         // Attempt to get a response
         guard let response = try? drop.client.post(apiURL + "/getMe") else {
             drop.console.error(TGReqError.NoResponse.rawValue, newLine: true)
@@ -648,7 +648,7 @@ public final class Pelican: Vapor.Provider {
     }
     
     // Will let you manually fetch updates.
-    func getUpdates(incrementUpdate: Bool = true) -> [Polymorphic]? {
+    public func getUpdates(incrementUpdate: Bool = true) -> [Polymorphic]? {
         // Call the bot API for any new messages
         let query = makeUpdateQuery()
         guard let response = try? drop.client.post(apiURL + "/getUpdates", query: query) else {
@@ -667,7 +667,7 @@ public final class Pelican: Vapor.Provider {
     
     
     // Sends a message.  Must contain a chat ID, message text and an optional MarkupType.
-    func sendMessage(chatID: Int, text: String, replyMarkup: MarkupType?, parseMode: String = "", disableWebPreview: Bool = false, disableNtf: Bool = false, replyMessageID: Int = 0) -> Message? {
+    public func sendMessage(chatID: Int, text: String, replyMarkup: MarkupType?, parseMode: String = "", disableWebPreview: Bool = false, disableNtf: Bool = false, replyMessageID: Int = 0) -> Message? {
         var query: [String:CustomStringConvertible] = [
             "chat_id":chatID,
             "text": text,
@@ -706,7 +706,7 @@ public final class Pelican: Vapor.Provider {
     
     
     // Forwards a message of any kind.  On success, the sent Message is returned.
-    func forwardMessage(toChatID: Int, fromChatID: Int, fromMessageID: Int, disableNtf: Bool = false) -> Message? {
+    public func forwardMessage(toChatID: Int, fromChatID: Int, fromMessageID: Int, disableNtf: Bool = false) -> Message? {
         let query: [String:CustomStringConvertible] = [
             "chat_id":toChatID,
             "from_chat_id": fromChatID,
@@ -739,7 +739,7 @@ public final class Pelican: Vapor.Provider {
     
     // Sends a file that has already been uploaded.
     // The caption can't be used on all types...
-    func sendFile(chatID: Int, file: SendType, replyMarkup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) -> Message? {
+    public func sendFile(chatID: Int, file: SendType, replyMarkup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) -> Message? {
         var query: [String:CustomStringConvertible] = [
             "chat_id":chatID]
         
@@ -778,14 +778,14 @@ public final class Pelican: Vapor.Provider {
     }
     
     /** I mean you're not "necessarily" uploading a file but whatever, it'll do for now */
-    func uploadFile(link: TGFileUpload, chatID: Int, markup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) {
+    public func uploadFile(link: TGFileUpload, chatID: Int, markup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) {
         
         // Check to see if we need to upload this in the first place.
         // If not, send the file using the link.
         let search = cache.find(upload: link, bot: self)
         if search != nil {
             print("SENDING...")
-            let message = sendFile(chatID: chatID, file: search!, replyMarkup: markup, caption: caption, disableNtf: disableNtf, replyMessageID: replyMessageID)
+            _ = sendFile(chatID: chatID, file: search!, replyMarkup: markup, caption: caption, disableNtf: disableNtf, replyMessageID: replyMessageID)
             return
         }
         
@@ -858,7 +858,7 @@ public final class Pelican: Vapor.Provider {
         return
     }
     
-    func finishUpload(link: TGFileUpload, response: Response) {
+    public func finishUpload(link: TGFileUpload, response: Response) {
     
         // All you need is the correct URL with the body of the
 //        guard let response = try? drop.client.post(url, headers: request.headers, body: request.body) else {
@@ -891,7 +891,7 @@ public final class Pelican: Vapor.Provider {
     
     
     /* Use this method to kick a user from a group or a supergroup. In the case of supergroups, the user will not be able to return to the group on their own using invite links, etc., unless unbanned first. The bot must be an administrator in the group for this to work. Returns True on success. */
-    func sendChatAction(chatID: Int, action: ChatAction) {
+    public func sendChatAction(chatID: Int, action: ChatAction) {
         let query: [String:CustomStringConvertible] = [
             "chat_id": chatID,
             "action": action.rawValue
@@ -899,7 +899,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/sendChatAction", query: query)
+            _ = try drop.client.post(apiURL + "/sendChatAction", query: query)
             //print(result)
         }
         catch {
@@ -908,7 +908,7 @@ public final class Pelican: Vapor.Provider {
     }
     
     /* Use this method to get a list of profile pictures for a user. Returns a UserProfilePhotos object. */
-    func getUserProfilePhotos(userID: Int, offset: Int = 0, limit: Int = 100) {
+    public func getUserProfilePhotos(userID: Int, offset: Int = 0, limit: Int = 100) {
         
         // I know this could be neater, figure something else later
         var adjustedLimit = limit
@@ -922,7 +922,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/getUserProfilePhotos", query: query)
+            _ = try drop.client.post(apiURL + "/getUserProfilePhotos", query: query)
             //print(result)
         }
         catch {
@@ -931,14 +931,14 @@ public final class Pelican: Vapor.Provider {
     }
     
     /* Use this method to get basic info about a file and prepare it for downloading. For the moment, bots can download files of up to 20MB in size. On success, a File object is returned. The file can then be downloaded via the link https://api.telegram.org/file/bot<token>/<file_path>, where <file_path> is taken from the response. It is guaranteed that the link will be valid for at least 1 hour. When the link expires, a new one can be requested by calling getFile again. */
-    func getFile(fileID: Int) {
+    public func getFile(fileID: Int) {
         let query: [String:CustomStringConvertible] = [
             "file_id": fileID
         ]
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/getFile", query: query)
+            _ = try drop.client.post(apiURL + "/getFile", query: query)
             //print(result)
         }
         catch {
@@ -947,7 +947,7 @@ public final class Pelican: Vapor.Provider {
     }
     
     /* Use this method to kick a user from a group or a supergroup. In the case of supergroups, the user will not be able to return to the group on their own using invite links, etc., unless unbanned first. The bot must be an administrator in the group for this to work. Returns True on success. */
-    func kickChatMember(chatID: Int, userID: Int) {
+    public func kickChatMember(chatID: Int, userID: Int) {
         let query: [String:CustomStringConvertible] = [
             "chat_id": chatID,
             "user_id": userID
@@ -955,7 +955,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/getChatMember", query: query)
+            _ = try drop.client.post(apiURL + "/getChatMember", query: query)
             //print(result)
         }
         catch {
@@ -965,7 +965,7 @@ public final class Pelican: Vapor.Provider {
     
     
     /* Use this method for your bot to leave a group, supergroup or channel. Returns True on success. */
-    func leaveChat(chatID: Int, userID: Int) {
+    public func leaveChat(chatID: Int, userID: Int) {
         let query: [String:CustomStringConvertible] = [
             "chat_id":chatID,
             "user_id": userID
@@ -973,7 +973,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/getChatMember", query: query)
+            _ = try drop.client.post(apiURL + "/getChatMember", query: query)
             //print(result)
         }
         catch {
@@ -984,7 +984,7 @@ public final class Pelican: Vapor.Provider {
     
     
     /* Use this method to unban a previously kicked user in a supergroup. The user will not return to the group automatically, but will be able to join via link, etc. The bot must be an administrator in the group for this to work. Returns True on success. */
-    func unbanChatMember(chatID: Int, userID: Int) {
+    public func unbanChatMember(chatID: Int, userID: Int) {
         let query: [String:CustomStringConvertible] = [
             "chat_id":chatID,
             "user_id": userID
@@ -992,7 +992,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/getChatMember", query: query)
+            _ = try drop.client.post(apiURL + "/getChatMember", query: query)
             //print(result)
         }
         catch {
@@ -1001,14 +1001,14 @@ public final class Pelican: Vapor.Provider {
     }
     
     /* Use this method to get up to date information about the chat (current name of the user for one-on-one conversations, current username of a user, group or channel, etc.). Returns a Chat object on success. */
-    func getChat(chatID: Int) {
+    public func getChat(chatID: Int) {
         let query: [String:CustomStringConvertible] = [
             "chat_id":chatID,
             ]
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/getChat", query: query)
+            _ = try drop.client.post(apiURL + "/getChat", query: query)
             //print(result)
         }
         catch {
@@ -1019,14 +1019,14 @@ public final class Pelican: Vapor.Provider {
     // Use this method to get a list of administrators in a chat. On success, returns an Array of ChatMember.
     // Doesn't include other bots - if the chat is a group of supergroup and no admins were appointed, only the
     // creator will be returned.
-    func getChatAdministrators(chatID: Int) {
+    public func getChatAdministrators(chatID: Int) {
         let query: [String:CustomStringConvertible] = [
             "chat_id":chatID,
             ]
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/getChatAdministrators", query: query)
+            _ = try drop.client.post(apiURL + "/getChatAdministrators", query: query)
             //print(result)
         }
         catch {
@@ -1035,14 +1035,14 @@ public final class Pelican: Vapor.Provider {
     }
     
     // Get the number of members in a chat. Returns Int on success.
-    func getChatMemberCount(chatID: Int) {
+    public func getChatMemberCount(chatID: Int) {
         let query: [String:CustomStringConvertible] = [
             "chat_id":chatID,
         ]
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/getChatMembersCount", query: query)
+            _ = try drop.client.post(apiURL + "/getChatMembersCount", query: query)
             //print(result)
         }
         catch {
@@ -1051,7 +1051,7 @@ public final class Pelican: Vapor.Provider {
     }
     
     // Get information about a member of a chat. Returns a ChatMember object on success
-    func getChatMember(chatID: Int, userID: Int) {
+    public func getChatMember(chatID: Int, userID: Int) {
         let query: [String:CustomStringConvertible] = [
             "chat_id":chatID,
             "user_id": userID
@@ -1059,7 +1059,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/getChatMember", query: query)
+            _ = try drop.client.post(apiURL + "/getChatMember", query: query)
             //print(result)
         }
         catch {
@@ -1070,7 +1070,7 @@ public final class Pelican: Vapor.Provider {
     //////////////////////////////////////////////////////////////////////////////////
     //// TELEGRAM EDIT MESSAGE METHOD IMPLEMENTATIONS
     
-    func editMessageText(chatID: Int, messageID: Int = 0, text: String, replyMarkup: MarkupType?, parseMode: String = "", disableWebPreview: Bool = false, replyMessageID: Int = 0) {
+    public func editMessageText(chatID: Int, messageID: Int = 0, text: String, replyMarkup: MarkupType?, parseMode: String = "", disableWebPreview: Bool = false, replyMessageID: Int = 0) {
         var query: [String:CustomStringConvertible] = [
             "chat_id":chatID,
             "text": text,
@@ -1085,7 +1085,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let _ = try drop.client.post(apiURL + "/editMessageText", query: query)
+            _ = try drop.client.post(apiURL + "/editMessageText", query: query)
             //print(result)
         }
         catch {
@@ -1093,7 +1093,7 @@ public final class Pelican: Vapor.Provider {
         }
     }
     
-    func editMessageCaption(chatID: Int, messageID: Int = 0, text: String, replyMarkup: MarkupType?, replyMessageID: Int = 0) {
+    public func editMessageCaption(chatID: Int, messageID: Int = 0, text: String, replyMarkup: MarkupType?, replyMessageID: Int = 0) {
         var query: [String:CustomStringConvertible] = [
             "chat_id":chatID,
             "text": text,
@@ -1114,7 +1114,7 @@ public final class Pelican: Vapor.Provider {
         }
     }
     
-    func editMessageReplyMarkup(chatID: Int, messageID: Int = 0, replyMarkup: MarkupType?, replyMessageID: Int = 0) {
+    public func editMessageReplyMarkup(chatID: Int, messageID: Int = 0, replyMarkup: MarkupType?, replyMessageID: Int = 0) {
         var query: [String:CustomStringConvertible] = [
             "chat_id":chatID,
             ]
@@ -1126,8 +1126,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/editMessageReplyMarkup", query: query)
-            print(result)
+            _ = try drop.client.post(apiURL + "/editMessageReplyMarkup", query: query)
         }
         catch {
             print(error)
@@ -1141,7 +1140,7 @@ public final class Pelican: Vapor.Provider {
     
     // Send answers to callback queries sent from inline keyboards.
     // The answer will be displayed to the user as a notification at the top of the chat screen or as an alert.
-    func answerCallbackQuery(queryID: String, text: String = "", showAlert: Bool = false, url: String = "", cacheTime: Int = 0) {
+    public func answerCallbackQuery(queryID: String, text: String = "", showAlert: Bool = false, url: String = "", cacheTime: Int = 0) {
         var query: [String:CustomStringConvertible] = [
             "callback_query_id":queryID,
             "show_alert": showAlert,
@@ -1154,7 +1153,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/answerCallbackQuery", query: query)
+            _ = try drop.client.post(apiURL + "/answerCallbackQuery", query: query)
             //print(result)
         }
         catch {
@@ -1164,7 +1163,7 @@ public final class Pelican: Vapor.Provider {
     
     // Use this method to send answers to an inline query. On success, True is returned.
     // No more than 50 results per query are allowed.
-    func answerInlineQuery(inlineQueryID: String, results: [InlineResult], cacheTime: Int = 300, isPersonal: Bool = false, nextOffset: Int = 0, switchPM: String = "", switchPMParam: String = "") {
+    public func answerInlineQuery(inlineQueryID: String, results: [InlineResult], cacheTime: Int = 300, isPersonal: Bool = false, nextOffset: Int = 0, switchPM: String = "", switchPMParam: String = "") {
         var query: [String:CustomStringConvertible] = [
             "inline_query_id": inlineQueryID
         ]
@@ -1186,7 +1185,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/answerInlineQuery", query: query)
+            _ = try drop.client.post(apiURL + "/answerInlineQuery", query: query)
             //print(result)
         }
         catch {
@@ -1201,7 +1200,7 @@ public final class Pelican: Vapor.Provider {
     
     
     /* Use this method to send a game. On success, the sent Message is returned. */
-    func sendGame(chatID: Int, gameName: String, replyMarkup: MarkupType?, disableNtf: Bool = false, replyMessageID: Int = 0) {
+    public func sendGame(chatID: Int, gameName: String, replyMarkup: MarkupType?, disableNtf: Bool = false, replyMessageID: Int = 0) {
         var query: [String:CustomStringConvertible] = [
             "chat_id":chatID,
             "game_short_name": gameName
@@ -1214,8 +1213,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/sendGame", query: query)
-            //print(result)
+            _ = try drop.client.post(apiURL + "/sendGame", query: query)
         }
         catch {
             print(error)
@@ -1223,7 +1221,7 @@ public final class Pelican: Vapor.Provider {
     }
     
     /* Use this method to set the score of the specified user in a game. On success, if the message was sent by the bot, returns the edited Message, otherwise returns True. Returns an error, if the new score is not greater than the user's current score in the chat and force is False. */
-    func setGameScore(userID: Int, score: Int, force: Bool = false, disableEdit: Bool = false, chatID: Int = 0, messageID: Int = 0, inlineMessageID: Int = 0) {
+    public func setGameScore(userID: Int, score: Int, force: Bool = false, disableEdit: Bool = false, chatID: Int = 0, messageID: Int = 0, inlineMessageID: Int = 0) {
         var query: [String:CustomStringConvertible] = [
             "user_id":userID,
             "score": score
@@ -1245,7 +1243,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/setGameScore", query: query)
+            _ = try drop.client.post(apiURL + "/setGameScore", query: query)
             //print(result)
         }
         catch {
@@ -1256,7 +1254,7 @@ public final class Pelican: Vapor.Provider {
     /* Use this method to get data for high score tables. Will return the score of the specified user and several of his neighbors in a game. On success, returns an Array of GameHighScore objects.
  
  This method will currently return scores for the target user, plus two of his closest neighbors on each side. Will also return the top three users if the user and his neighbors are not among them. Please note that this behavior is subject to change. */
-    func getGameHighScores(userID: Int, chatID: Int = 0, messageID: Int = 0, inlineMessageID: Int = 0) {
+    public func getGameHighScores(userID: Int, chatID: Int = 0, messageID: Int = 0, inlineMessageID: Int = 0) {
         var query: [String:CustomStringConvertible] = [
             "user_id":userID
         ]
@@ -1273,7 +1271,7 @@ public final class Pelican: Vapor.Provider {
         
         // Try sending it!
         do {
-            let result = try drop.client.post(apiURL + "/getGameHighScores", query: query)
+            _ = try drop.client.post(apiURL + "/getGameHighScores", query: query)
             //print(result)
         }
         catch {

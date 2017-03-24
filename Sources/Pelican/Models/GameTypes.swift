@@ -3,7 +3,7 @@ import Foundation
 import Vapor
 
 /* This object represents a game. Use BotFather to create and edit games, their short names will act as unique identifiers. */
-class Game: NodeConvertible, JSONConvertible {
+public class Game: NodeConvertible, JSONConvertible {
     var title: String // Title of the game
     var description: String // Description of the game
     var photo: [PhotoSize] // Photo that will be displayed in the game message in chats.
@@ -12,7 +12,7 @@ class Game: NodeConvertible, JSONConvertible {
     var animation: String? // Animation type that will be displayed in the game message in chats.  Upload via BotFather
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    required public init(node: Node, in context: Context) throws {
         title = try node.extract("title")
         description = try node.extract("description")
         photo = try node.extract("photo")
@@ -21,7 +21,7 @@ class Game: NodeConvertible, JSONConvertible {
         animation = try node.extract("animation")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let photoNode = try! photo.makeNode()
         
         var keys: [String:NodeRepresentable] = [
@@ -36,14 +36,14 @@ class Game: NodeConvertible, JSONConvertible {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
 
 /* You can provide an animation for your game so that it looks stylish in chats (check out Lumberjack for an example). This object represents an animation file to be displayed in the message containing a game. */
-class Animation: NodeConvertible, JSONConvertible {
+public class Animation: NodeConvertible, JSONConvertible {
     var fileID: String // Unique file identifier.
     var thumb: PhotoSize? // Animation thumbnail as defined by the sender.
     var fileName: String? // Original animation filename as defined by the sender.
@@ -51,7 +51,7 @@ class Animation: NodeConvertible, JSONConvertible {
     var fileSize: Int? // File size.
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    required public init(node: Node, in context: Context) throws {
         fileID = try node.extract("file_id")
         thumb = try node.extract("thumb")
         fileName = try node.extract("file_name")
@@ -59,7 +59,7 @@ class Animation: NodeConvertible, JSONConvertible {
         fileSize = try node.extract("file_size")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys: [String:NodeRepresentable] = [
             "file_id": fileID
         ]
@@ -71,25 +71,25 @@ class Animation: NodeConvertible, JSONConvertible {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
 /* This object represents one row of the high scores table for a game. */
-class GameHighScore: NodeConvertible, JSONConvertible {
+public class GameHighScore: NodeConvertible, JSONConvertible {
     var position: Int // Position in the high score table for the game
     var user: User // User who made the score entry
     var score: Int // The score the user set
     
     // NodeRepresentable conforming methods
-    required init(node: Node, in context: Context) throws {
+    required public init(node: Node, in context: Context) throws {
         position = try node.extract("position")
         user = try node.extract("user")
         score = try node.extract("score")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keys: [String:NodeRepresentable] = [
             "position": position,
             "user": user,
@@ -99,7 +99,7 @@ class GameHighScore: NodeConvertible, JSONConvertible {
         return try Node(node: keys)
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }

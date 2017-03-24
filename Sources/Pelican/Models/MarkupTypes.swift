@@ -2,11 +2,11 @@
 import Foundation
 import Vapor
 
-protocol MarkupType: NodeConvertible, JSONConvertible {
+public protocol MarkupType: NodeConvertible, JSONConvertible {
     
 }
 
-extension MarkupType {
+public extension MarkupType {
     func getQuery() -> String {
         return try! self.makeJSON().serialize().toString()
     }
@@ -14,17 +14,17 @@ extension MarkupType {
 
 // Represents a custom keyboard with custom fancy options.
 // Needs a method for automatically adding buttons into a row
-class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
-    var keyboard: [MarkupKeyboardRow] = [] // The array of available keyboard buttons
-    var resizeKeyboard: Bool = true // (Optional) Requests clients to resize the keyboard vertically for optimal fit (e.g., make the keyboard smaller if there are just two rows of buttons).
-    var oneTimeKeyboard: Bool = false // (Optional) Requests clients to hide the keyboard as soon as it's been used.
-    var selective: Bool = false // (Optional)  Use this parameter if you want to show the keyboard to specific users only. 
+public class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
+    public var keyboard: [MarkupKeyboardRow] = [] // The array of available keyboard buttons
+    public var resizeKeyboard: Bool = true // (Optional) Requests clients to resize the keyboard vertically for optimal fit (e.g., make the keyboard smaller if there are just two rows of buttons).
+    public var oneTimeKeyboard: Bool = false // (Optional) Requests clients to hide the keyboard as soon as it's been used.
+    public var selective: Bool = false // (Optional)  Use this parameter if you want to show the keyboard to specific users only.
                                 // Targets: 1) users that are @mentioned in the text of the Message object; 
                                 // 2) if the bot's message is a reply (has reply_to_message_id), sender of the original message.
     
-    var description: String = ""
+    public var description: String = ""
     
-    init(withButtons buttons: [String], resize: Bool = true, oneTime: Bool = false, selective: Bool = false) {
+    public init(withButtons buttons: [String], resize: Bool = true, oneTime: Bool = false, selective: Bool = false) {
         var row = MarkupKeyboardRow()
         for button in buttons {
             row.addNewButton(button)
@@ -36,7 +36,7 @@ class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
         self.selective = selective
     }
     
-    init(withButtonRows rows: [[String]], resize: Bool = true, oneTime: Bool = false, selective: Bool = false) {
+    public init(withButtonRows rows: [[String]], resize: Bool = true, oneTime: Bool = false, selective: Bool = false) {
         for array in rows {
             let row = MarkupKeyboardRow(withButtonArray: array)
             keyboard.append(row)
@@ -47,7 +47,7 @@ class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
         self.selective = selective
     }
     
-    init(resize: Bool = true, oneTime: Bool = false, selective: Bool = false, buttons: String...) {
+    public init(resize: Bool = true, oneTime: Bool = false, selective: Bool = false, buttons: String...) {
         var row = MarkupKeyboardRow()
         for button in buttons {
             row.addNewButton(button)
@@ -60,7 +60,7 @@ class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
 
     }
     
-    func getButtons() -> [String] {
+    public func getButtons() -> [String] {
         var result: [String] = []
         
         for row in keyboard {
@@ -73,14 +73,14 @@ class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
     }
     
     // Ignore context, just try and build an object from a node.
-    required init(node: Node, in context: Context) throws {
+    required public init(node: Node, in context: Context) throws {
         keyboard = try node.extract("keyboard")
         resizeKeyboard = try node.extract("resize_keyboard")
         oneTimeKeyboard = try node.extract("one_time_keyboard")
         selective = try node.extract("selective")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         let keyNode = try! keyboard.makeNode()
         print(keyNode)
         
@@ -93,53 +93,53 @@ class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
     }
     
     // I need the context implementation as well, *sigh*
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
-struct MarkupKeyboardRow: NodeConvertible, JSONConvertible {
-    var keys: [MarkupKeyboardKey] = []
+public struct MarkupKeyboardRow: NodeConvertible, JSONConvertible {
+    public var keys: [MarkupKeyboardKey] = []
     
-    init(withButtons buttons: String...) {
+    public init(withButtons buttons: String...) {
         for button in buttons {
             keys.append(MarkupKeyboardKey(label: button))
         }
     }
     
-    init(withButtonArray array: [String]) {
+    public init(withButtonArray array: [String]) {
         for label in array {
             keys.append(MarkupKeyboardKey(label: label))
         }
     }
     
-    mutating func addButton(_ button: MarkupKeyboardKey) {
+    public mutating func addButton(_ button: MarkupKeyboardKey) {
         keys.append(button)
     }
     
-    mutating func addNewButton(_ label: String) {
+    public mutating func addNewButton(_ label: String) {
         keys.append(MarkupKeyboardKey(label: label))
     }
     
     // Ignore context, just try and build an object from a node.
-    init(node: Node, in context: Context) throws {
+    public init(node: Node, in context: Context) throws {
         let array = node.nodeArray!
         for item in array {
             keys.append(try! MarkupKeyboardKey(node: item, in: context))
         }
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         return try keys.makeNode()
     }
     
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
-struct MarkupKeyboardKey: NodeConvertible, JSONConvertible {
-    var text: String // The text displayed on the button.  If no other optional is used, this will be sent to the bot when pressed.
+public struct MarkupKeyboardKey: NodeConvertible, JSONConvertible {
+    public var text: String // The text displayed on the button.  If no other optional is used, this will be sent to the bot when pressed.
     private var requestContact: Bool = false // (Optional) If True, the user's phone number will be sent as a contact when the button is pressed. Available in private chats only
     private var requestLocation: Bool = false // (Optional) If True, the user's current location will be sent when the button is pressed. Available in private chats only
     
@@ -148,13 +148,13 @@ struct MarkupKeyboardKey: NodeConvertible, JSONConvertible {
     }
     
     // Ignore context, just try and build an object from a node.
-    init(node: Node, in context: Context) throws {
+    public init(node: Node, in context: Context) throws {
         text = try node.extract("text")
         requestContact = try node.extract("request_contact") ?? false
         requestLocation = try node.extract("request_location") ?? false
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys = [String:NodeRepresentable]()
         keys["text"] = text
         if requestContact == true && requestLocation == false {
@@ -168,23 +168,23 @@ struct MarkupKeyboardKey: NodeConvertible, JSONConvertible {
     }
     
     // I need the context implementation as well, *sigh*
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try self.makeNode()
     }
 }
 
 
 /// A series of inline buttons to be displayed with a message sent from the bot
-class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
-    var keyboard: [MarkupInlineRow] = []
+public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
+    public var keyboard: [MarkupInlineRow] = []
     
     // Blank!
-    init() {
+    public init() {
         return
     }
     
     // If you want to do it the hard way
-    init(withButtons buttonsIn: MarkupInlineKey...) {
+    public init(withButtons buttonsIn: MarkupInlineKey...) {
         var row = MarkupInlineRow()
         for button in buttonsIn {
             row.addButton(button)
@@ -192,7 +192,7 @@ class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
         keyboard.append(row)
     }
     // A quick type for generating buttons.
-    init(withURL pair: (label: String, url: String)...) {
+    public init(withURL pair: (label: String, url: String)...) {
         var row = MarkupInlineRow()
         for label in pair {
             let button = MarkupInlineKey(fromURL: label.url, label: label.label)
@@ -202,7 +202,7 @@ class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     }
     
     // A quick type for generating buttons.
-    init(withCallback pair: (label: String, query: String)...) {
+    public init(withCallback pair: (label: String, query: String)...) {
         var row = MarkupInlineRow()
         for label in pair {
             let button = MarkupInlineKey(fromCallbackData: label.query, label: label.label)
@@ -212,7 +212,7 @@ class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     }
     
     /* Should only be used when the class has no plans to be updated and is the only inline control currently active.*/
-    init(withGenCallback labels: String...) {
+    public init(withGenCallback labels: String...) {
         var row = MarkupInlineRow()
         var id = 1
         for label in labels {
@@ -224,7 +224,7 @@ class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     }
     
     /* Should only be used when the class has no plans to be updated and is the only inline control currently active.*/
-    init(withGenCallback rows: [[String]]) {
+    public init(withGenCallback rows: [[String]]) {
         var id = 1
         for row in rows {
             var newRow = MarkupInlineRow()
@@ -239,7 +239,7 @@ class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     }
     
     // A quick type for generating buttons.
-    init(withCurrentInlineQuery pair: (label: String, query: String)...) {
+    public init(withCurrentInlineQuery pair: (label: String, query: String)...) {
         var row = MarkupInlineRow()
         for label in pair {
             let button = MarkupInlineKey(fromInlineQueryCurrent: label.query, label: label.label)
@@ -248,7 +248,7 @@ class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
         keyboard.append(row)
     }
     
-    init(withCurrentInlineQuery array: [(label: String, query: String)]) {
+    public init(withCurrentInlineQuery array: [(label: String, query: String)]) {
         var row = MarkupInlineRow()
         for label in array {
             let button = MarkupInlineKey(fromInlineQueryCurrent: label.query, label: label.label)
@@ -269,7 +269,7 @@ class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     */
     
     /// Returns all available callback data from any button held inside this markup
-    func getCallbackData() -> [String]? {
+    public func getCallbackData() -> [String]? {
         var data: [String] = []
         for row in keyboard {
             for key in row.keys {
@@ -287,60 +287,60 @@ class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     }
     
     // Ignore context, just try and build an object from a node.
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         keyboard = try node.extract("keyboard")
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         return try Node(node:["inline_keyboard":keyboard.makeNode()])
     }
     
     // I need the context implementation as well, *sigh*
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try Node(node:["inline_keyboard":keyboard.makeNode()])
     }
 
     
 }
 
-struct MarkupInlineRow: NodeConvertible, JSONConvertible {
-    var keys: [MarkupInlineKey] = []
+public struct MarkupInlineRow: NodeConvertible, JSONConvertible {
+    public var keys: [MarkupInlineKey] = []
     
-    init() {
+    public init() {
     }
     
     // If you want to do it the hard way
-    init(withButtons buttonsIn: MarkupInlineKey...) {
+    public init(withButtons buttonsIn: MarkupInlineKey...) {
         for button in buttonsIn {
             keys.append(button)
         }
     }
     
     // A quick type for generating buttons.
-    init(withURL pair: (String, String)...) {
+    public init(withURL pair: (String, String)...) {
         for label in pair {
             let button = MarkupInlineKey(fromURL: label.0, label: label.1)
             keys.append(button)
         }
     }
-    mutating func addButton(_ button: MarkupInlineKey) {
+    public mutating func addButton(_ button: MarkupInlineKey) {
         keys.append(button)
     }
     
     // Ignore context, just try and build an object from a node.
-    init(node: Node, in context: Context) throws {
+    public init(node: Node, in context: Context) throws {
         let array = node.nodeArray!
         for item in array {
             keys.append(try! MarkupInlineKey(node: item, in: context))
         }
     }
     
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         return try keys.makeNode()
     }
     
     // I need the context implementation as well, *sigh*
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try keys.makeNode()
     }
 
@@ -348,28 +348,28 @@ struct MarkupInlineRow: NodeConvertible, JSONConvertible {
 
 
 // A single inline button definition
-class MarkupInlineKey: NodeConvertible, JSONConvertible {
+public class MarkupInlineKey: NodeConvertible, JSONConvertible {
     var text: String // Label text
     fileprivate var optional: InlineButtonOptional
     
     
-    init(fromURL url: String, label: String) {
+    public init(fromURL url: String, label: String) {
         text = label
         optional = .url(url)
     }
     
-    init(fromCallbackData callback: String, label: String) {
+    public init(fromCallbackData callback: String, label: String) {
         text = label
         optional = .callbackData(callback)
     }
     
-    init(fromInlineQueryCurrent data: String, label: String) {
+    public init(fromInlineQueryCurrent data: String, label: String) {
         text = label
         optional = .switchInlineQuery_currentChat(data)
     }
     
     // Ignore context, just try and build an object from a node.
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         text = try node.extract("text").string
         optional = .url("")
         
@@ -377,7 +377,7 @@ class MarkupInlineKey: NodeConvertible, JSONConvertible {
     }
     
     // Now make a node from the object <3
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         var keys = [String:String]()
         keys["text"] = text
         
@@ -396,7 +396,7 @@ class MarkupInlineKey: NodeConvertible, JSONConvertible {
     }
     
     // I need the context implementation as well, *sigh*
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         var keys = [String:String]()
         keys["text"] = text
         
@@ -423,23 +423,23 @@ private enum InlineButtonOptional {
 }
 
 
-class MarkupKeyboardRemove: NodeConvertible, JSONConvertible, MarkupType {
-    var removeKeyboard: Bool = true // Requests clients to remove the custom keyboard (user will not be able to summon this keyboard
-    var selective: Bool = false // (Optional) Use this parameter if you want to force reply from specific users only.
+public class MarkupKeyboardRemove: NodeConvertible, JSONConvertible, MarkupType {
+    public var removeKeyboard: Bool = true // Requests clients to remove the custom keyboard (user will not be able to summon this keyboard
+    public var selective: Bool = false // (Optional) Use this parameter if you want to force reply from specific users only.
     
-    init(isSelective sel: Bool) {
+    public init(isSelective sel: Bool) {
         selective = sel
     }
     
     // Ignore context, just try and build an object from a node.
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         removeKeyboard = try node.extract("remove_keyboard")
         selective = try node.extract("selective")
         
     }
     
     // Now make a node from the object <3
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         return try! Node(node:[
             "remove_keyboard": removeKeyboard,
             "selective": selective
@@ -447,7 +447,7 @@ class MarkupKeyboardRemove: NodeConvertible, JSONConvertible, MarkupType {
     }
     
     // Now make a node from the object <3
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try! Node(node:[
             "remove_keyboard": removeKeyboard,
             "selective": selective
@@ -456,23 +456,23 @@ class MarkupKeyboardRemove: NodeConvertible, JSONConvertible, MarkupType {
     
 }
 
-class MarkupForceReply: NodeConvertible, JSONConvertible, MarkupType {
-    var forceReply: Bool = true // Shows reply interface to the user, as if they manually selected the bot‘s message and tapped ’Reply'
-    var selective: Bool = false // (Optional) Use this parameter if you want to force reply from specific users only.
+public class MarkupForceReply: NodeConvertible, JSONConvertible, MarkupType {
+    public var forceReply: Bool = true // Shows reply interface to the user, as if they manually selected the bot‘s message and tapped ’Reply'
+    public var selective: Bool = false // (Optional) Use this parameter if you want to force reply from specific users only.
     
-    init(isSelective sel: Bool) {
+    public init(isSelective sel: Bool) {
         selective = sel
     }
     
     // Ignore context, just try and build an object from a node.
-    required init(node: Node, in context: Context) throws {
+    public required init(node: Node, in context: Context) throws {
         forceReply = try node.extract("force_reply")
         selective = try node.extract("selective")
         
     }
     
     // Now make a node from the object <3
-    func makeNode() throws -> Node {
+    public func makeNode() throws -> Node {
         return try! Node(node:[
             "force_reply": forceReply,
             "selective": selective
@@ -480,7 +480,7 @@ class MarkupForceReply: NodeConvertible, JSONConvertible, MarkupType {
     }
     
     // Now make a node from the object <3
-    func makeNode(context: Context) throws -> Node {
+    public func makeNode(context: Context) throws -> Node {
         return try! Node(node:[
             "force_reply": forceReply,
             "selective": selective

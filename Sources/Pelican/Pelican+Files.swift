@@ -11,7 +11,7 @@ private enum TGCacheError: String, Error {
 
 /// Manages a database of currently active file links for re-use, as well as asynchronously uploads content
 /// that doesn't have a link.
-class TGCacheManager {
+public class TGCacheManager {
     private var bundle: Bundle?
     
     // Caches
@@ -206,7 +206,7 @@ struct TGCacheFile {
     }
 }
 
-enum TGFileType: String {
+public enum TGFileType: String {
     case audio
     case document
     case photo
@@ -236,16 +236,16 @@ extension TGFileType {
 
 
 /** Defines a file to be uploaded using the sendFile TelegramBot function. */
-struct TGFileUpload {
-    enum UploadLocation {
+public struct TGFileUpload {
+    public enum UploadLocation {
         case name((path: String, name: String, ext: String))
 //        case path(String)
         case http(String)
     }
     
-    var location: UploadLocation
-    var type: TGFileType
-    var id: String {
+    public var location: UploadLocation
+    public var type: TGFileType
+    public var id: String {
         switch location {
         case .name(path: let path, name: let name, ext: let ext):
             return path + name + ext
@@ -256,7 +256,7 @@ struct TGFileUpload {
         }
     }
     
-    init(withPath path: String, name: String, ext: String, type: TGFileType) {
+    public init(withPath path: String, name: String, ext: String, type: TGFileType) {
         self.location = .name((path, name, ext))
         self.type = type
     }
@@ -266,7 +266,7 @@ struct TGFileUpload {
 //        self.type = type
 //    }
     
-    init(withHTTP http: String, type: TGFileType) {
+    public init(withHTTP http: String, type: TGFileType) {
         self.location = .http(http)
         self.type = type
     }
