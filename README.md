@@ -50,7 +50,7 @@ Even if you don’t want to make a Telegram bot at all, this provider in the fut
 
 
 ### Limitations
-When finished i'll have just one:
+When finished it'll have just one:
 
 - No Webhook Support
 Sorry, but maybe later…

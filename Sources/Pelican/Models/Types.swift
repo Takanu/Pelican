@@ -1,10 +1,3 @@
-//
-//  Types.swift
-//  beach_arcade
-//
-//  Created by Takanu Kyriako on 22/02/2017.
-//
-//
 
 import Foundation
 import Vapor

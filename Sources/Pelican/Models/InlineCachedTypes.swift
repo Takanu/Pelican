@@ -1,10 +1,3 @@
-//
-//  InlineCachedTypes.swift
-//  beach_arcade
-//
-//  Created by Takanu Kyriako on 18/02/2017.
-//
-//
 
 import Foundation
 import Swift

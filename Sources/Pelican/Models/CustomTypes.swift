@@ -1,10 +1,3 @@
-//
-//  CustomTypes.swift
-//  beach_arcade
-//
-//  Created by Takanu Kyriako on 18/02/2017.
-//
-//  All the extra types I created for convenience.
 
 import Foundation
 import Vapor

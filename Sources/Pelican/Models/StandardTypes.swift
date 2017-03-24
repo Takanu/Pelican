@@ -1,10 +1,3 @@
-//
-//  Telegram+Files.swift
-//  Telegram + Swift + Vapor
-//
-//  Created by Takanu Kyriako on 15/02/2017.
-//
-//  All the available "normal" types.  ALL OF THEM.
 
 import Foundation
 import Vapor

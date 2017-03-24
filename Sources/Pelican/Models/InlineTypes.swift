@@ -1,15 +1,6 @@
-//
-//  InlineTypes.swift
-//  beach_arcade
-//
-//  Created by Takanu Kyriako on 17/02/2017.
-//
-//
 
 import Foundation
 import Vapor
-
-
 
 // Represents an incoming inline query. When the user sends an empty query, your bot could return some default or trending results.
 class InlineQuery: NodeConvertible, JSONConvertible {

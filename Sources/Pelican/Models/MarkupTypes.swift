@@ -1,10 +1,3 @@
-//
-//  Telegram_ReplyMarkup.swift
-//  Telegram + Swift + Vapor
-//
-//  Created by Takanu Kyriako on 13/02/2017.
-//
-//  For Telegram Markup methods.
 
 import Foundation
 import Vapor
