@@ -22,7 +22,7 @@ So, what does Pelican do?
 
 **Most Bot Types/Methods (Is this a feature?)**
 
-Nearly everything is represented and what is can be databased.  What isn't available will be coming very soon.
+Nearly everything is represented, the only thing currently missing are most Inline Types.  Databasing currently doesn't work yet, but will very soon.
 
 **User Session System**
 
