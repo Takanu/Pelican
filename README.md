@@ -17,12 +17,12 @@ If you’ve never heard of [Telegram](telegram.org) it’s an awesome non-profit
 
 Where bots are concerned though, Telegram offers an open and free API system where you can make bots for all kinds of tasks, from helping schedule channel posts to operating your own online HTML5 games that are playable inside the app (and since you’re using Vapor, you could conceivably manage everything in one app).
 
-So, what does Pelican do?
+So, what does Pelican do currently?
 
 
-**Most Bot Types/Methods (Is this a feature?)**
+**Support for most Bot Types/Methods (Is this a feature?)**
 
-Nearly everything is represented and what is can be databased.  What isn't available will be coming very soon.
+Nearly everything is represented, the only thing currently missing are most Inline Types.  Databasing currently doesn't work yet, but will very soon.
 
 **User Session System**
 
