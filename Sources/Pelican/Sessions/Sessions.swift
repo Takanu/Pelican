@@ -12,38 +12,43 @@ public class Session {
   public var users: [User] = []  // Other users associated with this session.  The primary user is likely in this list.
   public var data: NSCopying?    // User-defined data chunk.
   
+  lazy var prompt = Prompt()     // Container for automating markup options and responses.
+  var floodLimit: FloodLimit     // External flood tracking system.
+  
   // Session settings
-  internal var maxSessionTime: Int = 0 // What the current maximum for the session time is.  Set 0 for no timer.
+  var maxSessionTime: Int = 0 // What the current maximum for the session time is.  Set 0 for no timer.
   internal var lastInteractTime: Int = 0 // The last time the session was interacted with.
   var timedOut: Bool { return lastInteractTime <= bot.globalTimer - maxSessionTime }  // Checks whether or not this session has timed out.
   
-  // Flood settings
-  var floodLimit: FloodLimit
+  
   
   // Response Settings
   var responseLimit: Int = 0 // The number of times a session will respond in a given timeframe.  Set as 0 for no limit.
   private var responseCount: Int = 0 // The number of times a response has been made in the timeframe.
-  private var responseTime: Int = 0 // The time at which a response has currently been made
+  private var responseTime: Int = 0 // The time at which the last response has been made (in bot time).
+  
   
   // Current session state
-  public var messageState: ((Message, Session) -> ())? // Used by the internal polling system to iterate over commands
-  public var editedMessageState: ((Message, Session) -> ())? // Used by the internal polling system to iterate over commands
-  public var channelState: ((Message, Session) -> ())? // Used by the internal polling system to iterate over commands
-  public var editedChannelState: ((Message, Session) -> ())? // Used by the internal polling system to iterate over commands
+  public var messageState: ((Message, Session) -> ())?
+  public var editedMessageState: ((Message, Session) -> ())?
+  public var channelState: ((Message, Session) -> ())?
+  public var editedChannelState: ((Message, Session) -> ())?
   
-  public var inlineQueryState: ((InlineQuery, Session) -> ())? // Used by the internal polling system to iterate over commands
-  public var chosenInlineQueryState: ((ChosenInlineResult, Session) -> ())? // Used by the internal polling system to iterate over commands
-  public var callbackQueryState: ((CallbackQuery, Session) -> ())? // Used by the internal polling system to iterate over commands
+  public var inlineQueryState: ((InlineQuery, Session) -> ())?
+  public var chosenInlineQueryState: ((ChosenInlineResult, Session) -> ())?
+  public var callbackQueryState: ((CallbackQuery, Session) -> ())?
   
   public var sessionEndAction: ((Session) -> ())? // A command to be used when the session ends.
   var actionQueue: [TelegramBotSessionAction] = [] // Any queued actions that need to be monitored.
   
+  
   // Stored requests
   public var currentMessage: Message?
   public var lastSentMessage: Message?
-  var lastDialog: String = ""                     // A way to use the last given piece of dialog as a delay timer for the next.
-  var plusTimer: Int = 0                          // A way to allow sequentially stated delays to naturally stack up.
-  public var wordsPerMinute: Int = 190                   // Used as an implicit timer for a set of dialog actions.
+  var lastDialog: String = ""               // A way to use the last given piece of dialog as a delay timer for the next.
+  var plusTimer: Int = 0                    // A way to allow sequentially stated delays to naturally stack up.
+  public var wordsPerMinute: Int = 190      // Used as an implicit timer for a set of dialog actions.
+  
   
   // Setup the session by passing a function that modifies itself with the required commands.
   public init(bot: Pelican, chat: Chat, data: NSCopying?, floodLimit: FloodLimit, setup: @escaping (Session) -> (), sessionEndAction: ((Session) -> ())? ) {
@@ -64,6 +69,11 @@ public class Session {
     self.lastInteractTime = bot.globalTimer
     
     setup(self)
+  }
+  
+  // Perform some extra setup
+  func postInit() {
+    prompt.session = self
   }
   
   // Functions for managing what users are associated to this session.
@@ -244,8 +254,9 @@ public class Session {
     bot.answerCallbackQuery(queryID: query.id, text: text, showAlert: popup, url: gameURL, cacheTime: 0)
   }
   
+  
   ////////////////////////////////////////////////////
-  //////////// ACTION TIMERS/DELAYS
+  //////////// METHOD DELAYS
   
   
   // Delays execution of an action by the specified time
@@ -347,11 +358,13 @@ public class Session {
     })
   }
   
+  
   // Resets the assistive timers
   public func resetTimerAssists() {
     self.plusTimer = 0
     self.lastDialog = ""
   }
+  
   
   
   // Bumps the flood limiter, and potentially blacklists or warns the user.
@@ -380,143 +393,8 @@ public class Session {
     self.maxSessionTime = time
     bot.bumpSession(self)
   }
-  
-  
-  // Checks the current action queue.  Returns true if the action queue is empty after executing actions.
-  func checkActions() -> Bool {
-    
-    if actionQueue.first != nil {
-      while actionQueue.first!.time <= bot.globalTimer {
-        let sessionAction = actionQueue.first!
-        actionQueue.remove(at: 0)
-        sessionAction.action(self)
-        
-        if actionQueue.count == 0 {
-          return true
-        }
-      }
-      return false
-    }
-    return true
-  }
-  
-  // Im not sure about this, but whatever
-  public func removeAction(name: String) {
-    for (index, sessionAction) in actionQueue.enumerated() {
-      if sessionAction.name == name {
-        actionQueue.remove(at: index)
-      }
-    }
-  }
-  
-  // Clears all actions (the bot process will clean it up next tick)
-  public func clearActions() {
-    actionQueue.removeAll()
-  }
-  
-  // Ends the current session
-  public func endSession(useAction: Bool = true) {
-    if self.sessionEndAction != nil {
-      self.sessionEndAction!(self)
-    }
-    
-    bot.removeSession(session: self)
-  }
-  
-  
 }
 
 
-// Defines a queued action for a specific session, to be run at a later date
-class TelegramBotSessionAction {
-  var name: String = ""           // Only used if the user may later want to find and remove the action before being played.
-  var session: Session // The session to be affected
-  var bot: Pelican
-  var time: Int // The global time at which this should be executed
-  var action: (Session) -> ()
-  
-  init(session: Session, bot: Pelican, delay: Int, action: @escaping (Session) -> (), name: String = "") {
-    self.name = name
-    self.session = session
-    self.bot = bot
-    self.time = bot.globalTimer + delay
-    self.action = action
-  }
-  
-  func execute() {
-    action(session)
-  }
-  
-  func changeTime(_ globalTime: Int) {
-    time = globalTime
-  }
-  
-  func delay(by: Int) {
-    time += by
-  }
-}
 
-// Used for creating groups of flood settings and keeping track of them.
-public struct FloodLimit {
-  private var floodLimit: Int = 0 // The number of messages it will accept before getting concerned.
-  private var floodRange: Int = 0 // The time-frame that the flood limit and count applies to.
-  private var floodCount: Int = 0 // The number of messages sent in the current window.
-  private var floodRangeStart: Int = 0 // The starting time that the flood range applies to, in global time.
-  
-  var reachedLimit: Bool { return floodLimitHits >= breachLimit }
-  private var floodLimitHits: Int = 0 // The number of times the limit has been hit
-  private var breachLimit: Int = 0 // The number of times the limit can be hit before bad things happen.
-  private var breachReset: Int = 0 // The time required for the breach limit to go down by one.
-  private var breachResetStart: Int = 0 // The starting time that the reset applies to.
-  
-  // Initialises the flood limit type with a few settings
-  public init(limit: Int, range: Int, breachLimit: Int, breachReset: Int) {
-    self.floodLimit = limit
-    self.floodRange = range
-    self.breachLimit = breachLimit
-    self.breachReset = breachReset
-  }
-  
-  // Initialises it from another flood limit
-  public init(clone: FloodLimit, withTime: Bool = false) {
-    self.floodLimit = clone.floodLimit
-    self.floodRange = clone.floodRange
-    self.breachLimit = clone.breachLimit
-    self.breachReset = clone.breachReset
-    
-    if withTime == true {
-      self.floodCount = clone.floodCount
-      self.floodRangeStart = clone.floodRangeStart
-    }
-    
-  }
-  
-  // Increments the flood count, and returns whether or not this increment breached the flood limit.
-  public mutating func bump(globalTime: Int) -> Bool {
-    floodCount += 1
-    
-    // If we've hit the flood limit, increment the limit hits and set the flood and breach timers
-    if floodCount >= floodLimit {
-      floodLimitHits += 1
-      floodCount = 0
-      floodRangeStart = globalTime
-      breachResetStart = globalTime
-      return true
-    }
-    
-    // If the flood range has been reached without flooding, reset the count
-    if floodRangeStart <= globalTime - floodRange {
-      floodCount = 0
-      floodRangeStart = globalTime
-    }
-    
-    // If the breach reset has been hit, reduce the breach hits by one to cool off the "alert" level.
-    if breachResetStart <= globalTime - breachReset {
-      if floodLimitHits > 0 { floodLimitHits -= 0 }
-      floodRangeStart = globalTime
-    }
-    
-    return false
-  }
-}
 

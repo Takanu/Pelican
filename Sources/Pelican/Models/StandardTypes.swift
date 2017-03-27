@@ -84,6 +84,15 @@ public class User: TelegramType {
   }
 }
 
+/*
+public enum ChatType: String {
+  case private
+  case group
+  case supergroup
+  case channel
+}
+*/
+
 public class Chat: TelegramType {
   public var id: Node? // The type used for the model to identify between database entries
   

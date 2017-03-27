@@ -1,10 +1,3 @@
-//
-//  Pelican+Moderator.swift
-//  kabuki
-//
-//  Created by Takanu Kyriako on 25/03/2017.
-//
-//
 
 import Foundation
 import Vapor
@@ -24,12 +17,12 @@ public class Moderator {
   
   // AUTHORISATION CHECK FUNCTIONS
   public func authorise(user: User) -> Bool {
-    if blacklistEnabled == true {
+    if blacklistEnabled == true && userBlacklist.count != 0 {
       if checkBlacklist(user: user) == true { return false }
     }
     
-    if whitelistEnabled == true {
-      if checkBlacklist(user: user) == true { return true }
+    if whitelistEnabled == true && userWhitelist.count != 0 {
+      if checkWhitelist(user: user) == true { return true }
       else { return false }
     }
     
@@ -37,12 +30,12 @@ public class Moderator {
   }
   
   public func authorise(chat: Chat) -> Bool {
-    if blacklistEnabled == true {
+    if blacklistEnabled == true && chatBlacklist.count != 0 {
       if checkBlacklist(chat: chat) == true { return false }
     }
     
-    if whitelistEnabled == true {
-      if checkBlacklist(chat: chat) == true { return true }
+    if whitelistEnabled == true && chatWhitelist.count != 0 {
+      if checkWhitelist(chat: chat) == true { return true }
       else { return false }
     }
     
@@ -50,11 +43,11 @@ public class Moderator {
   }
   
   public func authorise(userID: Int) -> Bool {
-    if blacklistEnabled == true {
+    if blacklistEnabled == true && userBlacklist.count != 0 {
       if userBlacklist.contains(where: {$0.tgID == userID} ) == true { return false }
     }
     
-    if whitelistEnabled == true {
+    if whitelistEnabled == true && userWhitelist.count != 0 {
       if userWhitelist.contains(where: {$0.tgID == userID} ) == true { return true }
       else { return false }
     }
@@ -63,11 +56,11 @@ public class Moderator {
   }
   
   public func authorise(chatID: Int) -> Bool {
-    if blacklistEnabled == true {
+    if blacklistEnabled == true && chatBlacklist.count != 0 {
       if chatBlacklist.contains(where: {$0.tgID == chatID} ) == true { return false }
     }
     
-    if whitelistEnabled == true {
+    if whitelistEnabled == true && chatWhitelist.count != 0 {
       if chatWhitelist.contains(where: {$0.tgID == chatID} ) == true { return true }
       else { return false }
     }
