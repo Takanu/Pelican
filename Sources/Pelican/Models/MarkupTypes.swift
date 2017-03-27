@@ -349,8 +349,8 @@ public struct MarkupInlineRow: NodeConvertible, JSONConvertible {
 
 // A single inline button definition
 public class MarkupInlineKey: NodeConvertible, JSONConvertible {
-    var text: String // Label text
-    fileprivate var optional: InlineButtonOptional
+    public var text: String // Label text
+    public var optional: InlineButtonOptional
     
     
     public init(fromURL url: String, label: String) {
@@ -367,7 +367,41 @@ public class MarkupInlineKey: NodeConvertible, JSONConvertible {
         text = label
         optional = .switchInlineQuery_currentChat(data)
     }
+  
+  // Internally used to compare two keys
+  func compare(key: MarkupInlineKey) -> Bool {
+    if text != key.text { return false }
     
+    var data1 = ""
+    var data2 = ""
+    switch self.optional {
+    case .url(let data):
+      data1 = data
+    case .callbackData(let data):
+      data1 = data
+    case .switchInlineQuery(let data):
+      data1 = data
+    case .switchInlineQuery_currentChat(let data):
+      data1 = data
+    }
+    
+    switch key.optional {
+    case .url(let data):
+      data2 = data
+    case .callbackData(let data):
+      data2 = data
+    case .switchInlineQuery(let data):
+      data2 = data
+    case .switchInlineQuery_currentChat(let data):
+      data2 = data
+    }
+    
+    if data1 != data2 { return false }
+    
+    return true
+    
+  }
+  
     // Ignore context, just try and build an object from a node.
     public required init(node: Node, in context: Context) throws {
         text = try node.extract("text").string
@@ -415,7 +449,7 @@ public class MarkupInlineKey: NodeConvertible, JSONConvertible {
     }
 }
 
-private enum InlineButtonOptional {
+public enum InlineButtonOptional {
     case url(String)                            // HTTP url to be opened when button is pressed.
     case callbackData(String)                   // Data to be sent in a callback query to the bot when button is pressed, 1-64 bytes
     case switchInlineQuery(String)              // Prompts the user to select one of their chats, open it and insert the bot‘s username and the specified query in the input field.

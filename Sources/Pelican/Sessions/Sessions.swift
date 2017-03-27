@@ -12,7 +12,7 @@ public class Session {
   public var users: [User] = []  // Other users associated with this session.  The primary user is likely in this list.
   public var data: NSCopying?    // User-defined data chunk.
   
-  lazy var prompt = Prompt()     // Container for automating markup options and responses.
+  public var prompts: PromptController    // Container for automating markup options and responses.
   var floodLimit: FloodLimit     // External flood tracking system.
   
   // Session settings
@@ -54,6 +54,7 @@ public class Session {
   public init(bot: Pelican, chat: Chat, data: NSCopying?, floodLimit: FloodLimit, setup: @escaping (Session) -> (), sessionEndAction: ((Session) -> ())? ) {
     self.bot = bot
     self.chat = chat
+    self.prompts = PromptController()
     self.floodLimit = FloodLimit(clone: floodLimit) // A precaution to only copy the range values
     
     if data != nil {
@@ -69,11 +70,6 @@ public class Session {
     self.lastInteractTime = bot.globalTimer
     
     setup(self)
-  }
-  
-  // Perform some extra setup
-  func postInit() {
-    prompt.session = self
   }
   
   // Functions for managing what users are associated to this session.
@@ -168,6 +164,10 @@ public class Session {
     // Call the callback query if we have one.
     if (self.callbackQueryState != nil) {
       self.callbackQueryState!(query, self)
+    }
+    
+    else if prompts.count != 0 {
+      prompts.filterQuery(query, session: self)
     }
     
     // Check the flood status
