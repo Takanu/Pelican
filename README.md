@@ -22,7 +22,7 @@ So, what does Pelican do currently?
 
 **Support for most Bot Types/Methods (Is this a feature?)**
 
-Nearly everything is represented, the only thing currently missing are most Inline Types.  Databasing currently doesn't work yet, but will very soon.
+Nearly everything is represented, the only thing currently missing are most Inline Types.  Databasing should also work using most database types.
 
 **User Session System**
 
@@ -39,6 +39,10 @@ You can create function states for any kind of response that Telegram receive, a
 Any time you attempt to upload a file from the server, it will always upload in separate threads and pause the session or sessions that are waiting for those files to come through.  Once a file is uploaded, it will save the File ID internally and automatically use that ID instead of re-uploading when the file is referenced again later.
 
 (not all link and upload types are currently supported, and this needs a little more work)
+
+**Prompts**
+
+Prompts provide a convenient way to encapsulate behaviour for an inline keyboard message.  Quickly create one-hit options, provide transforming bot controls or call a user vote using simple initialisers and the user session system will handle query filtering and prompt management.
 
 **Maintenance Bot Features (coming soon)**
 
