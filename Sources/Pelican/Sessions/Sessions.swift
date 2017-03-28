@@ -72,6 +72,10 @@ public class Session {
     setup(self)
   }
   
+  func postInit() {
+    prompts.session = self
+  }
+  
   // Functions for managing what users are associated to this session.
   public func hasUser(_ user: User) -> Bool {
     if users.count == 0 { return false }
@@ -230,16 +234,20 @@ public class Session {
   }
   
   // Edits the text contents of a message.  A current message must be available.
-  public func edit(message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
+  public func edit(messageText: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
     
     if lastSentMessage != nil {
-      bot.editMessageText(chatID: chat.tgID, messageID: lastSentMessage!.tgID, text: message, replyMarkup: markup, parseMode: parseMode, disableWebPreview: disableNtf, replyMessageID: 0)
+      bot.editMessageText(chatID: chat.tgID, messageID: lastSentMessage!.tgID, text: messageText, replyMarkup: markup, parseMode: parseMode, disableWebPreview: disableNtf, replyMessageID: 0)
     }
   }
   
-  // Edits the inline contents of a message, using a provides message object.
-  public func edit(message: Message, markup: MarkupType? = nil) {
-    bot.editMessageReplyMarkup(chatID: message.chat.tgID, messageID: message.tgID, replyMarkup: markup, replyMessageID: 0)
+  // Edits the text contents of a message.  A current message must be available.
+  public func edit(withMessage message: Message, text: String? = nil, markup: MarkupType? = nil, reply: Bool = false, replyID: Int = 0, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
+    var newText = ""
+    if text != nil { newText = text! }
+    else { newText = message.text! }
+    
+    bot.editMessageText(chatID: message.chat.tgID, messageID: message.tgID, text: newText, replyMarkup: markup, parseMode: parseMode, disableWebPreview: disableNtf, replyMessageID: 0)
   }
   
   // Edits the markup of a message.

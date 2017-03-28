@@ -486,6 +486,7 @@ public final class Pelican: Vapor.Provider {
     // If we're still here, add them.
     if sessionSetupAction == nil { print(TGBotError.EntryMissing.rawValue) ; return nil }
     let session = Session(bot: self, chat:chat, data: customData, floodLimit: floodLimit, setup: self.sessionSetupAction!, sessionEndAction: self.sessionEndAction)
+    session.postInit()
     session.responseLimit = self.responseLimit
     
     sessions[chat.tgID] = session

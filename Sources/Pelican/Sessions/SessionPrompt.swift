@@ -14,6 +14,7 @@ import Vapor
  */
 public class PromptController {
   var prompts: [Prompt] = []
+  var session: Session?
   public var count: Int { return prompts.count }
   
   public func add(_ prompt: Prompt) {
@@ -27,15 +28,33 @@ public class PromptController {
     // Add the prompt to the stack
     prompts.append(prompt)
     prompt.controller = self
+    prompt.send(session: session!)
   }
   
-  /** A shortcut for creating and adding a prompt to the controller.
+  /** A shortcut for creating and adding a prompt to the controller.  Covers all commonly used types of prompts.
    */
-  public func createPrompt(inline: MarkupInline, message: String, type: PromptMode) {
-    let prompt = Prompt(inline: inline, message: message)
-    prompt.setConfig(type)
+//  public func createPrompt(inline: MarkupInline, message: String, type: PromptMode, next: @escaping (Session, Prompt) -> ()) -> Prompt {
+//    let prompt = Prompt(inline: inline, message: message, next: next)
+//    prompt.setConfig(type)
+//    add(prompt)
+//    
+//    return prompt
+//  }
+  
+  public func createEphemeralPrompt(inline: MarkupInline, message: String, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
+    let prompt = Prompt(asEphemeral: inline, message: message, finish: finish, next: next)
     add(prompt)
+    
+    return prompt
   }
+  
+  public func createPersistentPrompt(inline: MarkupInline, message: String, promptName: String, next: @escaping (Session, Prompt) -> ()) -> Prompt {
+    let prompt = Prompt(asPersistent: inline, message: message, promptName: promptName, next: next)
+    add(prompt)
+    
+    return prompt
+  }
+
   
   
   /** Finds a prompt that matches the given query.
@@ -80,36 +99,73 @@ public class PromptController {
 
 
 
-/** Defines a single prompt that encapsulates an inline markup messages and the behaviour of it.
+/** Defines a single prompt that encapsulates an inline markup message and the behaviour behind it.
  */
 public class Prompt {
   var timer: Int = 0
+  public var name: String = ""              // Optional name to use as a comparison between prompts.
   var messageText: String = ""
+  public var getMessageText: String { return messageText }
   var inline: MarkupInline
   var message: Message?
-  var controller: PromptController?   // Link back to the controller for removal when done.
+  var controller: PromptController?   // Links back to the controller for removal when complete, if required.
   
-  public var alert: String = ""             // What alert the user receives when they press an inline button.
+  var mode: PromptMode = .undefined
+  public var alertSuccess: String = ""       // What alert the user receives when they press an inline button and it worked.
+  public var alertFailure: String = ""       // What alert the user receives if it didn't.
   public var target: [User] = []            // What users are able to interact with the prompt.  If none, any can interact with it.
-  public var forceNext: Bool = true         // Whether the next closure is used if we finished without the responses being completed.
+  public var forceNext: Bool = true         // Whether the next closure is used if we finished without receiving any results.
   public var activationLimit: Int = 1       // How many times a button can be pressed by any user before the prompt is completed.
   public var removeOnCompletion: Bool = true  // When the prompt finishes, should the inline buttons and itself be removed?
   
-  public var next: ((Session, Prompt) -> ())?       // What closure is run once the prompt finishes.
-  public var update: ((Session, Prompt) -> ())?     // What closure is run if the prompt receives a new update
+  var next: ((Session, Prompt) -> ())?       // What closure is run once the prompt finishes.
+  var update: ((Session, Prompt) -> ())?     // What closure is run if the prompt receives a new update
+  var finish: ((Session, Prompt) -> ())?     // What closure is run to determine the final contents of the message.  Overrides removeOnCompletion.
   
   // Results and next steps
-  var usersPressed: [User] = []             // Who ended up pressing a button
-  var results: [String:[User]] = [:]        // What each user pressed
+  var usersPressed: [User] = []             // Who ended up pressing a button.
+  var results: [String:[User]] = [:]        // What each user pressed.
   var completed: Bool = false               // Whether the prompt has met it's completion requirements.
   
   
-  init(inline: MarkupInline, message: String) {
+  public init(inline: MarkupInline, message: String, next: @escaping (Session, Prompt) -> ()) {
     self.inline = inline
     self.messageText = message
+    self.next = next
   }
   
+  public init(asEphemeral inline: MarkupInline, message: String, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) {
+    self.inline = inline
+    self.messageText = message
+    self.finish = finish
+    self.next = next
+    
+    self.setConfig(.ephemeral)
+  }
+  
+  public init(asPersistent inline: MarkupInline, message: String, promptName: String, next: @escaping (Session, Prompt) -> ()) {
+    self.inline = inline
+    self.messageText = message
+    self.next = next
+    self.name = promptName
+    
+    self.setConfig(.persistent)
+  }
+  
+  
   public func compare(prompt: Prompt) -> Bool {
+    
+    if name != prompt.name {
+      return false
+    }
+    if mode.rawValue != prompt.mode.rawValue {
+      return false
+    }
+    
+    // At this point, if it's an active-type prompt, then this will be enough to return true.
+    if mode == .persistent { return true }
+    
+    
     if messageText != prompt.messageText {
       return false
     }
@@ -137,30 +193,30 @@ public class Prompt {
   
   
   /** Unsure how this will integrate, currently acts as a placeholder to group common usage patterns.
+      Disabled until i find something else for it
    */
-  public func setConfig(_ type: PromptMode) {
+  func setConfig(_ type: PromptMode) {
     switch type {
     case .ephemeral:
       self.timer = 0
       self.removeOnCompletion = true
       self.activationLimit = 1
+      self.mode = .ephemeral
       
     case .persistent:
       self.timer = 0
       self.removeOnCompletion = false
       self.activationLimit = 1
-      
-    case .active:
-      self.timer = 0
-      self.removeOnCompletion = false
-      self.activationLimit = 0
-      
+      self.mode = .persistent
+    default:
+      return
     }
   }
   
   /** Sends the prompt to the given session.
    */
   public func send(session: Session) {
+    
     func setupChoice(_ session: Session) {
       for data in inline.getCallbackData()! {
         self.results[data] = []
@@ -175,6 +231,7 @@ public class Prompt {
       }
     }
     
+    
     if timer > 0 {
       session.delay(by: timer, stack: true, action: setupChoice)
     }
@@ -182,6 +239,24 @@ public class Prompt {
     else {
       setupChoice(session)
     }
+  }
+  
+  /** Attempts to update the message this prompt is associated with
+   */
+  public func update(newInline: MarkupInline? = nil, newMessage: String? = nil, session: Session) {
+    if newInline == nil && newMessage == nil { return }
+    if newInline != nil {
+      self.inline = newInline!
+      for data in inline.getCallbackData()! {
+        self.results[data] = []
+      }
+    }
+    
+    if newMessage != nil {
+      self.messageText = newMessage!
+    }
+    
+    session.edit(withMessage: message!, text: messageText, markup: inline)
   }
   
   
@@ -205,12 +280,17 @@ public class Prompt {
     // If we're here, the user has definitely interacted with this message.
     // Attempt to make the button request
     let success = pressButton(user, query: data)
-    if success == true && alert != "" {
-      session.answer(query: query, text: alert)
+    if success == true && alertSuccess != "" {
+      session.answer(query: query, text: alertSuccess)
       
       if update != nil {
         update!(session, self)
       }
+    }
+    
+    // Answer with an alert failure if you well... failed to contribute.
+    else if success == false && alertFailure != "" {
+      session.answer(query: query, text: alertFailure)
     }
     
     
@@ -229,10 +309,10 @@ public class Prompt {
     if results[query] == nil { return false }
     
     // If the player isnt in the context, they can't press it
-    if target.contains(where: {$0.tgID == user.tgID}) == true {
+    if target.contains(where: {$0.tgID == user.tgID}) == true || target.count == 0 {
       
       // If they've already pressed it, they can't press it again.
-      if usersPressed.contains(where: {$0.tgID == user.tgID } ) == true {
+      if usersPressed.contains(where: {$0.tgID == user.tgID } ) == false {
         
         // If the query doesn't match a results type, don't accept it.
         if results[query]!.contains(where: {$0.tgID == user.tgID}) == false {
@@ -240,9 +320,13 @@ public class Prompt {
           usersPressed.append(user)
           
           print("Prompt Choice Pressed  - \(user.firstName)")
+          
+          if usersPressed.count >= activationLimit {
+            completed = true
+          }
             
           // Otherwise if everyone that can vote has, also consider things done
-          if usersPressed.count >= target.count {
+          else if usersPressed.count >= target.count {
             completed = true
           }
           
@@ -257,12 +341,24 @@ public class Prompt {
    */
   public func finish(_ session: Session) {
     // Just in case the action is in the timer system, remove it
-    session.removeAction(name: "prompt_choice")
-    session.callbackQueryState = nil
+    if timer != 0 {
+      session.removeAction(name: "prompt_choice")
+    }
     
-    // Remove the inline keyboard from the message if we have one.
+    // If we have a finish closure, run that and see if we need to
+    // remove the prompt from the controller.
+    if finish != nil {
+      finish!(session, self)
+      if removeOnCompletion == true {
+        if controller != nil {
+          controller!.remove(self)
+        }
+      }
+    }
+    
+    // If not but we should remove it anyway, perform that action.
     if removeOnCompletion == true {
-      session.edit(message: message!, markup: nil)
+        session.edit(withMessage: message!, markup: nil)
       
       if controller != nil {
         controller!.remove(self)
@@ -272,19 +368,11 @@ public class Prompt {
     
     if completed == false {
       
-      // If we didn't get a finish state but someone pressed the button, we still need to enter the next phase
-      // or clean up and return.
-      if usersPressed.count != 0 {
+      if forceNext == true && next != nil {
         session.resetTimerAssists()
-        
-        if forceNext == true && next != nil {
-          next!(session, self)
-        }
-        
-        reset()
-        return
+        next!(session, self)
+        resetResults()
       }
-        
       else { return }
     }
       
@@ -295,26 +383,74 @@ public class Prompt {
         next!(session, self)
       }
       
-      reset()
+      resetResults()
       return
     }
   }
   
+  /** Kills the prompt manually, removing it's inline buttons and pulling it from the controller.  Next will not be triggered.
+   */
+  public func end(withMessage text: String? = nil, session: Session, removeMarkup: Bool = true) {
+    // Just in case the action is in the timer system, remove it
+    if timer != 0 {
+      session.removeAction(name: "prompt_choice")
+    }
+    
+    // If we have a finish closure, run that and see if we need to
+    // remove the prompt from the controller.
+    if removeMarkup == true {
+      session.edit(withMessage: message!, text: text, markup: nil)
+      if controller != nil {
+        controller!.remove(self)
+      }
+    }
+  }
+  
+  
+  /** Returns a single, successful regardless of whether there was a tie, by random selelcting from the tied options.
+      Includes results for the users that selected it.
+   */
+  public func getWinner() -> (name: String, data: String, users: [User])? {
+    var winners: [String] = []
+    var users: [[User]] = []
+    var winVotes = 0
+    
+    for (index, item) in results.enumerated() {
+      if index == 0 {
+        winners.append(item.key)
+        users.append(item.value)
+        winVotes = item.value.count
+      }
+      else if item.value.count == winVotes {
+        winners.append(item.key)
+        users.append(item.value)
+      }
+      else if item.value.count > winVotes {
+        winners.removeAll()
+        users.removeAll()
+        winners.append(item.key)
+        users.append(item.value)
+        winVotes = item.value.count
+      }
+    }
+    
+    if winVotes == 0 { return nil }
+    return (inline.getLabel(forData: winners[0])!, winners[0], users[0])
+    
+    // Need randomiser code that's MIT
+    //return winner.getRandom
+  }
+  
   /** Cleans the system for later use.
    */
-  private func reset() {
-    timer = 0
-    messageText = ""
-    message = nil
-    alert = ""
-    forceNext = true
-    removeOnCompletion = true
-    target = []
-    
+  private func resetResults() {
     usersPressed = []
-    results = [:]
     completed = false
-    next = nil
+    
+    results.removeAll()
+    for data in inline.getCallbackData()! {
+      self.results[data] = []
+    }
   }
 }
 
@@ -324,5 +460,6 @@ public class Prompt {
 public enum PromptMode: String {
   case ephemeral    // One time activation, destroyed on completion
   case persistent   // One time activations, persistent
-  case active       // One time activations, persistent and can update itself
+  case vote         // Multiple activations, VOTE!
+  case undefined    // Default
 }
