@@ -19,7 +19,6 @@ Where bots are concerned though, Telegram offers an open and free API system whe
 
 So, what does Pelican do currently?
 
-
 **Support for most Bot Types/Methods (Is this a feature?)**
 
 Nearly everything is represented, the only thing currently missing are most Inline Types.  Databasing should also work using most database types.
@@ -32,7 +31,7 @@ Sessions in a later update will also conform to Model so they can be databased, 
 
 **State and Timer Systems**
 
-You can create function states for any kind of response that Telegram receive, as well as quickly clear, block and switch them, plus you can schedule delays for method calls and closures.
+You can create function states for any kind of response that Telegram receive to filter and handle incoming updates.  Additionally you can schedule method calls and closures to be executed at a later time using the action system.
 
 **Asynchronous File Uploads and File Cache System**
 
@@ -42,7 +41,7 @@ Any time you attempt to upload a file from the server, it will always upload in 
 
 **Prompts**
 
-Prompts provide a convenient way to encapsulate behaviour for an inline keyboard message.  Quickly create one-hit options, provide transforming bot controls or call a user vote using simple initialisers and the user session system will handle query filtering and prompt management.
+Prompts provide a convenient way to encapsulate behaviour for an inline keyboard message.  Quickly create one-time options, provide transforming bot controls or call a user vote using simple initialisers and the user session system will handle the rest.
 
 **Maintenance Bot Features (coming soon)**
 

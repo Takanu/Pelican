@@ -9,12 +9,13 @@
 import Foundation
 import Vapor
 
-/** Defines a convenient way to create inline options for users and to provide quick ways of managing and 
+/** Defines a convenient way to create inline options for users and to provide quick ways of managing and
  customising their behaviours.
  */
 public class PromptController {
   var prompts: [Prompt] = []
   var session: Session?
+  public var enabled: Bool = true
   public var count: Int { return prompts.count }
   
   public func add(_ prompt: Prompt) {
@@ -33,13 +34,13 @@ public class PromptController {
   
   /** A shortcut for creating and adding a prompt to the controller.  Covers all commonly used types of prompts.
    */
-//  public func createPrompt(inline: MarkupInline, message: String, type: PromptMode, next: @escaping (Session, Prompt) -> ()) -> Prompt {
-//    let prompt = Prompt(inline: inline, message: message, next: next)
-//    prompt.setConfig(type)
-//    add(prompt)
-//    
-//    return prompt
-//  }
+  //  public func createPrompt(inline: MarkupInline, message: String, type: PromptMode, next: @escaping (Session, Prompt) -> ()) -> Prompt {
+  //    let prompt = Prompt(inline: inline, message: message, next: next)
+  //    prompt.setConfig(type)
+  //    add(prompt)
+  //
+  //    return prompt
+  //  }
   
   public func createEphemeralPrompt(inline: MarkupInline, message: String, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
     let prompt = Prompt(asEphemeral: inline, message: message, finish: finish, next: next)
@@ -54,11 +55,16 @@ public class PromptController {
     
     return prompt
   }
-
   
+  public func createVotePrompt(inline: MarkupInline, message: String, promptName: String, time: Int = 0, update: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
+    let prompt = Prompt(asVote: inline, message: message, promptName: promptName, time: time, update: update, next: next)
+    add(prompt)
+    
+    return prompt
+  }
   
   /** Finds a prompt that matches the given query.
-  */
+   */
   public func search(withQuery query: CallbackQuery) -> Prompt? {
     for prompt in prompts {
       if prompt.message != nil {
@@ -74,6 +80,8 @@ public class PromptController {
   /** Filters a query for a prompt to receive and handle.
    */
   func filterQuery(_ query: CallbackQuery, session: Session) {
+    if enabled == false { return }
+    
     for prompt in prompts {
       if prompt.message != nil {
         if prompt.message!.tgID == query.message?.tgID {
@@ -93,6 +101,12 @@ public class PromptController {
         return
       }
     }
+  }
+  
+  /** Removes all prompts from the system.
+   */
+  public func removeAll() {
+    prompts.removeAll()
   }
 }
 
@@ -127,6 +141,8 @@ public class Prompt {
   var results: [String:[User]] = [:]        // What each user pressed.
   var completed: Bool = false               // Whether the prompt has met it's completion requirements.
   
+  public var getUsersPressed: [User] { return usersPressed }
+  
   
   public init(inline: MarkupInline, message: String, next: @escaping (Session, Prompt) -> ()) {
     self.inline = inline
@@ -150,6 +166,17 @@ public class Prompt {
     self.name = promptName
     
     self.setConfig(.persistent)
+  }
+  
+  public init(asVote inline: MarkupInline, message: String, promptName: String, time: Int = 0, update: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) {
+    self.timer = time
+    self.inline = inline
+    self.messageText = message
+    self.update = update
+    self.next = next
+    self.name = promptName
+    
+    self.setConfig(.vote)
   }
   
   
@@ -193,7 +220,7 @@ public class Prompt {
   
   
   /** Unsure how this will integrate, currently acts as a placeholder to group common usage patterns.
-      Disabled until i find something else for it
+   Disabled until i find something else for it
    */
   func setConfig(_ type: PromptMode) {
     switch type {
@@ -208,6 +235,12 @@ public class Prompt {
       self.removeOnCompletion = false
       self.activationLimit = 1
       self.mode = .persistent
+      
+    case .vote:
+      self.removeOnCompletion = true
+      self.activationLimit = 0
+      self.mode = .vote
+      
     default:
       return
     }
@@ -216,28 +249,16 @@ public class Prompt {
   /** Sends the prompt to the given session.
    */
   public func send(session: Session) {
-    
-    func setupChoice(_ session: Session) {
-      for data in inline.getCallbackData()! {
-        self.results[data] = []
-      }
-      
-      self.message = session.send(message: messageText, markup: inline)
-      session.callbackQueryState = self.query
-      
-      // If we have a timer, make it tick.
-      if timer > 0 {
-        session.delay(by: self.timer, stack: false, name: "prompt_choice", action: self.finish)
-      }
+    for data in inline.getCallbackData()! {
+      self.results[data] = []
     }
     
+    self.message = session.send(message: messageText, markup: inline)
+    session.callbackQueryState = self.query
     
+    // If we have a timer, make it tick.
     if timer > 0 {
-      session.delay(by: timer, stack: true, action: setupChoice)
-    }
-    
-    else {
-      setupChoice(session)
+      session.delay(by: self.timer, stack: false, name: "prompt_choice", action: self.finish)
     }
   }
   
@@ -280,15 +301,17 @@ public class Prompt {
     // If we're here, the user has definitely interacted with this message.
     // Attempt to make the button request
     let success = pressButton(user, query: data)
-    if success == true && alertSuccess != "" {
-      session.answer(query: query, text: alertSuccess)
+    if success == true {
+      if alertSuccess != "" {
+        session.answer(query: query, text: alertSuccess)
+      }
       
       if update != nil {
         update!(session, self)
       }
     }
-    
-    // Answer with an alert failure if you well... failed to contribute.
+      
+      // Answer with an alert failure if you well... failed to contribute.
     else if success == false && alertFailure != "" {
       session.answer(query: query, text: alertFailure)
     }
@@ -301,7 +324,7 @@ public class Prompt {
   }
   
   
-  /* Attempts to register a player to a choice.  Returns whether it was successful. 
+  /* Attempts to register a player to a choice.  Returns whether it was successful.
    */
   private func pressButton(_ user: User, query: String) -> Bool {
     
@@ -321,12 +344,12 @@ public class Prompt {
           
           print("Prompt Choice Pressed  - \(user.firstName)")
           
-          if usersPressed.count >= activationLimit {
+          if usersPressed.count >= activationLimit && activationLimit != 0 {
             completed = true
           }
             
-          // Otherwise if everyone that can vote has, also consider things done
-          else if usersPressed.count >= target.count {
+            // Otherwise if everyone that can vote has, also consider things done
+          else if usersPressed.count >= target.count && target.count != 0 {
             completed = true
           }
           
@@ -358,7 +381,7 @@ public class Prompt {
     
     // If not but we should remove it anyway, perform that action.
     if removeOnCompletion == true {
-        session.edit(withMessage: message!, markup: nil)
+      session.edit(withMessage: message!, markup: nil)
       
       if controller != nil {
         controller!.remove(self)
@@ -408,7 +431,7 @@ public class Prompt {
   
   
   /** Returns a single, successful regardless of whether there was a tie, by random selelcting from the tied options.
-      Includes results for the users that selected it.
+   Includes results for the users that selected it.
    */
   public func getWinner() -> (name: String, data: String, users: [User])? {
     var winners: [String] = []
@@ -436,6 +459,22 @@ public class Prompt {
     
     if winVotes == 0 { return nil }
     return (inline.getLabel(forData: winners[0])!, winners[0], users[0])
+    
+    // Need randomiser code that's MIT
+    //return winner.getRandom
+  }
+  
+  public func getResults(ordered: Bool) -> [(name: String, data: String, users: [User])] {
+    var returnResults: [(name: String, data: String, users: [User])] = []
+    
+    for result in results {
+      let data = result.key
+      let name = inline.getLabel(forData: result.key)
+      let users = result.value
+      returnResults.append((data, name!, users))
+    }
+    
+    return returnResults
     
     // Need randomiser code that's MIT
     //return winner.getRandom
