@@ -126,6 +126,41 @@ public class CacheManager {
         print(CacheError.LocalNotFound.rawValue)
         return nil
       }
+    
+    case .path(path: let fullPath):
+      if bundle == nil {
+        print(CacheError.BadBundle.rawValue)
+        return nil
+      }
+      
+      // Get the combined name and extension
+      var pathChunks = fullPath.components(separatedBy: "/")
+      let nameAndExt = pathChunks.removeLast()
+      
+      // Get the raw path
+      let path = fullPath.replacingOccurrences(of: nameAndExt, with: "")
+      let name = nameAndExt.components(separatedBy: ".").first!
+      var ext = nameAndExt.components(separatedBy: ".").last!
+      ext = "." + ext
+      
+      // Try getting the URL
+      guard let url = bundle!.url(forResource: name, withExtension: ext, subdirectory: path)
+        else {
+          print(CacheError.LocalNotFound.rawValue)
+          return nil
+      }
+      
+      // Try getting the bytes
+      do {
+        let image = try Data(contentsOf: url)
+        let bytes = try image.makeBytes()
+        return bytes
+        
+      } catch {
+        print(CacheError.LocalNotFound.rawValue)
+        return nil
+      }
+      
       
     default:
       return nil
@@ -239,7 +274,7 @@ extension FileType {
 public struct FileUpload {
   public enum UploadLocation {
     case name((path: String, name: String, ext: String))
-    //        case path(String)
+    case path(String)
     case http(String)
   }
   
@@ -249,22 +284,22 @@ public struct FileUpload {
     switch location {
     case .name(path: let path, name: let name, ext: let ext):
       return path + name + ext
-      //        case .path(let path):
-    //            return path
+    case .path(let path):
+      return path
     case .http(let http):
       return http
     }
   }
   
-  public init(withPath path: String, name: String, ext: String, type: FileType) {
+  public init(withName name: String, path: String, ext: String, type: FileType) {
     self.location = .name((path, name, ext))
     self.type = type
   }
   
-  //    init(withPath path: String, type: TGFileType) {
-  //        self.location = .path(path)
-  //        self.type = type
-  //    }
+  public init(withPath path: String, type: FileType) {
+    self.location = .path(path)
+    self.type = type
+  }
   
   public init(withHTTP http: String, type: FileType) {
     self.location = .http(http)

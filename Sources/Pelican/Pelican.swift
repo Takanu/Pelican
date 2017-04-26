@@ -170,6 +170,7 @@ public final class Pelican: Vapor.Provider {
   
   public func afterInit(_ drop: Droplet) {
     self.drop = drop
+    try! cache.setBundlePath(drop.workDir + "Public/")
   }
   
   public func beforeRun(_ drop: Droplet) {

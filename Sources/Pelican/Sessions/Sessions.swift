@@ -39,7 +39,7 @@ public class Session {
   public var callbackQueryState: ((CallbackQuery, Session) -> ())?
   
   public var sessionEndAction: ((Session) -> ())? // A command to be used when the session ends.
-  var actionQueue: [TelegramBotSessionAction] = [] // Any queued actions that need to be monitored.
+  var actionQueue: [Action] = [] // Any queued actions that need to be monitored.
   
   
   // Stored requests

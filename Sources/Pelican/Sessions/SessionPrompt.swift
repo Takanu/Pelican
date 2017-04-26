@@ -42,22 +42,22 @@ public class PromptController {
   //    return prompt
   //  }
   
-  public func createEphemeralPrompt(inline: MarkupInline, message: String, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
-    let prompt = Prompt(asEphemeral: inline, message: message, finish: finish, next: next)
+  public func createEphemeralPrompt(inline: MarkupInline, text: String, upload: FileUpload? = nil, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
+    let prompt = Prompt(asEphemeral: inline, text: text, upload: upload, finish: finish, next: next)
     add(prompt)
     
     return prompt
   }
   
-  public func createPersistentPrompt(inline: MarkupInline, message: String, promptName: String, next: @escaping (Session, Prompt) -> ()) -> Prompt {
-    let prompt = Prompt(asPersistent: inline, message: message, promptName: promptName, next: next)
+  public func createPersistentPrompt(inline: MarkupInline, text: String, upload: FileUpload? = nil, promptName: String, next: @escaping (Session, Prompt) -> ()) -> Prompt {
+    let prompt = Prompt(asPersistent: inline, text: text, upload: upload, promptName: promptName, next: next)
     add(prompt)
     
     return prompt
   }
   
-  public func createVotePrompt(inline: MarkupInline, message: String, promptName: String, time: Int = 0, update: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
-    let prompt = Prompt(asVote: inline, message: message, promptName: promptName, time: time, update: update, next: next)
+  public func createVotePrompt(inline: MarkupInline, text: String, upload: FileUpload? = nil, promptName: String, time: Int = 0, update: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
+    let prompt = Prompt(asVote: inline, text: text, upload: upload, promptName: promptName, time: time, update: update, next: next)
     add(prompt)
     
     return prompt
@@ -115,11 +115,14 @@ public class PromptController {
 
 /** Defines a single prompt that encapsulates an inline markup message and the behaviour behind it.
  */
-public class Prompt {
+public class Prompt: ReceiveUpload {
   var timer: Int = 0
   public var name: String = ""              // Optional name to use as a comparison between prompts.
-  var messageText: String = ""
-  public var getMessageText: String { return messageText }
+  
+  var text: String = ""
+  var upload: FileUpload?
+  
+  public var getText: String { return text }
   var inline: MarkupInline
   var message: Message?
   var controller: PromptController?   // Links back to the controller for removal when complete, if required.
@@ -144,34 +147,38 @@ public class Prompt {
   public var getUsersPressed: [User] { return usersPressed }
   
   
-  public init(inline: MarkupInline, message: String, next: @escaping (Session, Prompt) -> ()) {
+  public init(inline: MarkupInline, text: String, upload: FileUpload? = nil, next: @escaping (Session, Prompt) -> ()) {
     self.inline = inline
-    self.messageText = message
+    self.text = text
+    self.upload = upload
     self.next = next
   }
   
-  public init(asEphemeral inline: MarkupInline, message: String, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) {
+  public init(asEphemeral inline: MarkupInline, text: String, upload: FileUpload? = nil, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) {
     self.inline = inline
-    self.messageText = message
+    self.text = text
+    self.upload = upload
     self.finish = finish
     self.next = next
     
     self.setConfig(.ephemeral)
   }
   
-  public init(asPersistent inline: MarkupInline, message: String, promptName: String, next: @escaping (Session, Prompt) -> ()) {
+  public init(asPersistent inline: MarkupInline, text: String, upload: FileUpload? = nil, promptName: String, next: @escaping (Session, Prompt) -> ()) {
     self.inline = inline
-    self.messageText = message
+    self.text = text
+    self.upload = upload
     self.next = next
     self.name = promptName
     
     self.setConfig(.persistent)
   }
   
-  public init(asVote inline: MarkupInline, message: String, promptName: String, time: Int = 0, update: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) {
+  public init(asVote inline: MarkupInline, text: String, upload: FileUpload? = nil, promptName: String, time: Int = 0, update: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) {
     self.timer = time
     self.inline = inline
-    self.messageText = message
+    self.text = text
+    self.upload = upload
     self.update = update
     self.next = next
     self.name = promptName
@@ -193,7 +200,7 @@ public class Prompt {
     if mode == .persistent { return true }
     
     
-    if messageText != prompt.messageText {
+    if text != prompt.text {
       return false
     }
     if inline.keyboard.count != prompt.inline.keyboard.count {
@@ -253,8 +260,16 @@ public class Prompt {
       self.results[data] = []
     }
     
-    self.message = session.send(message: messageText, markup: inline)
-    session.callbackQueryState = self.query
+    // If we have an upload link, use that to send our prompt
+    // Otherwise just send it normally
+    if self.upload != nil {
+      session.send(link: self.upload!, markup: inline, callback: self, caption: text)
+    }
+    
+    else {
+      self.message = session.send(message: text, markup: inline)
+    }
+    
     
     // If we have a timer, make it tick.
     if timer > 0 {
@@ -264,8 +279,8 @@ public class Prompt {
   
   /** Attempts to update the message this prompt is associated with
    */
-  public func update(newInline: MarkupInline? = nil, newMessage: String? = nil, session: Session) {
-    if newInline == nil && newMessage == nil { return }
+  public func update(newInline: MarkupInline? = nil, newText: String? = nil, session: Session) {
+    if newInline == nil && newText == nil { return }
     if newInline != nil {
       self.inline = newInline!
       for data in inline.getCallbackData()! {
@@ -273,11 +288,17 @@ public class Prompt {
       }
     }
     
-    if newMessage != nil {
-      self.messageText = newMessage!
+    if newText != nil {
+      self.text = newText!
     }
     
-    session.edit(withMessage: message!, text: messageText, markup: inline)
+    if self.upload != nil {
+      session.edit(caption: text, message: message!, markup: inline)
+    }
+    
+    else {
+      session.edit(withMessage: message!, text: text, markup: inline)
+    }
   }
   
   
@@ -413,7 +434,7 @@ public class Prompt {
   
   /** Kills the prompt manually, removing it's inline buttons and pulling it from the controller.  Next will not be triggered.
    */
-  public func end(withMessage text: String? = nil, session: Session, removeMarkup: Bool = true) {
+  public func end(withText text: String? = nil, session: Session, removeMarkup: Bool = true) {
     // Just in case the action is in the timer system, remove it
     if timer != 0 {
       session.removeAction(name: "prompt_choice")
@@ -422,7 +443,19 @@ public class Prompt {
     // If we have a finish closure, run that and see if we need to
     // remove the prompt from the controller.
     if removeMarkup == true {
-      session.edit(withMessage: message!, text: text, markup: nil)
+      if self.upload != nil {
+        if text == nil || text == "" {
+          session.edit(caption: "", message: message!, markup: nil)
+        }
+        
+        else {
+          session.edit(caption: text!, message: message!, markup: nil)
+        }
+      }
+        
+      else {
+        session.edit(withMessage: message!, text: text, markup: nil)
+      }
       if controller != nil {
         controller!.remove(self)
       }
@@ -490,6 +523,12 @@ public class Prompt {
     for data in inline.getCallbackData()! {
       self.results[data] = []
     }
+  }
+  
+  /** A very cheap way to retain the message in a multi-threaded environment.  Will break in some way, guaranteed.
+   */
+  public func receiveMessage(message: Message) {
+    self.message = message
   }
 }
 
