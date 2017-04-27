@@ -13,6 +13,12 @@ import HTTP
 import FormData
 import Multipart
 
+/** Required for classes that wish to receive message objects once the upload is complete.
+ */
+public protocol ReceiveUpload {
+  func receiveMessage(message: Message)
+}
+
 
 /** This extension contains all available Bot API methods.
 */
@@ -177,7 +183,7 @@ public extension Pelican {
   }
   
   /** I mean you're not "necessarily" uploading a file but whatever, it'll do for now */
-  public func uploadFile(link: FileUpload, chatID: Int, markup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) {
+  public func uploadFile(link: FileUpload, callback: ReceiveUpload? = nil, chatID: Int, markup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) {
     
     // Check to see if we need to upload this in the first place.
     // If not, send the file using the link.
@@ -196,11 +202,12 @@ public extension Pelican {
     let request = Response()
     var form: [String:Field] = [:]
     form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
-    form[link.type.rawValue] = Field(name: link.type.rawValue, filename: "NOODLE", part: Part(headers: [:], body: data!))
+    form[link.type.rawValue] = Field(name: link.type.rawValue, filename: link.name, part: Part(headers: [:], body: data!))
     // A filename is required here
     
     
     // Check whether any other query needs to be added
+    if caption != "" { form["caption"] = Field(name: "caption", filename: nil, part: Part(headers: [:], body: caption.bytes)) }
     if markup != nil { form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: try! markup!.makeJSON().makeBytes())) }
     if replyMessageID != 0 { form["reply_to_message_id"] = Field(name: "reply_to_message_id", filename: nil, part: Part(headers: [:], body: String(replyMessageID).bytes)) }
     if disableNtf != false { form["disable_notification"] = Field(name: "disable_notification", filename: nil, part: Part(headers: [:], body: String(disableNtf).bytes)) }
@@ -217,7 +224,7 @@ public extension Pelican {
     
     uploadQueue.sync {
       let response = try! queueDrop.client.post(url, headers: request.headers, body: request.body)
-      self.finishUpload(link: link, response: response)
+      self.finishUpload(link: link, response: response, callback: callback)
       
       /*
        // Get the URL in a protected way
@@ -257,7 +264,7 @@ public extension Pelican {
     return
   }
   
-  public func finishUpload(link: FileUpload, response: Response) {
+  public func finishUpload(link: FileUpload, response: Response, callback: ReceiveUpload? = nil) {
     
     // All you need is the correct URL with the body of the
     //        guard let response = try? drop.client.post(url, headers: request.headers, body: request.body) else {
@@ -276,6 +283,11 @@ public extension Pelican {
     guard let message = try? Message(node: node, in: TGContext.response) else {
       drop.console.error(TGReqError.ResponseNotExtracted.rawValue, newLine: true)
       return
+    }
+    
+    // If we have a callback, call it.
+    if callback != nil {
+      callback!.receiveMessage(message: message)
     }
     
     // Add it to the cache
@@ -492,10 +504,10 @@ public extension Pelican {
     }
   }
   
-  public func editMessageCaption(chatID: Int, messageID: Int = 0, text: String, replyMarkup: MarkupType?, replyMessageID: Int = 0) {
+  public func editMessageCaption(chatID: Int, messageID: Int = 0, caption: String, replyMarkup: MarkupType?, replyMessageID: Int = 0) {
     var query: [String:CustomStringConvertible] = [
       "chat_id":chatID,
-      "text": text,
+      "text": caption,
       ]
     
     // Check whether any other query needs to be added

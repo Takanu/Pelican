@@ -278,6 +278,7 @@ public struct FileUpload {
     case http(String)
   }
   
+  public var name: String = ""
   public var location: UploadLocation
   public var type: FileType
   public var id: String {
@@ -294,11 +295,15 @@ public struct FileUpload {
   public init(withName name: String, path: String, ext: String, type: FileType) {
     self.location = .name((path, name, ext))
     self.type = type
+    self.name = name + ext
   }
   
   public init(withPath path: String, type: FileType) {
     self.location = .path(path)
     self.type = type
+    
+    var pathChunks = path.components(separatedBy: "/")
+    self.name = pathChunks.removeLast()
   }
   
   public init(withHTTP http: String, type: FileType) {

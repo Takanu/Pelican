@@ -39,7 +39,7 @@ public class Session {
   public var callbackQueryState: ((CallbackQuery, Session) -> ())?
   
   public var sessionEndAction: ((Session) -> ())? // A command to be used when the session ends.
-  var actionQueue: [Action] = [] // Any queued actions that need to be monitored.
+  var actionQueue: [TelegramBotSessionAction] = [] // Any queued actions that need to be monitored.
   
   
   // Stored requests
@@ -215,7 +215,7 @@ public class Session {
   }
   
   // Uploads and sends a link.  The upload is also then stored on the file cache for re-use.
-  public func send(link: FileUpload, markup: MarkupType? = nil, caption: String = "", reply: Bool = false, disableNtf: Bool = false) {
+  public func send(link: FileUpload, markup: MarkupType? = nil, callback: ReceiveUpload? = nil, caption: String = "", reply: Bool = false, disableNtf: Bool = false) {
     if currentMessage != nil {
       
       var makeReply = 0
@@ -223,7 +223,7 @@ public class Session {
         makeReply = currentMessage!.tgID
       }
       
-      bot.uploadFile(link: link, chatID: chat.tgID, markup: markup, caption: caption, disableNtf: disableNtf, replyMessageID: makeReply)
+      bot.uploadFile(link: link, callback: callback, chatID: chat.tgID, markup: markup, caption: caption, disableNtf: disableNtf, replyMessageID: makeReply)
     }
   }
   
@@ -256,6 +256,19 @@ public class Session {
       bot.editMessageReplyMarkup(chatID: chat.tgID, messageID: lastSentMessage!.tgID, replyMarkup: markup, replyMessageID: 0)
     }
   }
+  
+  // Edits the caption of a file-type message.
+  public func edit(caption: String, markup: MarkupType? = nil, reply: Bool = false) {
+    if lastSentMessage != nil {
+      bot.editMessageCaption(chatID: chat.tgID, messageID: lastSentMessage!.tgID, caption: caption, replyMarkup: markup, replyMessageID: 0)
+    }
+  }
+  
+  // Edits the caption of a file-type message with a specific sent message reference.
+  public func edit(caption: String, message: Message, markup: MarkupType? = nil, reply: Bool = false) {
+    bot.editMessageCaption(chatID: chat.tgID, messageID: message.tgID, caption: caption, replyMarkup: markup, replyMessageID: 0)
+  }
+  
   
   // Responds to a Callback Query through an alert
   public func answer(query: CallbackQuery, text: String, popup: Bool = false, gameURL: String = "") {

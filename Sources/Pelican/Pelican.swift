@@ -120,6 +120,7 @@ public final class Pelican: Vapor.Provider {
   var uploadQueue: DispatchQueue
   var pollInterval: Int = 0
   var globalTimer: Int = 0        // Used for executing scheduled events.
+  public var getTime: Int { return globalTimer }
   
   // Connection settings
   public var maxRequestAttempts: Int = 0 // The maximum number of times the bot will attempt to get a response before it logs an error.
