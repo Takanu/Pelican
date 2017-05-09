@@ -2,7 +2,7 @@
 import Foundation
 import Vapor
 
-/* This object represents a game. Use BotFather to create and edit games, their short names will act as unique identifiers. 
+/** This object represents a game. Use BotFather to create and edit games, their short names will act as unique identifiers. 
  */
 public class Game: NodeConvertible, JSONConvertible {
   var title: String                 // Title of the game
@@ -44,7 +44,7 @@ public class Game: NodeConvertible, JSONConvertible {
 }
 
 
-/* You can provide an animation for your game so that it looks stylish in chats (check out Lumberjack for an example). This object represents an animation file to be displayed in the message containing a game. 
+/** You can provide an animation for your game so that it looks stylish in chats (check out Lumberjack for an example). This object represents an animation file to be displayed in the message containing a game. 
  */
 public class Animation: NodeConvertible, JSONConvertible {
   var fileID: String      // Unique file identifier.
@@ -81,7 +81,7 @@ public class Animation: NodeConvertible, JSONConvertible {
 }
 
 
-/* This object represents one row of the high scores table for a game.
+/** This object represents one row of the high scores table for a game.
 */
 public class GameHighScore: NodeConvertible, JSONConvertible {
   var position: Int     // Position in the high score table for the game

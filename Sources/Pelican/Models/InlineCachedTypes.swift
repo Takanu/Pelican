@@ -2,7 +2,7 @@
 import Foundation
 import Swift
 
-/*
+/**
 
 // An extended class/protocol thing for items that can be considered as cached (stored on Telegram's servers) or not (stored as a URL of the file).
 protocol InlineResultCached: InlineResult {
@@ -13,7 +13,7 @@ protocol InlineResultCached: InlineResult {
 // makeNode() currently makes no effort to divide content based on whether it's cached or not.
 // Use getQuery() instead.
 
-/* Represents either a link to a MP3 audio file stored on the Telegram servers, or an external URL link to one. */
+/** Represents either a link to a MP3 audio file stored on the Telegram servers, or an external URL link to one. */
 struct InlineResultAudio: NodeConvertible, JSONConvertible, InlineResultCached {
     var type: String = "audio"
     var id: String
@@ -26,7 +26,7 @@ struct InlineResultAudio: NodeConvertible, JSONConvertible, InlineResultCached {
 
 }
 
-/* Represents either a link to a file stored on the Telegram servers, or an external URL link to one.  If sent using an external link, only .PDF and .ZIP files are supported. */
+/** Represents either a link to a file stored on the Telegram servers, or an external URL link to one.  If sent using an external link, only .PDF and .ZIP files are supported. */
 struct InlineResultDocumentCached: NodeConvertible, JSONConvertible, InlineResultCached {
     var type: String = "document"
     var id: String
@@ -41,7 +41,7 @@ struct InlineResultDocumentCached: NodeConvertible, JSONConvertible, InlineResul
 
 }
 
-/* Represents either a link to an animated GIF stored on the Telegram servers, or an external URL link to one. */
+/** Represents either a link to an animated GIF stored on the Telegram servers, or an external URL link to one. */
 struct InlineResultGIFCached: InlineResultCached {
     var type: String = "gif"
     var id: String
@@ -56,7 +56,7 @@ struct InlineResultGIFCached: InlineResultCached {
 }
 
 
-/* Represents either a link to a video animation (H.264/MPEG-4 AVC video without sound) stored on the Telegram servers, or an external URL link to one. */
+/** Represents either a link to a video animation (H.264/MPEG-4 AVC video without sound) stored on the Telegram servers, or an external URL link to one. */
 struct InlineResultMpeg4GIFCached: InlineResultCached {
     var type: String = "mpeg4_gif"
     var id: String
@@ -73,7 +73,7 @@ struct InlineResultMpeg4GIFCached: InlineResultCached {
 
 }
 
-/* Represents either a link to a photo stored on the Telegram servers, or an external URL link to one. */
+/** Represents either a link to a photo stored on the Telegram servers, or an external URL link to one. */
 struct InlineResultPhotoCached: InlineResultCached {
     var type: String = "photo"
     var id: String
@@ -90,7 +90,7 @@ struct InlineResultPhotoCached: InlineResultCached {
 }
 
 
-/* Represents a link to a sticker stored on the Telegram servers.  Stickers can only ever be cached. */
+/** Represents a link to a sticker stored on the Telegram servers.  Stickers can only ever be cached. */
 struct InlineResultStickerCached: InlineResultCached {
     var type: String = "sticker"
     var id: String
@@ -101,7 +101,7 @@ struct InlineResultStickerCached: InlineResultCached {
     var fileLink: String // Either a valid identifier for the audio file if cached, or a URL if not.
 }
 
-/* Represents either a link to a video stored on the Telegram servers, or an external URL link to a page containing an embedded video player or video file. */
+/** Represents either a link to a video stored on the Telegram servers, or an external URL link to a page containing an embedded video player or video file. */
 struct InlineResultVideoCached: InlineResultCached {
     var type: String = "video"
     var id: String
@@ -119,7 +119,7 @@ struct InlineResultVideoCached: InlineResultCached {
     var duration: Int? // Video duration in seconds.
 }
 
-/* Represents either a link to a voice message (in an .ogg container encoded with OPUS) stored on the Telegram servers, or an external URL link to one. */
+/** Represents either a link to a voice message (in an .ogg container encoded with OPUS) stored on the Telegram servers, or an external URL link to one. */
 struct InlineResultVoiceCached: InlineResultCached {
     var type: String = "voice"
     var id: String

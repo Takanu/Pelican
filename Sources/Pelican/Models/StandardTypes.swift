@@ -84,7 +84,7 @@ public class User: TelegramType {
   }
 }
 
-/*
+/**
 public enum ChatType: String {
   case private
   case group
@@ -1163,7 +1163,7 @@ public class UserProfilePhotos: NodeConvertible, JSONConvertible {
   }
 }
 
-/**
+/***
  Represents a file ready to be downloaded.  The file can be downloaded via the link https://api.telegram.org/file/bot<token>/<file_path>.  It is guaranteed that the link will be valid for at least one hour.  When the link expires, a new one can be requested by calling getFile.
  */
 class File: Model {
@@ -1210,7 +1210,7 @@ class File: Model {
 }
 
 
-/*
+/**
  This object represents an incoming callback query from a callback button in an inline keyboard.
  
  If the button that originated the query was attached to a message sent by the bot, the field message will be present. If the button was attached to a message sent via the bot (in inline mode), the field inline_message_id will be present. Exactly one of the fields data or game_short_name will be present.

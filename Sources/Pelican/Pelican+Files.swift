@@ -9,8 +9,12 @@ private enum CacheError: String, Error {
   case LocalNotFound = "The local resource you attempted to upload could not be found or processed."
 }
 
-/// Manages a database of currently active file links for re-use, as well as asynchronously uploads content
-/// that doesn't have a link.
+/** Manages a database of currently active file links for re-use, as well as asynchronously uploads content
+ that doesn't have a link.
+ 
+ The database updates itself when a FileLink class is sent using the bot or a session, enabling content to 
+ be re-used and saving resources in the process.
+ */
 public class CacheManager {
   private var bundle: Bundle?
   
@@ -33,8 +37,9 @@ public class CacheManager {
   }
   
   
-  // Used to keep cache types separate, to make cache searching less intensive?  (idk)
-  // This should be replaced with one stack that can then filter using generics.
+  /** Used to keep cache types separate, to make cache searching less intensive?  (idk).
+   This should be replaced with one stack that can then filter using generics.
+  */
   internal func getCache(type: FileType) -> [CacheFile] {
     switch type {
     case .audio:
@@ -69,8 +74,9 @@ public class CacheManager {
     }
   }
   
-  /** Adds the cached resource to the list given a successful response message. */
-  func add(upload: FileUpload, message: Message) -> Bool {
+  /** Adds the cached resource to the list given a successful response message. 
+   */
+  func add(upload: FileLink, message: Message) -> Bool {
     let file = try! CacheFile(upload: upload, file: message, time: 0)
     var cache: [CacheFile] = getCache(type: file.getType)
     
@@ -84,8 +90,9 @@ public class CacheManager {
   }
   
   /** Tries to find whether an uploaded version of that file exists in the cache.
-   Returns the object if true, or nothing if false. */
-  func find(upload: FileUpload, bot: Pelican) -> SendType? {
+   Returns the object if true, or nothing if false. 
+   */
+  func find(upload: FileLink, bot: Pelican) -> SendType? {
     let cache = getCache(type: upload.type)
     for item in cache {
       
@@ -101,32 +108,13 @@ public class CacheManager {
     return nil
   }
   
-  /** Attempts to retrieve the raw data for the requested resource. */
-  func get(upload: FileUpload) -> Bytes? {
+  /** Attempts to retrieve the raw data for the requested resource.
+    - parameter upload: The file you wish to get raw data for.
+   */
+  func get(upload: FileLink) -> Bytes? {
     
     switch upload.location {
-    case .name(path: let path, name: let name, ext: let ext):
-      if bundle == nil {
-        print(CacheError.BadBundle.rawValue)
-        return nil
-      }
       
-      guard let url = bundle!.url(forResource: name, withExtension: ext, subdirectory: path)
-        else {
-          print(CacheError.LocalNotFound.rawValue)
-          return nil
-      }
-      
-      do {
-        let image = try Data(contentsOf: url)
-        let bytes = try image.makeBytes()
-        return bytes
-        
-      } catch {
-        print(CacheError.LocalNotFound.rawValue)
-        return nil
-      }
-    
     case .path(path: let fullPath):
       if bundle == nil {
         print(CacheError.BadBundle.rawValue)
@@ -168,7 +156,8 @@ public class CacheManager {
   }
 }
 
-// Represents a file that has been uploaded and is stored in the cache for
+/** Represents a file that has been uploaded and is stored in the cache for.
+ */
 struct CacheFile {
   private enum File {
     case audio(Audio)
@@ -180,8 +169,10 @@ struct CacheFile {
   }
   
   private var file: File
-  var uploadTime: Int             // The time at which it was uploaded.
-  var uploadData: FileUpload      // The file upload type that was used to upload it.
+  /// The time at which it was uploaded.
+  var uploadTime: Int
+  /// The file upload type that was used to upload it.
+  var uploadData: FileLink
   
   var getFile: SendType {
     switch file {
@@ -218,7 +209,7 @@ struct CacheFile {
   }
   
   
-  init(upload: FileUpload, file: Message, time: Int) throws {
+  init(upload: FileLink, file: Message, time: Int) throws {
     switch file.type {
     case .audio(let file):
       self.file = .audio(file)
@@ -270,10 +261,10 @@ extension FileType {
 }
 
 
-/** Defines a file to be uploaded using the sendFile TelegramBot function. */
-public struct FileUpload {
+/** Defines a link to a file, either located in /Public or as a HTTP link to a file.
+ */
+public struct FileLink {
   public enum UploadLocation {
-    case name((path: String, name: String, ext: String))
     case path(String)
     case http(String)
   }
@@ -283,9 +274,6 @@ public struct FileUpload {
   public var type: FileType
   public var id: String {
     switch location {
-    // Not sure I need this anymore, seems like a poorer version of path.
-    case .name(path: let path, name: let name, ext: let ext):
-      return path + name + ext
     case .path(let path):
       return path
     case .http(let http):
@@ -293,12 +281,11 @@ public struct FileUpload {
     }
   }
   
-  public init(withName name: String, path: String, ext: String, type: FileType) {
-    self.location = .name((path, name, ext))
-    self.type = type
-    self.name = name + ext
-  }
-  
+  /** 
+   Initialises the FileLink using a path to a local resource.  The path must be local and defined from /Public.
+   
+   eg. ```karaoke/jack1.png```
+   */
   public init(withPath path: String, type: FileType) {
     self.location = .path(path)
     self.type = type
@@ -307,6 +294,11 @@ public struct FileUpload {
     self.name = pathChunks.removeLast()
   }
   
+  /**
+   Initialises the FileLink using a path to an external resource, as an HTTP link.
+   
+   - warning: Pelican currently doesn't support HTTP uploading, please don't use it.
+   */
   public init(withHTTP http: String, type: FileType) {
     self.location = .http(http)
     self.type = type

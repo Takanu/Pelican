@@ -215,7 +215,7 @@ public class Session {
   }
   
   // Uploads and sends a link.  The upload is also then stored on the file cache for re-use.
-  public func send(link: FileUpload, markup: MarkupType? = nil, callback: ReceiveUpload? = nil, caption: String = "", reply: Bool = false, disableNtf: Bool = false) {
+  public func send(link: FileLink, markup: MarkupType? = nil, callback: ReceiveUpload? = nil, caption: String = "", reply: Bool = false, disableNtf: Bool = false) {
     if currentMessage != nil {
       
       var makeReply = 0

@@ -183,7 +183,7 @@ public extension Pelican {
   }
   
   /** I mean you're not "necessarily" uploading a file but whatever, it'll do for now */
-  public func uploadFile(link: FileUpload, callback: ReceiveUpload? = nil, chatID: Int, markup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) {
+  public func uploadFile(link: FileLink, callback: ReceiveUpload? = nil, chatID: Int, markup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) {
     
     // Check to see if we need to upload this in the first place.
     // If not, send the file using the link.
@@ -267,7 +267,7 @@ public extension Pelican {
     return
   }
   
-  public func finishUpload(link: FileUpload, response: Response, callback: ReceiveUpload? = nil) {
+  public func finishUpload(link: FileLink, response: Response, callback: ReceiveUpload? = nil) {
     
     // All you need is the correct URL with the body of the
     //        guard let response = try? drop.client.post(url, headers: request.headers, body: request.body) else {

@@ -2,6 +2,13 @@
 import Foundation
 import Vapor
 
+
+
+/** 
+ Represents a Telegram "Markup Type", that defines additional special actions and interfaces
+ alongside a message, such as creating a custom keyboard or forcing a userto reply to the sent 
+ message.
+ */
 public protocol MarkupType: NodeConvertible, JSONConvertible {
   
 }
@@ -12,35 +19,46 @@ public extension MarkupType {
   }
 }
 
-// Represents a custom keyboard with custom fancy options.
-// Needs a method for automatically adding buttons into a row
+
+/// Represents a static keyboard interface that when sent, appears below the message entry box on a Telegram client.
 public class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
-  public var keyboard: [MarkupKeyboardRow] = [] // The array of available keyboard buttons
-  public var resizeKeyboard: Bool = true // (Optional) Requests clients to resize the keyboard vertically for optimal fit (e.g., make the keyboard smaller if there are just two rows of buttons).
-  public var oneTimeKeyboard: Bool = false // (Optional) Requests clients to hide the keyboard as soon as it's been used.
-  public var selective: Bool = false // (Optional)  Use this parameter if you want to show the keyboard to specific users only.
-  // Targets: 1) users that are @mentioned in the text of the Message object;
-  // 2) if the bot's message is a reply (has reply_to_message_id), sender of the original message.
   
-  public var description: String = ""
+  /// An array of keyboard rows, that contain labelled buttons which populate the message keyboard.
+  public var keyboard: [[MarkupKeyboardKey]] = [[]]
+  /// (Optional) Requests clients to resize the keyboard vertically for optimal fit (e.g., make the keyboard smaller if there are just two rows of buttons).
+  public var resizeKeyboard: Bool = true
+  /// (Optional) Requests clients to hide the keyboard as soon as it's been used.
+  public var oneTimeKeyboard: Bool = false
+  
+  /**
+  (Optional)  Use this parameter if you want to show the keyboard to specific users only.
+  _ _ _
+   
+  **Targets**
+  1) Users that are @mentioned in the text of the Message object;
+  2) if the bot's message is a reply (has reply_to_message_id), sender of the original message.
+   */
+  public var selective: Bool = false
   
   
+  //public var description: String = ""
   
-  public init(withButtons buttons: [String], resize: Bool = true, oneTime: Bool = false, selective: Bool = false) {
-    var row = MarkupKeyboardRow()
-    for button in buttons {
-      row.addNewButton(button)
-    }
-    
-    self.keyboard = [row]
-    self.resizeKeyboard = resize
-    self.oneTimeKeyboard = oneTime
-    self.selective = selective
-  }
-  
+  /**
+   Initialises the keyboard using a set of String arrays and other optional parameters.
+   - parameter rows: The keyboard as defined by a set of nested String arrays.
+   - parameter resize: Requests clients to resize the keyboard vertically for an optimal fit.
+   - parameter oneTime: Requests clients to hide the keyboard as soon as it's been used.
+   - parameter selective: Use this parameter if you want to show the keyboard to specific users only.
+   */
   public init(withButtonRows rows: [[String]], resize: Bool = true, oneTime: Bool = false, selective: Bool = false) {
     for array in rows {
-      let row = MarkupKeyboardRow(withButtonArray: array)
+      var row: [MarkupKeyboardKey] = []
+      
+      for label in array {
+        let button = MarkupKeyboardKey(label: label)
+        row.append(button)
+      }
+      
       keyboard.append(row)
     }
     
@@ -49,10 +67,17 @@ public class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
     self.selective = selective
   }
   
+  /**
+   Initialises the keyboard using a range of String buttons, which will be arranged as a single row.
+   - parameter buttons: The keyboard as defined by a series of Strings.
+   - parameter resize: Requests clients to resize the keyboard vertically for an optimal fit.
+   - parameter oneTime: Requests clients to hide the keyboard as soon as it's been used.
+   - parameter selective: Use this parameter if you want to show the keyboard to specific users only.
+   */
   public init(resize: Bool = true, oneTime: Bool = false, selective: Bool = false, buttons: String...) {
-    var row = MarkupKeyboardRow()
+    var row: [MarkupKeyboardKey] = []
     for button in buttons {
-      row.addNewButton(button)
+      row.append(MarkupKeyboardKey(label: button))
     }
     
     self.keyboard = [row]
@@ -62,13 +87,93 @@ public class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
     
   }
   
+  /**
+   Returns all the buttons the keyboard holds, as a single array.
+   */
   public func getButtons() -> [String] {
     var result: [String] = []
     
     for row in keyboard {
-      for key in row.keys {
+      for key in row {
         result.append(key.text)
       }
+    }
+    
+    return result
+  }
+  
+  /**
+   Finds a key that matches the given label.
+   - parameter label: The label of the key you wish to find   
+   - returns: The key if found, or nil if not found.
+   */
+  public func findButton(label: String) -> MarkupKeyboardKey? {
+    for row in keyboard {
+      for key in row {
+        
+        if key.text == label {
+          return key
+        }
+      }
+    }
+    
+    return nil
+  }
+  
+  /**
+   Finds and replaces a keyboard button defined by the given label with a new provided one.
+   - parameter oldLabel: The label to find in the keyboard
+   - parameter newLabel: The label to use as a replacement
+   - parameter replaceAll: (Optional) If true, any label that matches `oldLabel` will be replaced with `newLabel`, not just the first instance.
+   */
+  public func replaceButton(oldLabel: String, newLabel: String, replaceAll: Bool = false) -> Bool {
+    var result = false
+    
+    for (x, row) in keyboard.enumerated() {
+      var currentRow = row
+      for (y, key) in row.enumerated() {
+        
+        if key.text == oldLabel {
+          currentRow[y].text = newLabel
+          result = true
+          
+          if replaceAll == false {
+            keyboard[x] = currentRow
+            return true
+          }
+        }
+      }
+      
+      keyboard[x] = currentRow
+    }
+    
+    return result
+  }
+  
+  /**
+   Finds and deletes a keyboard button thgat matches the given label
+   - parameter withLabel: The label to find in the keyboard
+   - parameter removeAll: (Optional) If true, any label that matches the given label will be removed.
+   */
+  public func removeButton(withLabel label: String, removeAll: Bool = false) -> Bool {
+    var result = false
+    
+    for (x, row) in keyboard.enumerated() {
+      var currentRow = row
+      for (y, key) in row.enumerated() {
+        
+        if key.text == label {
+          currentRow.remove(at: y)
+          result = true
+          
+          if removeAll == false {
+            keyboard[x] = currentRow
+            return true
+          }
+        }
+      }
+      
+      keyboard[x] = currentRow
     }
     
     return result
@@ -83,11 +188,23 @@ public class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
   }
   
   public func makeNode() throws -> Node {
-    let keyNode = try! keyboard.makeNode()
+    var keyNode: [Node] = []
+    
+    for row in keyboard {
+      var rowNode: [Node] = []
+      
+      for key in row {
+        let keyNode = try key.makeNode()
+        rowNode.append(keyNode)
+      }
+      
+      keyNode.append(try rowNode.makeNode())
+    }
+    
     print(keyNode)
     
     return try Node(node:[
-      "keyboard": keyNode,
+      "keyboard": keyNode.makeNode(),
       "resize_keyboard": resizeKeyboard,
       "one_time_keyboard": oneTimeKeyboard,
       "selective": selective
@@ -100,50 +217,15 @@ public class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
   }
 }
 
-public struct MarkupKeyboardRow: NodeConvertible, JSONConvertible {
-  public var keys: [MarkupKeyboardKey] = []
-  
-  public init(withButtons buttons: String...) {
-    for button in buttons {
-      keys.append(MarkupKeyboardKey(label: button))
-    }
-  }
-  
-  public init(withButtonArray array: [String]) {
-    for label in array {
-      keys.append(MarkupKeyboardKey(label: label))
-    }
-  }
-  
-  public mutating func addButton(_ button: MarkupKeyboardKey) {
-    keys.append(button)
-  }
-  
-  public mutating func addNewButton(_ label: String) {
-    keys.append(MarkupKeyboardKey(label: label))
-  }
-  
-  // Ignore context, just try and build an object from a node.
-  public init(node: Node, in context: Context) throws {
-    let array = node.nodeArray!
-    for item in array {
-      keys.append(try! MarkupKeyboardKey(node: item, in: context))
-    }
-  }
-  
-  public func makeNode() throws -> Node {
-    return try keys.makeNode()
-  }
-  
-  public func makeNode(context: Context) throws -> Node {
-    return try self.makeNode()
-  }
-}
 
+/// Represents a single key of a MarkupKeyboard.
 public struct MarkupKeyboardKey: NodeConvertible, JSONConvertible {
-  public var text: String // The text displayed on the button.  If no other optional is used, this will be sent to the bot when pressed.
-  private var requestContact: Bool = false // (Optional) If True, the user's phone number will be sent as a contact when the button is pressed. Available in private chats only
-  private var requestLocation: Bool = false // (Optional) If True, the user's current location will be sent when the button is pressed. Available in private chats only
+  /// The text displayed on the button.  If no other optional is used, this will be sent to the bot when pressed.
+  public var text: String
+  /// (Optional) If True, the user's phone number will be sent as a contact when the button is pressed. Available in private chats only.
+  private var requestContact: Bool = false
+  // (Optional) If True, the user's current location will be sent when the button is pressed. Available in private chats only.
+  private var requestLocation: Bool = false
   
   init(label: String) {
     text = label
@@ -190,7 +272,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
   
   // If you want to do it the hard way
   public init(withButtons buttonsIn: MarkupInlineKey...) {
-    var row = MarkupInlineRow()
+    let row = MarkupInlineRow()
     for button in buttonsIn {
       row.addButton(button)
     }
@@ -199,7 +281,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
   
   // A quick type for generating buttons.
   public init(withURL pair: (label: String, url: String)...) {
-    var row = MarkupInlineRow()
+    let row = MarkupInlineRow()
     for label in pair {
       let button = MarkupInlineKey(fromURL: label.url, label: label.label)
       row.addButton(button)
@@ -207,10 +289,10 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     keyboard.append(row)
   }
   
-  /* A quick type for generating buttons.
+  /** A quick type for generating buttons.
    */
   public init(withCallback pair: (label: String, query: String)...) {
-    var row = MarkupInlineRow()
+    let row = MarkupInlineRow()
     for label in pair {
       let button = MarkupInlineKey(fromCallbackData: label.query, label: label.label)
       row.addButton(button)
@@ -218,10 +300,10 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     keyboard.append(row)
   }
   
-  /* Should only be used when the class has no plans to be updated and is the only inline control currently active.
+  /** Should only be used when the class has no plans to be updated and is the only inline control currently active.
    */
   public init(withGenCallback labels: String...) {
-    var row = MarkupInlineRow()
+    let row = MarkupInlineRow()
     var id = 1
     for label in labels {
       let button = MarkupInlineKey(fromCallbackData: String(id), label: label)
@@ -231,12 +313,12 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     keyboard.append(row)
   }
   
-  /* Should only be used when the class has no plans to be updated and is the only inline control currently active.
+  /** Should only be used when the class has no plans to be updated and is the only inline control currently active.
    */
   public init(withGenCallback rows: [[String]]) {
     var id = 1
     for row in rows {
-      var newRow = MarkupInlineRow()
+      let newRow = MarkupInlineRow()
       for label in row {
         let button = MarkupInlineKey(fromCallbackData: String(id), label: label)
         newRow.addButton(button)
@@ -249,7 +331,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
   
   // A quick type for generating buttons.
   public init(withCurrentInlineQuery pair: (label: String, query: String)...) {
-    var row = MarkupInlineRow()
+    let row = MarkupInlineRow()
     for label in pair {
       let button = MarkupInlineKey(fromInlineQueryCurrent: label.query, label: label.label)
       row.addButton(button)
@@ -258,7 +340,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
   }
   
   public init(withCurrentInlineQuery array: [(label: String, query: String)]) {
-    var row = MarkupInlineRow()
+    let row = MarkupInlineRow()
     for label in array {
       let button = MarkupInlineKey(fromInlineQueryCurrent: label.query, label: label.label)
       row.addButton(button)
@@ -268,7 +350,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
   
   
   
-  /** Returns all available callback data from any button held inside this markup
+  /*** Returns all available callback data from any button held inside this markup
    */
   public func getCallbackData() -> [String]? {
     var data: [String] = []
@@ -284,7 +366,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     return data
   }
   
-  /** Returns all labels associated with the inline keyboard.
+  /*** Returns all labels associated with the inline keyboard.
    */
   public func getLabels() -> [String] {
     var labels: [String] = []
@@ -297,7 +379,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     return labels
   }
   
-  /** Returns the label thats associated with the provided data, if it exists.
+  /*** Returns the label thats associated with the provided data, if it exists.
    */
   public func getLabel(withData data: String) -> String? {
     for row in keyboard {
@@ -310,7 +392,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     return nil
   }
   
-  /** Returns the key thats associated with the provided data, if it exists.
+  /*** Returns the key thats associated with the provided data, if it exists.
    */
   public func getKey(withData data: String) -> MarkupInlineKey? {
     for row in keyboard {
@@ -324,7 +406,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
   }
   
   
-  /* Replaces a key with another provided one, by trying to match the given data with a key
+  /** Replaces a key with another provided one, by trying to match the given data with a key
    */
   public func replaceKey(usingType type: InlineButtonType, data: String, newKey: MarkupInlineKey) -> Bool {
     for row in keyboard {
@@ -335,7 +417,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     return false
   }
   
-  /* Replaces a key with another provided one, by trying to match the keys it has with one that's provided.
+  /** Replaces a key with another provided one, by trying to match the keys it has with one that's provided.
    */
   public func replaceKey(oldKey: MarkupInlineKey, newKey: MarkupInlineKey) -> Bool {
     for row in keyboard {
@@ -346,7 +428,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     return false
   }
   
-  /* Tries to find and delete a key, based on a match with one provided.
+  /** Tries to find and delete a key, based on a match with one provided.
    */
   public func deleteKey(key: MarkupInlineKey) -> Bool {
     for row in keyboard {
@@ -360,16 +442,17 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
   
   
   
-  // Ignore context, just try and build an object from a node.
+  
   public required init(node: Node, in context: Context) throws {
     keyboard = try node.extract("keyboard")
   }
   
+  /// Ignore context, just try and build an object from a node.
   public func makeNode() throws -> Node {
     return try Node(node:["inline_keyboard":keyboard.makeNode()])
   }
   
-  // I need the context implementation as well, *sigh*
+  /// I need the context implementation as well, *sigh*
   public func makeNode(context: Context) throws -> Node {
     return try Node(node:["inline_keyboard":keyboard.makeNode()])
   }
@@ -378,7 +461,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
 }
 
 
-/* Defines a single row on an inline keyboard
+/** Defines a single row on an inline keyboard
  */
 public class MarkupInlineRow: NodeConvertible, JSONConvertible {
   public var keys: [MarkupInlineKey] = []
@@ -405,7 +488,7 @@ public class MarkupInlineRow: NodeConvertible, JSONConvertible {
   }
   
   
-  /* Replaces a key with another provided one, by trying to match the given data with an existing key.
+  /** Replaces a key with another provided one, by trying to match the given data with an existing key.
    */
   public func replaceKey(usingType type: InlineButtonType, data: String, newKey: MarkupInlineKey) -> Bool {
     for (i, key) in keys.enumerated() {
@@ -422,7 +505,7 @@ public class MarkupInlineRow: NodeConvertible, JSONConvertible {
     return false
   }
   
-  /* Replaces a key with another provided one, by trying to match the provided old key with one the row has.
+  /** Replaces a key with another provided one, by trying to match the provided old key with one the row has.
    */
   public func replaceKey(oldKey: MarkupInlineKey, newKey: MarkupInlineKey) -> Bool {
     for (i, key) in keys.enumerated() {
@@ -439,7 +522,7 @@ public class MarkupInlineRow: NodeConvertible, JSONConvertible {
     return false
   }
   
-  /* Removes keys that match with the given key
+  /** Removes keys that match with the given key
    */
   public func deleteKey(key: MarkupInlineKey) -> Bool {
     
@@ -571,7 +654,7 @@ public class MarkupInlineKey: NodeConvertible, JSONConvertible {
 
 ///////////////////////////////////////////////////
 
-/* Deprecated, do not use please
+/** Deprecated, do not use please
  */
 public enum InlineButtonOptional {
   case url(String)                            // HTTP url to be opened when button is pressed.

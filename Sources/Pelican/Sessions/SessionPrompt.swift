@@ -42,21 +42,21 @@ public class PromptController {
   //    return prompt
   //  }
   
-  public func createEphemeralPrompt(inline: MarkupInline, text: String, upload: FileUpload? = nil, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
+  public func createEphemeralPrompt(inline: MarkupInline, text: String, upload: FileLink? = nil, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
     let prompt = Prompt(asEphemeral: inline, text: text, upload: upload, finish: finish, next: next)
     add(prompt)
     
     return prompt
   }
   
-  public func createPersistentPrompt(inline: MarkupInline, text: String, upload: FileUpload? = nil, promptName: String, next: @escaping (Session, Prompt) -> ()) -> Prompt {
+  public func createPersistentPrompt(inline: MarkupInline, text: String, upload: FileLink? = nil, promptName: String, next: @escaping (Session, Prompt) -> ()) -> Prompt {
     let prompt = Prompt(asPersistent: inline, text: text, upload: upload, promptName: promptName, next: next)
     add(prompt)
     
     return prompt
   }
   
-  public func createVotePrompt(inline: MarkupInline, text: String, upload: FileUpload? = nil, promptName: String, time: Int = 0, update: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
+  public func createVotePrompt(inline: MarkupInline, text: String, upload: FileLink? = nil, promptName: String, time: Int = 0, update: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
     let prompt = Prompt(asVote: inline, text: text, upload: upload, promptName: promptName, time: time, update: update, next: next)
     add(prompt)
     
@@ -120,7 +120,7 @@ public class Prompt: ReceiveUpload {
   public var name: String = ""              // Optional name to use as a comparison between prompts.
   
   var text: String = ""
-  var upload: FileUpload?
+  var upload: FileLink?
   
   public var getText: String { return text }
   var inline: MarkupInline
@@ -147,14 +147,14 @@ public class Prompt: ReceiveUpload {
   public var getUsersPressed: [User] { return usersPressed }
   
   
-  public init(inline: MarkupInline, text: String, upload: FileUpload? = nil, next: @escaping (Session, Prompt) -> ()) {
+  public init(inline: MarkupInline, text: String, upload: FileLink? = nil, next: @escaping (Session, Prompt) -> ()) {
     self.inline = inline
     self.text = text
     self.upload = upload
     self.next = next
   }
   
-  public init(asEphemeral inline: MarkupInline, text: String, upload: FileUpload? = nil, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) {
+  public init(asEphemeral inline: MarkupInline, text: String, upload: FileLink? = nil, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) {
     self.inline = inline
     self.text = text
     self.upload = upload
@@ -164,7 +164,7 @@ public class Prompt: ReceiveUpload {
     self.setConfig(.ephemeral)
   }
   
-  public init(asPersistent inline: MarkupInline, text: String, upload: FileUpload? = nil, promptName: String, next: @escaping (Session, Prompt) -> ()) {
+  public init(asPersistent inline: MarkupInline, text: String, upload: FileLink? = nil, promptName: String, next: @escaping (Session, Prompt) -> ()) {
     self.inline = inline
     self.text = text
     self.upload = upload
@@ -174,7 +174,7 @@ public class Prompt: ReceiveUpload {
     self.setConfig(.persistent)
   }
   
-  public init(asVote inline: MarkupInline, text: String, upload: FileUpload? = nil, promptName: String, time: Int = 0, update: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) {
+  public init(asVote inline: MarkupInline, text: String, upload: FileLink? = nil, promptName: String, time: Int = 0, update: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) {
     self.timer = time
     self.inline = inline
     self.text = text

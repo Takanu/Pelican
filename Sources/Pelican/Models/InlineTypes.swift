@@ -2,7 +2,7 @@
 import Foundation
 import Vapor
 
-/* Represents an incoming inline query. When the user sends an empty query, your bot could return some default or trending results.
+/** Represents an incoming inline query. When the user sends an empty query, your bot could return some default or trending results.
  */
 public class InlineQuery: NodeConvertible, JSONConvertible {
   public var id: String // Unique identifier for this query.
@@ -43,7 +43,7 @@ public class InlineQuery: NodeConvertible, JSONConvertible {
 }
 
 
-/* Represents a result of an inline query that was chosen by the user and sent to their chat partner. 
+/** Represents a result of an inline query that was chosen by the user and sent to their chat partner. 
  */
 public struct ChosenInlineResult {
   var id: String // The unique identifier for the result that was chosen.
@@ -87,7 +87,7 @@ public struct ChosenInlineResult {
 
 
 
-/* Used for a result/your response of an inline query.
+/** Used for a result/your response of an inline query.
  */
 public protocol InlineResult: NodeConvertible, JSONConvertible {
   
@@ -358,11 +358,11 @@ enum InlineResultError: String, Error {
 }
 
 
-/*
+/**
  // makeNode() currently makes no effort to divide content based on whether it's cached or not.
  // Use getQuery() instead.
  
- /* Represents either a link to a MP3 audio file stored on the Telegram servers, or an external URL link to one. */
+ /** Represents either a link to a MP3 audio file stored on the Telegram servers, or an external URL link to one. */
  struct InlineResultAudio: InlineResult {
  var type: String = "audio"          // Type of the result being given.
  var id: String                      // Unique Identifier for the result, 1-64 bytes.
@@ -404,7 +404,7 @@ enum InlineResultError: String, Error {
  }
  }
  
- /* Represents either a link to a file stored on the Telegram servers, or an external URL link to one.  If sent using an external link, only .PDF and .ZIP files are supported. */
+ /** Represents either a link to a file stored on the Telegram servers, or an external URL link to one.  If sent using an external link, only .PDF and .ZIP files are supported. */
  struct InlineResultDocument: InlineResult {
  var type: String = "document"       // Type of the result being given.
  var id: String                      // Unique Identifier for the result, 1-64 bytes.
@@ -447,7 +447,7 @@ enum InlineResultError: String, Error {
  }
  }
  
- /* Represents either a link to an animated GIF stored on the Telegram servers, or an external URL link to one. */
+ /** Represents either a link to an animated GIF stored on the Telegram servers, or an external URL link to one. */
  struct InlineResultGIF: InlineResult {
  var type: String = "gif"            // Type of the result being given.
  var id: String                      // Unique Identifier for the result, 1-64 bytes.
@@ -488,7 +488,7 @@ enum InlineResultError: String, Error {
  }
  
  
- /* Represents either a link to a video animation (H.264/MPEG-4 AVC video without sound) stored on the Telegram servers, or an external URL link to one. */
+ /** Represents either a link to a video animation (H.264/MPEG-4 AVC video without sound) stored on the Telegram servers, or an external URL link to one. */
  struct InlineResultMpeg4GIF: InlineResult {
  var type: String = "mpeg4_gif"      // Type of the result being given.
  var id: String                      // Unique Identifier for the result, 1-64 bytes.
@@ -529,7 +529,7 @@ enum InlineResultError: String, Error {
  
  }
  
- /* Represents either a link to a photo stored on the Telegram servers, or an external URL link to one. */
+ /** Represents either a link to a photo stored on the Telegram servers, or an external URL link to one. */
  struct InlineResultPhoto: InlineResult {
  var type: String = "photo"          // Type of the result being given.
  var id: String                      // Unique Identifier for the result, 1-64 bytes.
@@ -571,7 +571,7 @@ enum InlineResultError: String, Error {
  }
  
  
- /* Represents a link to a sticker stored on the Telegram servers.  Stickers can only ever be cached. */
+ /** Represents a link to a sticker stored on the Telegram servers.  Stickers can only ever be cached. */
  struct InlineResultSticker: InlineResult {
  var type: String = "sticker"        // Type of the result being given.
  var id: String                      // Unique Identifier for the result, 1-64 bytes.
@@ -608,7 +608,7 @@ enum InlineResultError: String, Error {
  }
  }
  
- /* Represents either a link to a video stored on the Telegram servers, or an external URL link to a page containing an embedded video player or video file. */
+ /** Represents either a link to a video stored on the Telegram servers, or an external URL link to a page containing an embedded video player or video file. */
  struct InlineResultVideo: InlineResult {
  var type: String = "video"          // Type of the result being given.
  var id: String                      // Unique Identifier for the result, 1-64 bytes.
@@ -652,7 +652,7 @@ enum InlineResultError: String, Error {
  }
  }
  
- /* Represents either a link to a voice message (in an .ogg container encoded with OPUS) stored on the Telegram servers, or an external URL link to one. */
+ /** Represents either a link to a voice message (in an .ogg container encoded with OPUS) stored on the Telegram servers, or an external URL link to one. */
  struct InlineResultVoice: InlineResult {
  var type: String = "voice"          // Type of the result being given.
  var id: String                      // Unique Identifier for the result, 1-64 bytes.
