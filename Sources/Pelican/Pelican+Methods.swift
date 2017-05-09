@@ -190,7 +190,10 @@ public extension Pelican {
     let search = cache.find(upload: link, bot: self)
     if search != nil {
       print("SENDING...")
-      _ = sendFile(chatID: chatID, file: search!, replyMarkup: markup, caption: caption, disableNtf: disableNtf, replyMessageID: replyMessageID)
+      let message = sendFile(chatID: chatID, file: search!, replyMarkup: markup, caption: caption, disableNtf: disableNtf, replyMessageID: replyMessageID)
+      if callback != nil {
+        callback!.receiveMessage(message: message!)
+      }
       return
     }
     

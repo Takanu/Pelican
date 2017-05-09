@@ -283,6 +283,7 @@ public struct FileUpload {
   public var type: FileType
   public var id: String {
     switch location {
+    // Not sure I need this anymore, seems like a poorer version of path.
     case .name(path: let path, name: let name, ext: let ext):
       return path + name + ext
     case .path(let path):

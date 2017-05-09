@@ -24,6 +24,8 @@ public class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
   
   public var description: String = ""
   
+  
+  
   public init(withButtons buttons: [String], resize: Bool = true, oneTime: Bool = false, selective: Bool = false) {
     var row = MarkupKeyboardRow()
     for button in buttons {
@@ -174,6 +176,9 @@ public struct MarkupKeyboardKey: NodeConvertible, JSONConvertible {
 }
 
 
+///////////////////////////////////////////////////
+
+
 /// A series of inline buttons to be displayed with a message sent from the bot
 public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
   public var keyboard: [MarkupInlineRow] = []
@@ -191,6 +196,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     }
     keyboard.append(row)
   }
+  
   // A quick type for generating buttons.
   public init(withURL pair: (label: String, url: String)...) {
     var row = MarkupInlineRow()
@@ -201,7 +207,8 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     keyboard.append(row)
   }
   
-  // A quick type for generating buttons.
+  /* A quick type for generating buttons.
+   */
   public init(withCallback pair: (label: String, query: String)...) {
     var row = MarkupInlineRow()
     for label in pair {
@@ -211,7 +218,8 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     keyboard.append(row)
   }
   
-  /* Should only be used when the class has no plans to be updated and is the only inline control currently active.*/
+  /* Should only be used when the class has no plans to be updated and is the only inline control currently active.
+   */
   public init(withGenCallback labels: String...) {
     var row = MarkupInlineRow()
     var id = 1
@@ -223,7 +231,8 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     keyboard.append(row)
   }
   
-  /* Should only be used when the class has no plans to be updated and is the only inline control currently active.*/
+  /* Should only be used when the class has no plans to be updated and is the only inline control currently active.
+   */
   public init(withGenCallback rows: [[String]]) {
     var id = 1
     for row in rows {
@@ -257,16 +266,7 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     keyboard.append(row)
   }
   
-  /*
-   func addTextButton(label: String, row: Int) {
-   let button = InlineButton(label: label)
-   //buttons.append(button)
-   }
-   func addURLButton(label: String, url: String, row: Int) {
-   let button = InlineButton(fromURL: url, label: label)
-   //buttons.append(button)
-   }
-   */
+  
   
   /** Returns all available callback data from any button held inside this markup
    */
@@ -275,11 +275,8 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     for row in keyboard {
       for key in row.keys {
         
-        switch key.optional {
-        case .callbackData(let callback):
-          data.append(callback)
-        default:
-          continue
+        if key.type == .callbackData {
+          data.append(key.data)
         }
       }
     }
@@ -302,20 +299,65 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
   
   /** Returns the label thats associated with the provided data, if it exists.
    */
-  public func getLabel(forData data: String) -> String? {
+  public func getLabel(withData data: String) -> String? {
     for row in keyboard {
       for key in row.keys {
-        switch key.optional {
-        case .callbackData(let callback):
-          if callback == data { return key.text }
-        default:
-          continue
-        }
+        
+        if key.data == data { return key.text }
       }
     }
     
     return nil
   }
+  
+  /** Returns the key thats associated with the provided data, if it exists.
+   */
+  public func getKey(withData data: String) -> MarkupInlineKey? {
+    for row in keyboard {
+      for key in row.keys {
+        
+        if key.data == data { return key }
+      }
+    }
+    
+    return nil
+  }
+  
+  
+  /* Replaces a key with another provided one, by trying to match the given data with a key
+   */
+  public func replaceKey(usingType type: InlineButtonType, data: String, newKey: MarkupInlineKey) -> Bool {
+    for row in keyboard {
+      let result = row.replaceKey(usingType: type, data: data, newKey: newKey)
+      if result == true { return true }
+    }
+    
+    return false
+  }
+  
+  /* Replaces a key with another provided one, by trying to match the keys it has with one that's provided.
+   */
+  public func replaceKey(oldKey: MarkupInlineKey, newKey: MarkupInlineKey) -> Bool {
+    for row in keyboard {
+      let result = row.replaceKey(oldKey: oldKey, newKey: newKey)
+      if result == true { return true }
+    }
+    
+    return false
+  }
+  
+  /* Tries to find and delete a key, based on a match with one provided.
+   */
+  public func deleteKey(key: MarkupInlineKey) -> Bool {
+    for row in keyboard {
+      let result = row.deleteKey(key: key)
+      if result == true { return true }
+    }
+    
+    return false
+  }
+  
+  
   
   
   // Ignore context, just try and build an object from a node.
@@ -335,7 +377,10 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
   
 }
 
-public struct MarkupInlineRow: NodeConvertible, JSONConvertible {
+
+/* Defines a single row on an inline keyboard
+ */
+public class MarkupInlineRow: NodeConvertible, JSONConvertible {
   public var keys: [MarkupInlineKey] = []
   
   public init() {
@@ -355,17 +400,72 @@ public struct MarkupInlineRow: NodeConvertible, JSONConvertible {
       keys.append(button)
     }
   }
-  public mutating func addButton(_ button: MarkupInlineKey) {
+  public func addButton(_ button: MarkupInlineKey) {
     keys.append(button)
   }
   
+  
+  /* Replaces a key with another provided one, by trying to match the given data with an existing key.
+   */
+  public func replaceKey(usingType type: InlineButtonType, data: String, newKey: MarkupInlineKey) -> Bool {
+    for (i, key) in keys.enumerated() {
+      
+      if key.type == type {
+        if key.data == data {
+          keys.remove(at: i)
+          keys.insert(newKey, at: i)
+          return true
+        }
+      }
+    }
+    
+    return false
+  }
+  
+  /* Replaces a key with another provided one, by trying to match the provided old key with one the row has.
+   */
+  public func replaceKey(oldKey: MarkupInlineKey, newKey: MarkupInlineKey) -> Bool {
+    for (i, key) in keys.enumerated() {
+      
+      if key.type == oldKey.type {
+        if key.data == oldKey.data {
+          keys.remove(at: i)
+          keys.insert(newKey, at: i)
+          return true
+        }
+      }
+    }
+    
+    return false
+  }
+  
+  /* Removes keys that match with the given key
+   */
+  public func deleteKey(key: MarkupInlineKey) -> Bool {
+    
+    for (i, key) in keys.enumerated() {
+      if key.type == key.type {
+        if key.data == key.data {
+          
+          keys.remove(at: i)
+          return true
+        }
+      }
+    }
+    
+    return false
+  }
+  
+  
+  
   // Ignore context, just try and build an object from a node.
-  public init(node: Node, in context: Context) throws {
+  public required init(node: Node, in context: Context) throws {
     let array = node.nodeArray!
     for item in array {
       keys.append(try! MarkupInlineKey(node: item, in: context))
     }
   }
+  
   
   public func makeNode() throws -> Node {
     return try keys.makeNode()
@@ -382,53 +482,39 @@ public struct MarkupInlineRow: NodeConvertible, JSONConvertible {
 // A single inline button definition
 public class MarkupInlineKey: NodeConvertible, JSONConvertible {
   public var text: String // Label text
-  public var optional: InlineButtonOptional
+  public var data: String
+  public var type: InlineButtonType
+  
+  //public var optional: InlineButtonOptional
   
   
   public init(fromURL url: String, label: String) {
-    text = label
-    optional = .url(url)
+    self.text = label
+    self.data = url
+    self.type = .url
+    //optional = .url(url)
   }
   
   public init(fromCallbackData callback: String, label: String) {
-    text = label
-    optional = .callbackData(callback)
+    self.text = label
+    self.data = callback
+    self.type = .callbackData
+    //optional = .callbackData(callback)
   }
   
   public init(fromInlineQueryCurrent data: String, label: String) {
-    text = label
-    optional = .switchInlineQuery_currentChat(data)
+    self.text = label
+    self.data = data
+    self.type = .switchInlineQuery_currentChat
+    //optional = .switchInlineQuery_currentChat(data)
   }
   
   // Internally used to compare two keys
   func compare(key: MarkupInlineKey) -> Bool {
     if text != key.text { return false }
     
-    var data1 = ""
-    var data2 = ""
-    switch self.optional {
-    case .url(let data):
-      data1 = data
-    case .callbackData(let data):
-      data1 = data
-    case .switchInlineQuery(let data):
-      data1 = data
-    case .switchInlineQuery_currentChat(let data):
-      data1 = data
-    }
-    
-    switch key.optional {
-    case .url(let data):
-      data2 = data
-    case .callbackData(let data):
-      data2 = data
-    case .switchInlineQuery(let data):
-      data2 = data
-    case .switchInlineQuery_currentChat(let data):
-      data2 = data
-    }
-    
-    if data1 != data2 { return false }
+    if key.type != self.type { return false }
+    if key.data != self.data { return false }
     
     return true
     
@@ -437,7 +523,8 @@ public class MarkupInlineKey: NodeConvertible, JSONConvertible {
   // Ignore context, just try and build an object from a node.
   public required init(node: Node, in context: Context) throws {
     text = try node.extract("text").string
-    optional = .url("")
+    data = ""
+    type = .url
     
     // Need to figure out how to handle the optional
   }
@@ -447,15 +534,15 @@ public class MarkupInlineKey: NodeConvertible, JSONConvertible {
     var keys = [String:String]()
     keys["text"] = text
     
-    switch optional{
-    case .url(let url):
-      keys["url"] = url
-    case .callbackData(let callback):
-      keys["callback_data"] = callback
-    case .switchInlineQuery(let query):
-      keys["switch_inline_query"] = query
-    case .switchInlineQuery_currentChat(let query):
-      keys["switch_inline_query_current_chat"] = query
+    switch type {
+    case .url:
+      keys["url"] = data
+    case .callbackData:
+      keys["callback_data"] = data
+    case .switchInlineQuery:
+      keys["switch_inline_query"] = data
+    case .switchInlineQuery_currentChat:
+      keys["switch_inline_query_current_chat"] = data
     }
     
     return try Node(node:keys)
@@ -466,27 +553,40 @@ public class MarkupInlineKey: NodeConvertible, JSONConvertible {
     var keys = [String:String]()
     keys["text"] = text
     
-    switch optional{
-    case .url(let url):
-      keys["url"] = url
-    case .callbackData(let callback):
-      keys["callback_data"] = callback
-    case .switchInlineQuery(let query):
-      keys["switch_inline_query"] = query
-    case .switchInlineQuery_currentChat(let query):
-      keys["switch_inline_query_current_chat"] = query
+    switch type {
+    case .url:
+      keys["url"] = data
+    case .callbackData:
+      keys["callback_data"] = data
+    case .switchInlineQuery:
+      keys["switch_inline_query"] = data
+    case .switchInlineQuery_currentChat:
+      keys["switch_inline_query_current_chat"] = data
     }
     
     return try Node(node:keys)
   }
 }
 
+
+///////////////////////////////////////////////////
+
+/* Deprecated, do not use please
+ */
 public enum InlineButtonOptional {
   case url(String)                            // HTTP url to be opened when button is pressed.
   case callbackData(String)                   // Data to be sent in a callback query to the bot when button is pressed, 1-64 bytes
   case switchInlineQuery(String)              // Prompts the user to select one of their chats, open it and insert the bot‘s username and the specified query in the input field.
   case switchInlineQuery_currentChat(String)  // If set, pressing the button will insert the bot‘s username and the specified inline query in the current chat's input field.  Can be empty.
 }
+
+public enum InlineButtonType {
+  case url                           // HTTP url to be opened when button is pressed.
+  case callbackData                  // Data to be sent in a callback query to the bot when button is pressed, 1-64 bytes
+  case switchInlineQuery             // Prompts the user to select one of their chats, open it and insert the bot‘s username and the specified query in the input field.
+  case switchInlineQuery_currentChat // If set, pressing the button will insert the bot‘s username and the specified inline query in the current chat's input field.  Can be empty.
+}
+
 
 
 public class MarkupKeyboardRemove: NodeConvertible, JSONConvertible, MarkupType {

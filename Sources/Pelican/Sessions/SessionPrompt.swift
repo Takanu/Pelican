@@ -186,7 +186,8 @@ public class Prompt: ReceiveUpload {
     self.setConfig(.vote)
   }
   
-  
+  /** Compares two prompts to figure out if they're the same.
+   */
   public func compare(prompt: Prompt) -> Bool {
     
     if name != prompt.name {
@@ -253,12 +254,15 @@ public class Prompt: ReceiveUpload {
     }
   }
   
-  /** Sends the prompt to the given session.
+  /** Sends the prompt to the given session, and adds itself to the controller if not already there.
    */
   public func send(session: Session) {
     for data in inline.getCallbackData()! {
       self.results[data] = []
     }
+    
+    // Add the prompt to the controller, just in case it's being reused and has already ended.
+    controller!.add(self)
     
     // If we have an upload link, use that to send our prompt
     // Otherwise just send it normally
@@ -409,7 +413,7 @@ public class Prompt: ReceiveUpload {
       }
     }
     
-    
+    // If the requirements weren't completed, see if we have to next()
     if completed == false {
       
       if forceNext == true && next != nil {
@@ -419,7 +423,8 @@ public class Prompt: ReceiveUpload {
       }
       else { return }
     }
-      
+    
+    // If we don't move to next(), just reset the results.
     else {
       session.resetTimerAssists()
       
@@ -466,7 +471,7 @@ public class Prompt: ReceiveUpload {
   /** Returns a single, successful regardless of whether there was a tie, by random selelcting from the tied options.
    Includes results for the users that selected it.
    */
-  public func getWinner() -> (name: String, data: String, users: [User])? {
+  public func getWinner() -> (name: String, data: String, users: [User], key: MarkupInlineKey)? {
     var winners: [String] = []
     var users: [[User]] = []
     var winVotes = 0
@@ -491,7 +496,7 @@ public class Prompt: ReceiveUpload {
     }
     
     if winVotes == 0 { return nil }
-    return (inline.getLabel(forData: winners[0])!, winners[0], users[0])
+    return (inline.getLabel(withData: winners[0])!, winners[0], users[0], inline.getKey(withData: winners[0])!)
     
     // Need randomiser code that's MIT
     //return winner.getRandom
@@ -502,7 +507,7 @@ public class Prompt: ReceiveUpload {
     
     for result in results {
       let data = result.key
-      let name = inline.getLabel(forData: result.key)
+      let name = inline.getLabel(withData: result.key)
       let users = result.value
       returnResults.append((data, name!, users))
     }

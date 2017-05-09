@@ -9,12 +9,8 @@
 import Foundation
 import Vapor
 
-class ActionController {
-  var actions: [Action] = []
-}
-
 // Defines a queued action for a specific session, to be run at a later date
-class Action {
+class TelegramBotSessionAction {
   var name: String = ""           // Only used if the user may later want to find and remove the action before being played.
   var session: Session // The session to be affected
   var bot: Pelican
