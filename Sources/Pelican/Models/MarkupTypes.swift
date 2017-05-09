@@ -258,10 +258,37 @@ public struct MarkupKeyboardKey: NodeConvertible, JSONConvertible {
 }
 
 
-///////////////////////////////////////////////////
 
-
-/// A series of inline buttons to be displayed with a message sent from the bot
+/** 
+ Represents a series of inline buttons that will be displayed underneath the message when included with it.
+ 
+ Each inline button can do one of the following:
+ _ _ _ _ _
+ 
+ **Callback Data**
+ 
+ This sends a small String back to the bot as a `CallbackQuery`, which is automatically filtered
+ back to the session and to a `callbackState` if one exists.  
+ 
+ Alternatively if the keyboard the button belongs to is part of a `Prompt`, it will automatically 
+ be received by it in the respective Session, and the prompt will respond based on how you have set 
+ it up.
+ 
+ **URL**
+ 
+ The button when pressed will re-direct users to a webpage.
+ 
+ **Inine Query Switch**
+ 
+ This can only be used when the bot supports Inline Queries.  This prompts the user to select one of their chats 
+ to open it, and when open the client will insert the bot‘s username and a specified query in the input field.
+ 
+ **Inline Query Current Chat**
+ 
+ This can only be used when the bot supports Inline Queries.  Pressing the button will insert the bot‘s username 
+ and an optional specific inline query in the current chat's input field.
+ 
+*/
 public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
   public var keyboard: [MarkupInlineRow] = []
   
@@ -270,16 +297,24 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     return
   }
   
-  // If you want to do it the hard way
+  /**
+  Creates an Inline Keyboard using a series of specified `MarkupInlineKey` types, where all buttons will 
+	be arranged on a single row.
+	- parameter buttonsIn: The buttons to be included in the keyboard.
+  */
   public init(withButtons buttonsIn: MarkupInlineKey...) {
     let row = MarkupInlineRow()
     for button in buttonsIn {
       row.addButton(button)
     }
-    keyboard.append(row)
+		keyboard.append(row)
   }
   
-  // A quick type for generating buttons.
+	/**
+	Creates an Inline Keyboard using a series of specified button label and URL string pairs, where all buttons will
+	be arranged on a single row.
+	- parameter pair: A sequence of label/url String tuples that will define each key on the keyboard.
+	*/
   public init(withURL pair: (label: String, url: String)...) {
     let row = MarkupInlineRow()
     for label in pair {
@@ -289,8 +324,11 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     keyboard.append(row)
   }
   
-  /** A quick type for generating buttons.
-   */
+	/**
+	Creates an Inline Keyboard using a series of specified button label and callback String pairs, where all buttons will
+	be arranged on a single row.
+	- parameter pair: A sequence of label/callback String tuples that will define each key on the keyboard.
+	*/
   public init(withCallback pair: (label: String, query: String)...) {
     let row = MarkupInlineRow()
     for label in pair {
@@ -299,9 +337,43 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     }
     keyboard.append(row)
   }
-  
-  /** Should only be used when the class has no plans to be updated and is the only inline control currently active.
-   */
+	
+	/**
+	Creates an Inline Keyboard using a series of specified button label and "Inline Query Current Chat" String pairs, where all buttons will
+	be arranged on a single row.
+	- parameter pair: A sequence of label/"Inline Query Current Chat" String tuples that will define each key on the keyboard.
+	*/
+	public init(withInlineQueryCurrent pair: (label: String, query: String)...) {
+		let row = MarkupInlineRow()
+		for label in pair {
+			let button = MarkupInlineKey(fromInlineQueryCurrent: label.query, label: label.label)
+			row.addButton(button)
+		}
+		keyboard.append(row)
+	}
+	
+	/**
+	Creates an Inline Keyboard using a series of specified button label and "Inline Query New Chat" String pairs, where all buttons will
+	be arranged on a single row.
+	- parameter pair: A sequence of label/"Inline Query New Chat" String tuples that will define each key on the keyboard.
+	*/
+	public init(withInlineQueryNewChat array: [(label: String, query: String)]) {
+		let row = MarkupInlineRow()
+		for label in array {
+			let button = MarkupInlineKey(fromInlineQueryNewChat: label.query, label: label.label)
+			row.addButton(button)
+		}
+		keyboard.append(row)
+	}
+	
+	/**
+	Creates an Inline Keyboard using a series of labels.  The initializer will then generate an associated ID value for each
+	label and assign it to the button as Callback data, starting with "1" and incrementing upwards.  
+	
+	All buttons wil be arranged on a single row.
+	
+	- parameter labels: A sequence of String labels that will define each key on the keyboard.
+	*/
   public init(withGenCallback labels: String...) {
     let row = MarkupInlineRow()
     var id = 1
@@ -313,8 +385,15 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     keyboard.append(row)
   }
   
-  /** Should only be used when the class has no plans to be updated and is the only inline control currently active.
-   */
+	/**
+	Creates an Inline Keyboard using a set of nested String Arrays, where the array structure defines the specific arrangement
+	of the keyboard.
+	
+	The initializer will generate an associated ID value for eachlabel and assign it to the button as Callback data, starting 
+	with "1" and incrementing upwards.
+	
+	- parameter rows: A nested set of String Arrays, where each String array will form a single row on the inline keyboard.
+	*/
   public init(withGenCallback rows: [[String]]) {
     var id = 1
     for row in rows {
@@ -328,30 +407,12 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     }
     
   }
-  
-  // A quick type for generating buttons.
-  public init(withCurrentInlineQuery pair: (label: String, query: String)...) {
-    let row = MarkupInlineRow()
-    for label in pair {
-      let button = MarkupInlineKey(fromInlineQueryCurrent: label.query, label: label.label)
-      row.addButton(button)
-    }
-    keyboard.append(row)
-  }
-  
-  public init(withCurrentInlineQuery array: [(label: String, query: String)]) {
-    let row = MarkupInlineRow()
-    for label in array {
-      let button = MarkupInlineKey(fromInlineQueryCurrent: label.query, label: label.label)
-      row.addButton(button)
-    }
-    keyboard.append(row)
-  }
+
   
   
-  
-  /*** Returns all available callback data from any button held inside this markup
-   */
+  /**
+	Returns all available callback data from any button held inside this markup
+	*/
   public func getCallbackData() -> [String]? {
     var data: [String] = []
     for row in keyboard {
@@ -366,11 +427,12 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     return data
   }
   
-  /*** Returns all labels associated with the inline keyboard.
+  /** 
+	Returns all labels associated with the inline keyboard.
    */
   public func getLabels() -> [String] {
     var labels: [String] = []
-    for row in keyboard {
+		for row in keyboard {
       for key in row.keys {
           labels.append(key.text)
       }
@@ -379,7 +441,8 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     return labels
   }
   
-  /*** Returns the label thats associated with the provided data, if it exists.
+  /** 
+	Returns the label thats associated with the provided data, if it exists.
    */
   public func getLabel(withData data: String) -> String? {
     for row in keyboard {
@@ -392,7 +455,8 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     return nil
   }
   
-  /*** Returns the key thats associated with the provided data, if it exists.
+  /** 
+	Returns the key thats associated with the provided data, if it exists.
    */
   public func getKey(withData data: String) -> MarkupInlineKey? {
     for row in keyboard {
@@ -406,7 +470,8 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
   }
   
   
-  /** Replaces a key with another provided one, by trying to match the given data with a key
+  /** 
+	Replaces a key with another provided one, by trying to match the given data with a key
    */
   public func replaceKey(usingType type: InlineButtonType, data: String, newKey: MarkupInlineKey) -> Bool {
     for row in keyboard {
@@ -417,7 +482,8 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     return false
   }
   
-  /** Replaces a key with another provided one, by trying to match the keys it has with one that's provided.
+  /** 
+	Replaces a key with another provided one, by trying to match the keys it has with one that's provided.
    */
   public func replaceKey(oldKey: MarkupInlineKey, newKey: MarkupInlineKey) -> Bool {
     for row in keyboard {
@@ -428,7 +494,8 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     return false
   }
   
-  /** Tries to find and delete a key, based on a match with one provided.
+  /** 
+	Tries to find and delete a key, based on a match with one provided.
    */
   public func deleteKey(key: MarkupInlineKey) -> Bool {
     for row in keyboard {
@@ -461,7 +528,10 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
 }
 
 
-/** Defines a single row on an inline keyboard
+/** 
+Defines a single row on an inline keyboard.
+
+- warning: This will likely be removed in a future version as it's not needed, please use MarkupInline instead.
  */
 public class MarkupInlineRow: NodeConvertible, JSONConvertible {
   public var keys: [MarkupInlineKey] = []
@@ -562,38 +632,81 @@ public class MarkupInlineRow: NodeConvertible, JSONConvertible {
 }
 
 
-// A single inline button definition
+/**
+Defines a single keyboard key on a `MarkupInline` keyboard.  Each key supports one of 4 different modes:
+_ _ _ _ _
+
+**Callback Data**
+
+This sends a small String back to the bot as a `CallbackQuery`, which is automatically filtered
+back to the session and to a `callbackState` if one exists.
+
+Alternatively if the keyboard the button belongs to is part of a `Prompt`, it will automatically
+be received by it in the respective Session, and the prompt will respond based on how you have set
+it up.
+
+**URL**
+
+The button when pressed will re-direct users to a webpage.
+
+**Inine Query Switch**
+
+This can only be used when the bot supports Inline Queries.  This prompts the user to select one of their chats
+to open it, and when open the client will insert the bot‘s username and a specified query in the input field.
+
+**Inline Query Current Chat**
+
+This can only be used when the bot supports Inline Queries.  Pressing the button will insert the bot‘s username
+and an optional specific inline query in the current chat's input field.
+*/
 public class MarkupInlineKey: NodeConvertible, JSONConvertible {
   public var text: String // Label text
   public var data: String
   public var type: InlineButtonType
   
-  //public var optional: InlineButtonOptional
-  
-  
+	
+	/** 
+	Creates a `MarkupInlineKey` as a URL key.
+	*/
   public init(fromURL url: String, label: String) {
     self.text = label
     self.data = url
     self.type = .url
-    //optional = .url(url)
   }
-  
+	
+	/**
+	Creates a `MarkupInlineKey` as a Callback Data key.
+	*/
   public init(fromCallbackData callback: String, label: String) {
     self.text = label
     self.data = callback
     self.type = .callbackData
-    //optional = .callbackData(callback)
   }
-  
+	
+	/**
+	Creates a `MarkupInlineKey` as a Current Chat Inline Query key.
+	*/
   public init(fromInlineQueryCurrent data: String, label: String) {
     self.text = label
     self.data = data
     self.type = .switchInlineQuery_currentChat
-    //optional = .switchInlineQuery_currentChat(data)
   }
-  
-  // Internally used to compare two keys
-  func compare(key: MarkupInlineKey) -> Bool {
+	
+	/**
+	Creates a `MarkupInlineKey` as a New Chat Inline Query key.
+	*/
+	public init(fromInlineQueryNewChat data: String, label: String) {
+		self.text = label
+		self.data = data
+		self.type = .switchInlineQuery
+	}
+	
+	
+  /** 
+	Compares the current key with another key parameter, and returns whether or
+	not the contents they hold are identical.
+	*/
+  public func compare(key: MarkupInlineKey) -> Bool {
     if text != key.text { return false }
     
     if key.type != self.type { return false }
@@ -651,18 +764,9 @@ public class MarkupInlineKey: NodeConvertible, JSONConvertible {
   }
 }
 
-
-///////////////////////////////////////////////////
-
-/** Deprecated, do not use please
- */
-public enum InlineButtonOptional {
-  case url(String)                            // HTTP url to be opened when button is pressed.
-  case callbackData(String)                   // Data to be sent in a callback query to the bot when button is pressed, 1-64 bytes
-  case switchInlineQuery(String)              // Prompts the user to select one of their chats, open it and insert the bot‘s username and the specified query in the input field.
-  case switchInlineQuery_currentChat(String)  // If set, pressing the button will insert the bot‘s username and the specified inline query in the current chat's input field.  Can be empty.
-}
-
+/**
+Defines what type of function a InlineButtonKey has.
+*/
 public enum InlineButtonType {
   case url                           // HTTP url to be opened when button is pressed.
   case callbackData                  // Data to be sent in a callback query to the bot when button is pressed, 1-64 bytes
@@ -671,15 +775,36 @@ public enum InlineButtonType {
 }
 
 
-
+/**
+Represents a special action that when sent with a message, will remove any `MarkupKeyboard` 
+currently active, for either all of or a specified group of users.
+*/
 public class MarkupKeyboardRemove: NodeConvertible, JSONConvertible, MarkupType {
-  public var removeKeyboard: Bool = true // Requests clients to remove the custom keyboard (user will not be able to summon this keyboard
-  public var selective: Bool = false // (Optional) Use this parameter if you want to force reply from specific users only.
-  
+	
+	/// Requests clients to remove the custom keyboard (user will not be able to summon this keyboard)
+	var removeKeyboard: Bool = true
+	/// (Optional) Use this parameter if you want to remove the keyboard from specific users only.
+  public var selective: Bool = false
+	
+	
+	/**
+	Creates a `MarkupKeyboardRemove` instance, to remove an active `MarkupKeyboard` from the current chat.
+	
+	If isSelective is true, the keyboard will only be removed for the targets of the message.
+	
+	**Targets:**
+	1) users that are @mentioned in the text of the Message object; 
+	2) if the bot's message is a reply (has reply_to_message_id), sender of the original message.
+	
+	- parameter isSelective: If false, the keyboard will be removed for all users.  If true however, the
+	keyboard will only be cleared for the targets you specify.
+	*/
   public init(isSelective sel: Bool) {
     selective = sel
   }
-  
+	
+	
+	
   // Ignore context, just try and build an object from a node.
   public required init(node: Node, in context: Context) throws {
     removeKeyboard = try node.extract("remove_keyboard")
@@ -705,14 +830,39 @@ public class MarkupKeyboardRemove: NodeConvertible, JSONConvertible, MarkupType 
   
 }
 
+/**
+Represents a special action that when sent with a message, will force Telegram clients to display
+a reply interface to all or a selected group of people in the chat.
+*/
 public class MarkupForceReply: NodeConvertible, JSONConvertible, MarkupType {
-  public var forceReply: Bool = true // Shows reply interface to the user, as if they manually selected the bot‘s message and tapped ’Reply'
-  public var selective: Bool = false // (Optional) Use this parameter if you want to force reply from specific users only.
-  
+	
+	/// Shows reply interface to the user, as if they manually selected the bot‘s message and tapped ’Reply'
+  public var forceReply: Bool = true
+	/// (Optional) Use this parameter if you want to force reply from specific users only.
+  public var selective: Bool = false
+	
+	
+	
+	/**
+	Creates a `MarkupForceReply` instance, to force Telegram clients to display
+	a reply interface to all or a selected group of people in the chat.
+	
+	If isSelective is true, the reply interface will only be displayed to targets of the message it is being sent with.
+	
+	**Targets:**
+	1) users that are @mentioned in the text of the Message object;
+	2) if the bot's message is a reply (has reply_to_message_id), sender of the original message.
+	
+	- parameter isSelective: If false, the reply interface will appear for all users.  If true however, the 
+	reply interface will only appear for the targets you specify.
+	*/
   public init(isSelective sel: Bool) {
     selective = sel
   }
-  
+	
+	
+	
+	
   // Ignore context, just try and build an object from a node.
   public required init(node: Node, in context: Context) throws {
     forceReply = try node.extract("force_reply")
