@@ -249,16 +249,16 @@ public class Prompt: ReceiveUpload {
     // Otherwise just send it normally
     if self.file != nil {
       session.send(link: self.file!, markup: inline, callback: self, caption: text)
-			
-			// If we have a timer, make it tick.
-			if timer > 0 {
-				session.delay(by: self.timer, stack: false, name: "prompt_\(name)_timer", action: self.finish)
-			}
     }
     
     else {
       self.message = session.send(message: text, markup: inline)
     }
+		
+		// If we have a timer, make it tick.
+		if timer > 0 {
+			session.delay(by: self.timer, stack: false, name: "prompt_\(name)_timer", action: self.finish)
+		}
   }
 	
   
