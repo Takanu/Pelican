@@ -29,39 +29,35 @@ public class PromptController {
     // Add the prompt to the stack
     prompts.append(prompt)
     prompt.controller = self
-    prompt.send(session: session!)
   }
-  
-  /** A shortcut for creating and adding a prompt to the controller.  Covers all commonly used types of prompts.
-   */
-  //  public func createPrompt(inline: MarkupInline, message: String, type: PromptMode, next: @escaping (Session, Prompt) -> ()) -> Prompt {
-  //    let prompt = Prompt(inline: inline, message: message, next: next)
-  //    prompt.setConfig(type)
-  //    add(prompt)
-  //
-  //    return prompt
-  //  }
-  
-  public func createEphemeralPrompt(inline: MarkupInline, text: String, upload: FileLink? = nil, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
-    let prompt = Prompt(asEphemeral: inline, text: text, upload: upload, finish: finish, next: next)
-    add(prompt)
-    
-    return prompt
-  }
-  
-  public func createPersistentPrompt(inline: MarkupInline, text: String, upload: FileLink? = nil, promptName: String, next: @escaping (Session, Prompt) -> ()) -> Prompt {
-    let prompt = Prompt(asPersistent: inline, text: text, upload: upload, promptName: promptName, next: next)
-    add(prompt)
-    
-    return prompt
-  }
-  
-  public func createVotePrompt(inline: MarkupInline, text: String, upload: FileLink? = nil, promptName: String, time: Int = 0, update: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) -> Prompt {
-    let prompt = Prompt(asVote: inline, text: text, upload: upload, promptName: promptName, time: time, update: update, next: next)
-    add(prompt)
-    
-    return prompt
-  }
+	
+	/** 
+	Creates a prompt thats connected to the Session, enabling it to automatically receive callback queries and react to player input,
+	as well as to be sent in a chat.  A prompt is a specific model and controller system for defining a message attached to an inline
+	message keyboard, including how it's sent and how it reacts to user input.
+	- parameter inline: The inline keyboard to be used in this Prompt.
+	- parameter text: Either the contents of the message to be sent as part of this prompt, or as a caption if a `FileLink` is also provided.
+	- parameter upload: A specific file to be sent as the contents of the message belonging to this prompt.
+	- parameter update: (Optional) The closure that is executed every time the prompt receives a callback query.
+	*/
+	public func createPrompt(name: String, inline: MarkupInline, text: String, file: FileLink?, update: ((Session, Prompt) -> ())? ) -> Prompt {
+		let prompt = Prompt(name: name, inline: inline, text: text, file: file, update: update)
+		prompt.controller = self
+		self.add(prompt)
+		return prompt
+	}
+	
+	/** Attempts to retrieve a prompt with a given name. 
+	*/
+	public func get(withName name: String) -> Prompt? {
+		for prompt in prompts {
+			if prompt.name == name {
+				return prompt
+			}
+		}
+		
+		return nil
+	}
   
   /** Finds a prompt that matches the given query.
    */
@@ -113,77 +109,75 @@ public class PromptController {
 
 
 
-/** Defines a single prompt that encapsulates an inline markup message and the behaviour behind it.
+/** 
+Defines a single prompt that encapsulates an inline markup message and the behaviour behind it, including
+how it reacts to user interaction, how it updates itself and how it stops processing user input.
  */
 public class Prompt: ReceiveUpload {
-  var timer: Int = 0
   public var name: String = ""              // Optional name to use as a comparison between prompts.
   
   var text: String = ""
-  var upload: FileLink?
-  
-  public var getText: String { return text }
+  var file: FileLink?
   var inline: MarkupInline
   var message: Message?
   var controller: PromptController?   // Links back to the controller for removal when complete, if required.
-  
-  var mode: PromptMode = .undefined
-  public var alertSuccess: String = ""       // What alert the user receives when they press an inline button and it worked.
-  public var alertFailure: String = ""       // What alert the user receives if it didn't.
-  public var target: [User] = []            // What users are able to interact with the prompt.  If none, any can interact with it.
-  public var forceNext: Bool = true         // Whether the next closure is used if we finished without receiving any results.
-  public var activationLimit: Int = 1       // How many times a button can be pressed by any user before the prompt is completed.
-  public var removeOnCompletion: Bool = true  // When the prompt finishes, should the inline buttons and itself be removed?
-  
-  var next: ((Session, Prompt) -> ())?       // What closure is run once the prompt finishes.
-  var update: ((Session, Prompt) -> ())?     // What closure is run if the prompt receives a new update
-  var finish: ((Session, Prompt) -> ())?     // What closure is run to determine the final contents of the message.  Overrides removeOnCompletion.
+	var timer: Int = 0
+	
+	/// Returns the timer currently set to the prompt.  If 0, no timer has been set.
+	public var getTimer: Int { return timer }
+	/// Returns the body of text that defines the message the Prompt is attached to.
+	public var getText: String { return text }
+	/// Returns the optional file link that can be assigned to give the message media contents.
+	public var getFile: FileLink? { return file }
+	/// Returns the inline keyboard currently used for the Prompt.
+	public var getInline: MarkupInline { return inline }
+	/// Returns the Message that the Prompt has created and is responding to, if sent.
+	public var getMessage: Message? { return message }
+	
+	
+	/// What alert the user receives when they press an inline button and it worked.
+  public var alertSuccess: String = ""
+	/// What alert the user receives if it didn't work.
+  public var alertFailure: String = ""
+	/// What users are able to interact with the Prompt.  If the list is empty, anyone can interact with it.
+  public var target: [User] = []
+	/// How many times a button can be pressed by any user before the finish() is automatically called inside the Prompt.
+  public var activationLimit: Int = 0
+	/** Defines whether results are kept and stacked across interactions.  If true,
+	the Prompt will block a player from making more than one interaction to the prompt until it is reset.*/
+	public var recordInputs: Bool = false
+	/** Removes the inline keyboard from the message if true, when the Prompt is finished.
+	- warning: This will not work when a finish() closure has been defined due to Telegram Bot flood limits */
+	public var removeInlineOnFinish: Bool = false
+	
+	
+	/// Executed when an update is received by the prompt that was successful.
+  public var update: ((Session, Prompt) -> ())?
+	/// Executed when the Prompt has finished operating in it's current cycle.
+  public var finish: ((Session, Prompt) -> ())?
   
   // Results and next steps
   var usersPressed: [User] = []             // Who ended up pressing a button.
   var results: [String:[User]] = [:]        // What each user pressed.
+	public var lastResult: PromptResult?							// A result containing who pressed the last callback button.
   var completed: Bool = false               // Whether the prompt has met it's completion requirements.
-  
+	var finished: Bool = false								/// Whether this prompt is in a finished state.
+	
+	
+	/// Returns a list of users that interacted with the prompt, ordered from who interacted with it first to last.
   public var getUsersPressed: [User] { return usersPressed }
+	/// Defines whether or not the prompt is in a finished state.
+	public var hasFinished: Bool { return finished }
   
-  
-  public init(inline: MarkupInline, text: String, upload: FileLink? = nil, next: @escaping (Session, Prompt) -> ()) {
+	/** 
+	For internal use only, Prompts have to be attached to the PromptController in order to function.
+	*/
+	init(name: String, inline: MarkupInline, text: String, file: FileLink?, update: ((Session, Prompt) -> ())? ) {
+		self.name = name
     self.inline = inline
     self.text = text
-    self.upload = upload
-    self.next = next
-  }
-  
-  public init(asEphemeral inline: MarkupInline, text: String, upload: FileLink? = nil, finish: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) {
-    self.inline = inline
-    self.text = text
-    self.upload = upload
-    self.finish = finish
-    self.next = next
-    
-    self.setConfig(.ephemeral)
-  }
-  
-  public init(asPersistent inline: MarkupInline, text: String, upload: FileLink? = nil, promptName: String, next: @escaping (Session, Prompt) -> ()) {
-    self.inline = inline
-    self.text = text
-    self.upload = upload
-    self.next = next
-    self.name = promptName
-    
-    self.setConfig(.persistent)
-  }
-  
-  public init(asVote inline: MarkupInline, text: String, upload: FileLink? = nil, promptName: String, time: Int = 0, update: ((Session, Prompt) -> ())? = nil, next: @escaping (Session, Prompt) -> ()) {
-    self.timer = time
-    self.inline = inline
-    self.text = text
-    self.upload = upload
+    self.file = file
     self.update = update
-    self.next = next
-    self.name = promptName
-    
-    self.setConfig(.vote)
   }
   
   /** Compares two prompts to figure out if they're the same.
@@ -193,24 +187,24 @@ public class Prompt: ReceiveUpload {
     if name != prompt.name {
       return false
     }
-    if mode.rawValue != prompt.mode.rawValue {
-      return false
-    }
-    
-    // At this point, if it's an active-type prompt, then this will be enough to return true.
-    if mode == .persistent { return true }
-    
     
     if text != prompt.text {
       return false
     }
+		
+		if file != nil && prompt.file != nil {
+			if file!.id != prompt.file!.id {
+				return false
+			}
+		}
+		
     if inline.keyboard.count != prompt.inline.keyboard.count {
       return false
     }
     
     var rowIndex = 0
     for row in inline.keyboard {
-      var secondRow = prompt.inline.keyboard[rowIndex]
+      let secondRow = prompt.inline.keyboard[rowIndex]
       
       var buttonIndex = 0
       for button in row.keys {
@@ -225,85 +219,48 @@ public class Prompt: ReceiveUpload {
     
     return true
   }
+	
+	/** Safely sets the timer, so long as the prompt does not have an instence of itself hanging around.
+	*/
+	public func setTimer(_ timer: Int) -> Bool {
+		if message != nil { return false }
+		
+		self.timer = timer
+		return true
+	}
+	
   
-  
-  /** Unsure how this will integrate, currently acts as a placeholder to group common usage patterns.
-   Disabled until i find something else for it
-   */
-  func setConfig(_ type: PromptMode) {
-    switch type {
-    case .ephemeral:
-      self.timer = 0
-      self.removeOnCompletion = true
-      self.activationLimit = 1
-      self.mode = .ephemeral
-      
-    case .persistent:
-      self.timer = 0
-      self.removeOnCompletion = false
-      self.activationLimit = 1
-      self.mode = .persistent
-      
-    case .vote:
-      self.removeOnCompletion = true
-      self.activationLimit = 0
-      self.mode = .vote
-      
-    default:
-      return
-    }
-  }
-  
-  /** Sends the prompt to the given session, and adds itself to the controller if not already there.
+  /** 
+	Sends the prompt to the given session as a message, ready to be interacted with.  
+	If the prompt has been sent before without finishing, all results data will be reset and 
+	the previously sent instance of this prompt will stop functioning (this behaviour will
+	likely change in the future).
    */
   public func send(session: Session) {
+		
+		/// If it's being reused, reset the results.
+		resetResults()
+		
     for data in inline.getCallbackData()! {
       self.results[data] = []
     }
     
-    // Add the prompt to the controller, just in case it's being reused and has already ended.
-    controller!.add(self)
-    
     // If we have an upload link, use that to send our prompt
     // Otherwise just send it normally
-    if self.upload != nil {
-      session.send(link: self.upload!, markup: inline, callback: self, caption: text)
+    if self.file != nil {
+      session.send(link: self.file!, markup: inline, callback: self, caption: text)
+			
+			// If we have a timer, make it tick.
+			if timer > 0 {
+				session.delay(by: self.timer, stack: false, name: "prompt_\(name)_timer", action: self.finish)
+			}
     }
     
     else {
       self.message = session.send(message: text, markup: inline)
     }
-    
-    
-    // If we have a timer, make it tick.
-    if timer > 0 {
-      session.delay(by: self.timer, stack: false, name: "prompt_choice", action: self.finish)
-    }
   }
-  
-  /** Attempts to update the message this prompt is associated with
-   */
-  public func update(newInline: MarkupInline? = nil, newText: String? = nil, session: Session) {
-    if newInline == nil && newText == nil { return }
-    if newInline != nil {
-      self.inline = newInline!
-      for data in inline.getCallbackData()! {
-        self.results[data] = []
-      }
-    }
-    
-    if newText != nil {
-      self.text = newText!
-    }
-    
-    if self.upload != nil {
-      session.edit(caption: text, message: message!, markup: inline)
-    }
-    
-    else {
-      session.edit(withMessage: message!, text: text, markup: inline)
-    }
-  }
+	
   
   
   /** Receives a callback query to see if the prompt can use it as an input.
@@ -330,13 +287,17 @@ public class Prompt: ReceiveUpload {
       if alertSuccess != "" {
         session.answer(query: query, text: alertSuccess)
       }
-      
-      if update != nil {
-        update!(session, self)
-      }
+			
+			// Call the update closure and enclose the result
+			let key = self.inline.getKey(withData: query.data!)
+			self.lastResult = PromptResult(users: [query.from], key: key!)
+			
+			if update != nil {
+				update!(session, self)
+			}
     }
       
-      // Answer with an alert failure if you well... failed to contribute.
+		// Answer with an alert failure if you well... failed to contribute.
     else if success == false && alertFailure != "" {
       session.answer(query: query, text: alertFailure)
     }
@@ -344,7 +305,7 @@ public class Prompt: ReceiveUpload {
     
     // If we reached the activation goal, call the action finish and remove the timer if one existed.
     if completed == true {
-      finish(session)
+			finish(session: session)
     }
   }
   
@@ -362,11 +323,15 @@ public class Prompt: ReceiveUpload {
       // If they've already pressed it, they can't press it again.
       if usersPressed.contains(where: {$0.tgID == user.tgID } ) == false {
         
-        // If the query doesn't match a results type, don't accept it.
+        // If the query matches a results type, add it to the results.
         if results[query]!.contains(where: {$0.tgID == user.tgID}) == false {
-          results[query]!.append(user)
-          usersPressed.append(user)
-          
+					
+					// If we're supposed to be recording inputs, add it to the list.
+					if recordInputs == true {
+						results[query]!.append(user)
+						usersPressed.append(user)
+					}
+					
           print("Prompt Choice Pressed  - \(user.firstName)")
           
           if usersPressed.count >= activationLimit && activationLimit != 0 {
@@ -384,88 +349,107 @@ public class Prompt: ReceiveUpload {
     }
     return false
   }
-  
-  /** Completes the prompt activity.
+	
+	/** 
+	Attempts to update both the inline keyboard and text of the currently displayed message.
+	If no inline keyboard or text is defined, those components will be removed from the message.
+	- parameter newInline: The new inline keyboard to be used under the message the Prompt belongs to.
+	- parameter newText: The new text to be used for the message body (or caption if the message contains
+	a file).  If nil, the text will be removed.
+	- warning: If the inline keyboard is changed, all currently stored results will be lost.
+	*/
+	public func updateMessage(newInline: MarkupInline, newText: String, session: Session) {
+		
+		self.inline = newInline
+		for data in inline.getCallbackData()! {
+			self.results[data] = []
+		}
+		
+		self.text = newText
+		
+		if self.file != nil {
+			session.edit(caption: text, message: message!, markup: inline)
+		}
+			
+		else {
+			session.edit(withMessage: message!, text: text, markup: inline)
+		}
+	}
+	/**
+	Attempts to update the text of the currently displayed message.
+	- parameter newText: The new text to be used for the message body (or caption if the message contains
+	a file).  If empty, the text will be removed.
+	*/
+	public func updateText(newText: String, session: Session) {
+		self.text = newText
+		
+		if self.file != nil {
+			session.edit(caption: text, message: message!, markup: inline)
+		}
+			
+		else {
+			session.edit(withMessage: message!, text: text, markup: inline)
+		}
+	}
+	
+	/**
+	Attempts to update the inline keyboard of the currently displayed message.
+	- warning: If the inline keyboard is changed, all currently stored results will be lost.
+	- parameter newInline: The new inline keyboard to be used under the message the Prompt belongs to.
+	*/
+	public func updateInline(newInline: MarkupInline, session: Session) {
+		self.inline = newInline
+		for data in inline.getCallbackData()! {
+			self.results[data] = []
+		}
+		
+		if self.file != nil {
+			session.edit(caption: text, message: message!, markup: inline)
+		}
+			
+		else {
+			session.edit(withMessage: message!, text: text, markup: inline)
+		}
+	}
+	
+  /**
+	Declares the prompt finished, removing it from the Prompt Controller and
+	calling the finish() closure if it exists.  Results will remain until the prompt
+	is sent again.
    */
-  public func finish(_ session: Session) {
-    // Just in case the action is in the timer system, remove it
-    if timer != 0 {
-      session.removeAction(name: "prompt_choice")
-    }
-    
-    // If we have a finish closure, run that and see if we need to
-    // remove the prompt from the controller.
+  public func finish(session: Session) {
+		
+		// If it completed itself and the timer existed, ensure the action is removed to prevent a second trigger.
+		if completed == true {
+			if timer > 0 {
+				session.removeAction(name: "prompt_\(name)_timer")
+			}
+		}
+		
+		// Removes the Prompt from the PromptController to prevent it from being processed.
+		controller!.remove(self)
+		
+		// Perform any final clean-up operations without touching the results data
+		finished = true
+		
+		
+    // If we have a finish closure, run that to perform any final editing operations.
     if finish != nil {
       finish!(session, self)
-      if removeOnCompletion == true {
-        if controller != nil {
-          controller!.remove(self)
-        }
-      }
     }
-    
-    // If not but we should remove it anyway, perform that action.
-    if removeOnCompletion == true {
-      session.edit(withMessage: message!, markup: nil)
-      
-      if controller != nil {
-        controller!.remove(self)
-      }
-    }
-    
-    // If the requirements weren't completed, see if we have to next()
-    if completed == false {
-      
-      if forceNext == true && next != nil {
-        session.resetTimerAssists()
-        next!(session, self)
-        resetResults()
-      }
-      else { return }
-    }
-    
-    // If we don't move to next(), just reset the results.
-    else {
-      session.resetTimerAssists()
-      
-      if next != nil {
-        next!(session, self)
-      }
-      
-      resetResults()
-      return
-    }
+		
+		// Otherwise if we want to remove the inline keyboard automatically when done, do it!
+		else if removeInlineOnFinish == true {
+			if self.file != nil {
+				session.edit(caption: text, message: message!, markup: nil)
+			}
+				
+			else {
+				session.edit(withMessage: message!, text: text, markup: nil)
+			}
+		}
   }
-  
-  /** Kills the prompt manually, removing it's inline buttons and pulling it from the controller.  Next will not be triggered.
-   */
-  public func end(withText text: String? = nil, session: Session, removeMarkup: Bool = true) {
-    // Just in case the action is in the timer system, remove it
-    if timer != 0 {
-      session.removeAction(name: "prompt_choice")
-    }
-    
-    // If we have a finish closure, run that and see if we need to
-    // remove the prompt from the controller.
-    if removeMarkup == true {
-      if self.upload != nil {
-        if text == nil || text == "" {
-          session.edit(caption: "", message: message!, markup: nil)
-        }
-        
-        else {
-          session.edit(caption: text!, message: message!, markup: nil)
-        }
-      }
-        
-      else {
-        session.edit(withMessage: message!, text: text, markup: nil)
-      }
-      if controller != nil {
-        controller!.remove(self)
-      }
-    }
-  }
+	
   
   
   /** Returns a single, successful regardless of whether there was a tie, by random selelcting from the tied options.
@@ -523,8 +507,9 @@ public class Prompt: ReceiveUpload {
   private func resetResults() {
     usersPressed = []
     completed = false
-    
+		finished = false
     results.removeAll()
+		
     for data in inline.getCallbackData()! {
       self.results[data] = []
     }
@@ -534,15 +519,23 @@ public class Prompt: ReceiveUpload {
    */
   public func receiveMessage(message: Message) {
     self.message = message
+		
+		// If we have a timer, make it tick now the message is confirmed as sent.
+		if timer > 0 {
+			self.controller!.session!.delay(by: self.timer, stack: false, name: "prompt_\(name)_timer", action: self.finish)
+		}
   }
 }
 
-
-/** Shortcuts for configuring a prompt for specific purposes.
- */
-public enum PromptMode: String {
-  case ephemeral    // One time activation, destroyed on completion
-  case persistent   // One time activations, persistent
-  case vote         // Multiple activations, VOTE!
-  case undefined    // Default
+/** Defines a single prompt result.  Can be used to define who last pressed a button 
+as well as what button was the "winner".
+*/
+public struct PromptResult {
+	public var users: [User] = []
+	public var key: MarkupInlineKey
+	
+	init(users: [User], key: MarkupInlineKey) {
+		self.users = users
+		self.key = key
+	}
 }

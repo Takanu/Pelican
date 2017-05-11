@@ -104,14 +104,7 @@ public struct InlineResultArticle: InlineResult {
   public var hideUrl: Bool?                  // Set as true if you don't want the URL to be shown in the message.
   public var description: String?            // Short description of the result.
   var thumb: InlineThumbnail?         // Inline thumbnail type.
-  
-  public init(id: String, title: String, message: String, description: String, markup: MarkupInline?) {
-    self.id = id
-    self.title = title
-    self.content = InputMessageText(text: message, parseMode: "", disableWebPreview: nil)
-    self.replyMarkup = markup
-    self.description = description
-  }
+	
   
   public init(id: String, title: String, description: String, contents: String, markup: MarkupInline?) {
     self.id = id

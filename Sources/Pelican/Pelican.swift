@@ -392,7 +392,7 @@ public final class Pelican: Vapor.Provider {
   
   // Used by the in-built long polling solution to compare results to commands.
   internal func filterUpdates() {
-    print("START")
+    //print("START")
     guard let updates = getUpdateSets() else {
       return
     }
@@ -453,7 +453,7 @@ public final class Pelican: Vapor.Provider {
       }
     }
     
-    print("FINISH")
+    //print("FINISH")
   }
   
   /* Adds a session to the Telegram Bot.  A session represents a single chat or instance of activity between a person and the bot. */

@@ -99,19 +99,7 @@ public class Session {
     try database.delete("users")
   }
   
-  // Clears all states.
-  public func clearStates() {
-    self.messageState = nil
-    self.editedMessageState = nil
-    self.channelState = nil
-    self.editedChannelState = nil
-    
-    self.inlineQueryState = nil
-    self.chosenInlineQueryState = nil
-    self.callbackQueryState = nil
-    
-    print(self.messageState as Any)
-  }
+	
   
   // Receives a message from the TelegramBot to check whether in the current state anything can be done with it
   func filterUpdate(message: Message) {
@@ -378,14 +366,28 @@ public class Session {
       self.bot.editMessageReplyMarkup(chatID: message.chat.tgID, messageID: message.tgID, replyMarkup: markup, replyMessageID: 0)
     })
   }
-  
-  
-  // Resets the assistive timers
-  public func resetTimerAssists() {
+	
+	
+	/// Clears all states.
+	public func clearStates() {
+		self.messageState = nil
+		self.editedMessageState = nil
+		self.channelState = nil
+		self.editedChannelState = nil
+		
+		self.inlineQueryState = nil
+		self.chosenInlineQueryState = nil
+		self.callbackQueryState = nil
+		
+		print(self.messageState as Any)
+	}
+	
+	
+  /// Resets the assistive timers
+  public func clearTimerAssists() {
     self.plusTimer = 0
     self.lastDialog = ""
   }
-  
   
   
   // Bumps the flood limiter, and potentially blacklists or warns the user.
