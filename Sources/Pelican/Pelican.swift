@@ -586,11 +586,14 @@ public final class Pelican: Vapor.Provider {
   }
   
   
-  // Checks all the currently active session events.
+  /** 
+	Checks all the currently active session events.  The call increments their timers and executes any actions that
+	need executing.
+	*/
   internal func checkSessionEvents() {
     for session in sessionsEvents {
       
-      let result = session.value.checkActions()
+      let result = session.value.queue.incrementTimer()
       if result == true {
         print("SESSION EVENTS COMPLETE, REMOVING...")
         sessionsEvents.removeValue(forKey: session.key)

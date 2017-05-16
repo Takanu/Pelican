@@ -315,10 +315,10 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
 	be arranged on a single row.
 	- parameter pair: A sequence of label/url String tuples that will define each key on the keyboard.
 	*/
-  public init(withURL pair: (label: String, url: String)...) {
+  public init(withURL sequence: (label: String, url: String)...) {
     let row = MarkupInlineRow()
-    for label in pair {
-      let button = MarkupInlineKey(fromURL: label.url, label: label.label)
+    for tuple in sequence {
+      let button = MarkupInlineKey(fromURL: tuple.url, label: tuple.label)
       row.addButton(button)
     }
     keyboard.append(row)
@@ -329,24 +329,40 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
 	be arranged on a single row.
 	- parameter pair: A sequence of label/callback String tuples that will define each key on the keyboard.
 	*/
-  public init(withCallback pair: (label: String, query: String)...) {
+  public init(withCallback sequence: (label: String, query: String)...) {
     let row = MarkupInlineRow()
-    for label in pair {
-      let button = MarkupInlineKey(fromCallbackData: label.query, label: label.label)
+    for tuple in sequence {
+      let button = MarkupInlineKey(fromCallbackData: tuple.query, label: tuple.label)
       row.addButton(button)
     }
     keyboard.append(row)
   }
 	
 	/**
+	Creates an Inline Keyboard using sets of arrays containing label and callback tuples, where each tuple array
+	is a single row.
+	- parameter array: A an array of label/callback String tuple arrays that will define each row on the keyboard.
+	*/
+	public init(withCallback array: [[(label: String, query: String)]]) {
+		for row in array {
+			let newRow = MarkupInlineRow()
+			for tuple in row {
+				let button = MarkupInlineKey(fromCallbackData: tuple.query, label: tuple.label)
+				newRow.addButton(button)
+			}
+			keyboard.append(newRow)
+		}
+	}
+	
+	/**
 	Creates an Inline Keyboard using a series of specified button label and "Inline Query Current Chat" String pairs, where all buttons will
 	be arranged on a single row.
 	- parameter pair: A sequence of label/"Inline Query Current Chat" String tuples that will define each key on the keyboard.
 	*/
-	public init(withInlineQueryCurrent pair: (label: String, query: String)...) {
+	public init(withInlineQueryCurrent sequence: (label: String, query: String)...) {
 		let row = MarkupInlineRow()
-		for label in pair {
-			let button = MarkupInlineKey(fromInlineQueryCurrent: label.query, label: label.label)
+		for tuple in sequence {
+			let button = MarkupInlineKey(fromInlineQueryCurrent: tuple.query, label: tuple.label)
 			row.addButton(button)
 		}
 		keyboard.append(row)
@@ -357,9 +373,9 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
 	be arranged on a single row.
 	- parameter pair: A sequence of label/"Inline Query New Chat" String tuples that will define each key on the keyboard.
 	*/
-	public init(withInlineQueryNewChat array: [(label: String, query: String)]) {
+	public init(withInlineQueryNewChat sequence: (label: String, query: String)...) {
 		let row = MarkupInlineRow()
-		for label in array {
+		for label in sequence {
 			let button = MarkupInlineKey(fromInlineQueryNewChat: label.query, label: label.label)
 			row.addButton(button)
 		}
@@ -374,10 +390,10 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
 	
 	- parameter labels: A sequence of String labels that will define each key on the keyboard.
 	*/
-  public init(withGenCallback labels: String...) {
+  public init(withGenCallback sequence: String...) {
     let row = MarkupInlineRow()
     var id = 1
-    for label in labels {
+    for label in sequence {
       let button = MarkupInlineKey(fromCallbackData: String(id), label: label)
       row.addButton(button)
       id += 1
@@ -407,7 +423,19 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     }
     
   }
-
+	
+	/**
+	Adds an extra row to the keyboard based on the sequence of buttons you provide.
+	*/
+	public func addRow(_ sequence: MarkupInlineKey...) {
+		let newRow = MarkupInlineRow()
+		
+		for button in sequence {
+			newRow.addButton(button)
+		}
+		
+		keyboard.append(newRow)
+	}
   
   
   /**

@@ -13,6 +13,7 @@ public class Session {
   public var data: NSCopying?    // User-defined data chunk.
   
   public var prompts: PromptController    // Container for automating markup options and responses.
+	public var queue: SessionQueue	//	Handler for delayed Telegram API calls and closure execution.
   var floodLimit: FloodLimit     // External flood tracking system.
   
   // Session settings
@@ -39,7 +40,7 @@ public class Session {
   public var callbackQueryState: ((CallbackQuery, Session) -> ())?
   
   public var sessionEndAction: ((Session) -> ())? // A command to be used when the session ends.
-  var actionQueue: [TelegramBotSessionAction] = [] // Any queued actions that need to be monitored.
+  var actionQueue: [QueueAction] = [] // Any queued actions that need to be monitored.
   
   
   // Stored requests
@@ -55,6 +56,7 @@ public class Session {
     self.bot = bot
     self.chat = chat
     self.prompts = PromptController()
+		self.queue = SessionQueue()
     self.floodLimit = FloodLimit(clone: floodLimit) // A precaution to only copy the range values
     
     if data != nil {
@@ -74,6 +76,7 @@ public class Session {
   
   func postInit() {
     prompts.session = self
+		queue.session = self
   }
   
   // Functions for managing what users are associated to this session.
@@ -262,111 +265,6 @@ public class Session {
   public func answer(query: CallbackQuery, text: String, popup: Bool = false, gameURL: String = "") {
     bot.answerCallbackQuery(queryID: query.id, text: text, showAlert: popup, url: gameURL, cacheTime: 0)
   }
-  
-  
-  ////////////////////////////////////////////////////
-  //////////// METHOD DELAYS
-  
-  
-  // Delays execution of an action by the specified time
-  public func delay(by time: Int, stack: Bool, name: String = "", action: @escaping (Session) -> ()) {
-    
-    // Calculate what kind of delay we're using
-    var delay = 0
-    if stack == true {
-      if lastDialog != "" {
-        let wordCount = lastDialog.components(separatedBy: NSCharacterSet.whitespaces).count
-        let readTime = Int(ceil(Float(wordCount) / Float(wordsPerMinute / 60)))
-        delay = Int(readTime) + time + plusTimer
-        plusTimer = delay
-        //lastDialog = ""
-      }
-        
-      else {
-        delay = plusTimer + time
-        plusTimer = delay
-      }
-    }
-    else { delay = time }
-    
-    print("New Delay - \(delay)")
-    
-    let action = TelegramBotSessionAction(session: self, bot: bot, delay: delay, action: action, name: name)
-    
-    // Enumerate through the queue to find a position to insert it, to keep the list ordered.
-    for (key, value) in actionQueue.enumerated() {
-      if value.time > action.time {
-        let insert = key
-        actionQueue.insert(action, at: insert)
-        bot.addSessionEvent(session: self)
-        return
-      }
-    }
-    
-    // If it wasn't appended before, the criteria wasn't met.  Add here.
-    actionQueue.append(action)
-    bot.addSessionEvent(session: self)
-  }
-  
-  // A shorthand function for sending a single message in a delayed fashion, through the action system.  Looks a lot neater :D
-  public func delaySend(by: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
-    self.delay(by: by, stack: false, action: { session in
-      _ = session.send(message: message, markup: markup, reply: reply, parseMode: parseMode, webPreview: webPreview, disableNtf: disableNtf)
-    })
-  }
-  
-  // A shorthand function for sending a single message in a delayed fashion with an additional stack option that adds the delay
-  // to the top of the stack using a timer, instead of measuring the delay from the moment the request is made.
-  public func delaySend(by: Int, stack: Bool, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
-    
-    self.delay(by: by, stack: stack, action: { session in
-      _ = session.send(message: message, markup: markup, reply: reply, parseMode: parseMode, webPreview: webPreview, disableNtf: disableNtf)
-    })
-  }
-  
-  // Properly calculates a delay to send this dialog based on a pause and the previous dialog length.
-  public func delayDialog(pause: Int = 0, dialog: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
-    
-    // Work out the average reading time, this uses it's own stack
-    let wordCount = lastDialog.components(separatedBy: NSCharacterSet.whitespaces).count
-    let readTime = Int(ceil(Float(wordCount) / Float(wordsPerMinute / 60)))
-    let by = Int(readTime) + pause + plusTimer
-    plusTimer = by
-    lastDialog = dialog
-    
-    print("New Dialog Delay - \(plusTimer)")
-    
-    self.delay(by: by, stack: false, action: { session in
-      _ = session.send(message: dialog, markup: markup, reply: reply, parseMode: parseMode, webPreview: webPreview, disableNtf: disableNtf)
-    })
-  }
-  
-  // Edits the text contents of a message in a delayed fashion.  A last sent message must be available.
-  public func delayEdit(by: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
-    
-    if lastSentMessage != nil {
-      self.delay(by: by, stack: false, action: { session in
-        self.bot.editMessageText(chatID: self.chat.tgID, messageID: self.lastSentMessage!.tgID, text: message, replyMarkup: markup, parseMode: parseMode, disableWebPreview: disableNtf, replyMessageID: 0)
-      })
-    }
-  }
-  
-  // Edits the text contents of a message in a delayed fashion, using a message object.
-  public func delayEdit(by: Int, message: Message, markup: MarkupType? = nil) {
-    self.delay(by: by, stack: false, action: { session in
-      self.bot.editMessageReplyMarkup(chatID: message.chat.tgID, messageID: message.tgID, replyMarkup: markup, replyMessageID: 0)
-    })
-  }
-  
-  // A shorthand function for editing a single message in a delayed fashion with an additional stack option that adds the delay
-  // to the top of the stack using a timer, instead of measuring the delay from the moment the request is made.
-  public func delayEdit(by: Int, stack: Bool, message: Message, markup: MarkupType? = nil) {
-    
-    self.delay(by: by, stack: stack, action: { session in
-      self.bot.editMessageReplyMarkup(chatID: message.chat.tgID, messageID: message.tgID, replyMarkup: markup, replyMessageID: 0)
-    })
-  }
-	
 	
 	/// Clears all states.
 	public func clearStates() {
@@ -381,14 +279,6 @@ public class Session {
 		
 		print(self.messageState as Any)
 	}
-	
-	
-  /// Resets the assistive timers
-  public func clearTimerAssists() {
-    self.plusTimer = 0
-    self.lastDialog = ""
-  }
-  
   
   // Bumps the flood limiter, and potentially blacklists or warns the user.
   func bumpFlood() {

@@ -139,7 +139,8 @@ public class Prompt: ReceiveUpload {
   public var alertSuccess: String = ""
 	/// What alert the user receives if it didn't work.
   public var alertFailure: String = ""
-	/// What users are able to interact with the Prompt.  If the list is empty, anyone can interact with it.
+	/** What users are able to interact with the Prompt.  If the list is empty, anyone can interact with it.
+	If all targets have interacted with the Prompt, finish() is automatically called.*/
   public var target: [User] = []
 	/// How many times a button can be pressed by any user before the finish() is automatically called inside the Prompt.
   public var activationLimit: Int = 0
@@ -257,7 +258,7 @@ public class Prompt: ReceiveUpload {
 		
 		// If we have a timer, make it tick.
 		if timer > 0 {
-			session.delay(by: self.timer, stack: false, name: "prompt_\(name)_timer", action: self.finish)
+			session.queue.add(byDelay: self.timer, viewTime: 0, name: "prompt_\(name)_timer", action: self.finish)
 		}
   }
 	
@@ -422,7 +423,7 @@ public class Prompt: ReceiveUpload {
 		// If it completed itself and the timer existed, ensure the action is removed to prevent a second trigger.
 		if completed == true {
 			if timer > 0 {
-				session.removeAction(name: "prompt_\(name)_timer")
+				_ = session.queue.remove(name: "prompt_\(name)_timer")
 			}
 		}
 		
@@ -522,7 +523,7 @@ public class Prompt: ReceiveUpload {
 		
 		// If we have a timer, make it tick now the message is confirmed as sent.
 		if timer > 0 {
-			self.controller!.session!.delay(by: self.timer, stack: false, name: "prompt_\(name)_timer", action: self.finish)
+			self.controller!.session!.queue.add(byDelay: self.timer, viewTime: 0, name: "prompt_\(name)_timer", action: self.finish)
 		}
   }
 }
