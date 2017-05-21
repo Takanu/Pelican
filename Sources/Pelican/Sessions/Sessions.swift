@@ -1,11 +1,12 @@
 
 import Foundation
 import Vapor
+import FluentProvider
 
 // Holds the information for a bot session, when someone is immediately interacting with the bot
 // Ignore this if you want?  What am i, a doctor?
 public class Session {
-  public var id: Node?           // Database ID
+  public var storage = Storage()          // Database ID
   public var bot: Pelican        // The bot associated with this session
   public var chat: Chat          // The chat ID associated with the session.
   public var primaryUser : User? // The primary user associated with this session, not applicable for channels or potentially other things.
@@ -89,19 +90,7 @@ public class Session {
   public func addUser(_ user: User) {
     users.append(user)
   }
-  
-  
-  // Preparation conforming methods, for creating and deleting a database.
-  public static func prepare(_ database: Database) throws {
-    try database.create("users") { users in
-      users.id()
-    }
-  }
-  
-  public static func revert(_ database: Database) throws {
-    try database.delete("users")
-  }
-  
+	
 	
   
   // Receives a message from the TelegramBot to check whether in the current state anything can be done with it

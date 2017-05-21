@@ -1,99 +1,84 @@
 
 import Foundation
 import Vapor
+import FluentProvider
 
 /** Represents an incoming inline query. When the user sends an empty query, your bot could return some default or trending results.
  */
-public class InlineQuery: NodeConvertible, JSONConvertible {
+final public class InlineQuery: Model {
+	public var storage = Storage()
+	
   public var id: String // Unique identifier for this query.
   public var from: User // The sender.
   public var query: String // Text of the query (up to 512 characters).
   public var offset: String // Offset of the results to be returned, is bot-controllable.
   public var location: Location? // Sender location, only for bots that request it.
   
-  // NodeRepresentable conforming methods
-  public required init(node: Node, in context: Context) throws {
-    id = try node.extract("id")
-    
-    guard let subUser = node["from"] else { throw TGTypeError.ExtractFailed }
-    self.from = try .init(node: subUser, in: context) as User
-    
-    query = try node.extract("query")
-    offset = try node.extract("offset")
-    
-    if let subLocation = node["location"] {
-      self.location = try .init(node: subLocation, in: context) as Location }
+  // Model conforming methods
+  public required init(row: Row) throws {
+    id = try row.get("id")
+		from = try row.get("from")
+		query = try row.get("query")
+		offset = try row.get("offset")
+		location = try row.get("location")
   }
-  
-  public func makeNode() throws -> Node {
-    var keys: [String:NodeRepresentable] = [
-      "id": id,
-      "from": from,
-      "query": query,
-      "offset": offset
-    ]
-    
-    if location != nil { keys["location"] = location }
-    return try Node(node: keys)
-  }
-  
-  public func makeNode(context: Context) throws -> Node {
-    return try self.makeNode()
-  }
+	
+	public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("id", id)
+		try row.set("from", from)
+		try row.set("query", query)
+		try row.set("offset", offset)
+		try row.set("location", location)
+		
+		return row
+	}
 }
 
 
 /** Represents a result of an inline query that was chosen by the user and sent to their chat partner. 
  */
 public struct ChosenInlineResult {
-  var id: String // The unique identifier for the result that was chosen.
+	public var storage = Storage()
+	
+  var resultID: String // The unique identifier for the result that was chosen.
   var from: User // The user that chose the result.
   var query: String // The query that was used to obtain the result
   var location: Location? // Sender location, only for bots that require user location.
   var inlineMessageID: String? // Identifier of the sent inline message. Available only if there is an inline keyboard attached to the message.
   
-  // NodeRepresentable conforming methods
-  init(node: Node, in context: Context) throws {
-    id = try node.extract("result_id")
-    
-    guard let subUser = node["from"] else { throw TGTypeError.ExtractFailed }
-    self.from = try .init(node: subUser, in: context) as User
-    
-    query = try node.extract("query")
-    
-    if let subLocation = node["location"] {
-      self.location = try .init(node: subLocation, in: context) as Location }
-    
-    inlineMessageID = try node.extract("inline_message_id")
-    
-  }
-  
-  func makeNode() throws -> Node {
-    var keys: [String:NodeRepresentable] = [
-      "result_id": id,
-      "from": from,
-      "query": query]
-    
-    // Optional keys
-    if location != nil { keys["location"] = location }
-    if inlineMessageID != nil { keys["inline_message_id"] = inlineMessageID }
-    return try Node(node: keys)
-  }
-  
-  func makeNode(context: Context) throws -> Node {
-    return try self.makeNode()
-  }
+	// Model conforming methods
+	public init(row: Row) throws {
+		resultID = try row.get("result_id")
+		from = try row.get("from")
+		query = try row.get("query")
+		location = try row.get("location")
+		inlineMessageID = try row.get("inline_message_id")
+	}
+	
+	public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("result_id", resultID)
+		try row.set("from", from)
+		try row.set("query", query)
+		try row.set("location", location)
+		try row.set("inline_message_id", location)
+		
+		return row
+	}
 }
 
 
 
 /** Used for a result/your response of an inline query.
  */
-public protocol InlineResult: NodeConvertible, JSONConvertible {
+public protocol InlineResult: Model {
   
 }
 
-public struct InlineResultArticle: InlineResult {
+final public class InlineResultArticle: InlineResult {
+	public var storage = Storage()
+	
   public var type: String = "article"        // Type of the result being given.
   public var id: String                      // Unique Identifier for the result, 1-64 bytes.
   public var content: InputMessageContent    // Content of the message to be sent.
@@ -103,7 +88,7 @@ public struct InlineResultArticle: InlineResult {
   public var url: String?                    // URL of the result.
   public var hideUrl: Bool?                  // Set as true if you don't want the URL to be shown in the message.
   public var description: String?            // Short description of the result.
-  var thumb: InlineThumbnail?         // Inline thumbnail type.
+  //var thumb: InlineThumbnail?         // Inline thumbnail type.
 	
   
   public init(id: String, title: String, description: String, contents: String, markup: MarkupInline?) {
@@ -115,49 +100,42 @@ public struct InlineResultArticle: InlineResult {
   }
   
   // NodeRepresentable conforming methods
-  public init(node: Node, in context: Context) throws {
-    type = try node.extract("type")
-    id = try node.extract("id")
-    
-    // This likely will fail, need another solution
-    guard let subContent = node["input_message_content"] else { throw TGTypeError.ExtractFailed }
-    self.content = try .init(node: subContent, in: context) as InputMessageContent
-    
-    replyMarkup = try node.extract("reply_markup")
-    
-    // Non-core extractions
-    title = try node.extract("title")
-    url = try node.extract("url")
-    hideUrl = try node.extract("hide_url")
-    description = try node.extract("description")
-    thumb = try InlineThumbnail(node: node, in: TGContext.response)
+  public init(row: Row) throws {
+    type = try row.get("type")
+    id = try row.get("id")
+		content = try row.get("input_message_content")
+		replyMarkup = try row.get("reply_markup")
+		
+		title = try row.get("title")
+		url = try row.get("url")
+		hideUrl = try row.get("hide_url")
+		description = try row.get("description")
+		//thumb = try row.get("thumb")
   }
   
   
-  public func makeNode() throws -> Node {
-    var keys: [String:NodeRepresentable] = [
-      "type": type,
-      "id": id,
-      "title": title,
-      "input_message_content": content]
-    
-    // Optional keys
-    if replyMarkup != nil { keys["reply_markup"] = replyMarkup }
-    if url != nil { keys["url"] = url }
-    if hideUrl != nil { keys["hide_url"] = hideUrl }
-    if description != nil { keys["description"] = description }
-    //if thumb != nil { keys["thumb"] = thumb }
-    
-    return try Node(node: keys)
-  }
-  
-  public func makeNode(context: Context) throws -> Node {
-    return try self.makeNode()
-  }
+	public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("type", type)
+		try row.set("id", id)
+		try row.set("input_message_content", content)
+		try row.set("replyMarkup", replyMarkup)
+		
+		try row.set("title", title)
+		try row.set("url", url)
+		try row.set("hide_url", hideUrl)
+		try row.set("description", description)
+		//try row.set("thumb", thumb)
+		
+		return row
+	}
   
 }
+/**
 
 public struct InlineResultContact: InlineResult {
+	public var storage = Storage()
+	
   public var type: String = "contact"        // Type of the result being given.
   public var id: String                      // Unique Identifier for the result, 1-64 bytes.
   public var content: InputMessageContent?   // Content of the message to be sent.
@@ -169,19 +147,19 @@ public struct InlineResultContact: InlineResult {
   var thumb: InlineThumbnail?         // Inline thumbnail type.
   
   // NodeRepresentable conforming methods
-  public init(node: Node, in context: Context) throws {
-    type = try node.extract("type")
-    id = try node.extract("id")
+  public init(row: Row) throws {
+    type = try row.get("type")
+    id = try row.get("id")
     
     if let subContent = node["input_message_content"] {
       self.content = try .init(node: subContent, in: context) as InputMessageContent }
     
-    replyMarkup = try node.extract("reply_markup")
+    replyMarkup = try row.get("reply_markup")
     
     // Non-core extractions
-    phoneNumber = try node.extract("phone_number")
-    firstName = try node.extract("first_name")
-    lastName = try node.extract("last_name")
+    phoneNumber = try row.get("phone_number")
+    firstName = try row.get("first_name")
+    lastName = try row.get("last_name")
     thumb = try InlineThumbnail(node: node, in: TGContext.response)
     
   }
@@ -207,6 +185,7 @@ public struct InlineResultContact: InlineResult {
   }
 }
 
+
 public struct InlineResultLocation: InlineResult {
   var type: String = "location"       // Type of the result being given.
   public var id: String                      // Unique Identifier for the result, 1-64 bytes.
@@ -219,19 +198,19 @@ public struct InlineResultLocation: InlineResult {
   var thumb: InlineThumbnail?         // Inline thumbnail type.
   
   // NodeRepresentable conforming methods
-  public init(node: Node, in context: Context) throws {
-    type = try node.extract("type")
-    id = try node.extract("id")
+  public init(row: Row) throws {
+    type = try row.get("type")
+    id = try row.get("id")
     
     if let subContent = node["input_message_content"] {
       self.content = try .init(node: subContent, in: context) as InputMessageContent }
     
-    replyMarkup = try node.extract("reply_markup")
+    replyMarkup = try row.get("reply_markup")
     
     // Non-core extractions
-    title = try node.extract("title")
-    latitude = try node.extract("latitude")
-    longitude = try node.extract("longitude")
+    title = try row.get("title")
+    latitude = try row.get("latitude")
+    longitude = try row.get("longitude")
     thumb = try InlineThumbnail(node: node, in: TGContext.response)
   }
   
@@ -270,21 +249,21 @@ public struct InlineResultVenue: InlineResult {
   var thumb: InlineThumbnail?         // Inline thumbnail type.
   
   // NodeRepresentable conforming methods
-  public init(node: Node, in context: Context) throws {
-    type = try node.extract("type")
-    id = try node.extract("id")
+  public init(row: Row) throws {
+    type = try row.get("type")
+    id = try row.get("id")
     
     if let subContent = node["input_message_content"] {
       self.content = try .init(node: subContent, in: context) as InputMessageContent }
     
-    replyMarkup = try node.extract("reply_markup")
+    replyMarkup = try row.get("reply_markup")
     
     // Non-core extractions
-    title = try node.extract("title")
-    address = try node.extract("address")
-    latitude = try node.extract("latitude")
-    longitude = try node.extract("longitude")
-    foursquareID = try node.extract("foursquare_id")
+    title = try row.get("title")
+    address = try row.get("address")
+    latitude = try row.get("latitude")
+    longitude = try row.get("longitude")
+    foursquareID = try row.get("foursquare_id")
     thumb = try InlineThumbnail(node: node, in: TGContext.response)
     
   }
@@ -319,11 +298,11 @@ public struct InlineResultGame: InlineResult {
   public var name: String                    // Short name of the game
   
   // NodeRepresentable conforming methods
-  public init(node: Node, in context: Context) throws {
-    type = try node.extract("type")
-    id = try node.extract("id")
-    replyMarkup = try node.extract("reply_markup")
-    name = try node.extract("game_short_name")
+  public init(row: Row) throws {
+    type = try row.get("type")
+    id = try row.get("id")
+    replyMarkup = try row.get("reply_markup")
+    name = try row.get("game_short_name")
     
   }
   
@@ -351,7 +330,7 @@ enum InlineResultError: String, Error {
 }
 
 
-/**
+
  // makeNode() currently makes no effort to divide content based on whether it's cached or not.
  // Use getQuery() instead.
  
@@ -372,11 +351,11 @@ enum InlineResultError: String, Error {
  
  // NodeRepresentable conforming methods
  init(node: Node, in context: Context) throws {
- type = try node.extract("file_id")
- id = try node.extract("duration")
+ type = try row.get("file_id")
+ id = try row.get("duration")
  if let subContent = node["input_message_content"] {
  self.content = try .init(node: subContent, in: context) as InputMessageContent }
- replyMarkup = try node.extract("reply_markup")
+ replyMarkup = try row.get("reply_markup")
  
  }
  
@@ -415,11 +394,11 @@ enum InlineResultError: String, Error {
  
  // NodeRepresentable conforming methods
  init(node: Node, in context: Context) throws {
- type = try node.extract("file_id")
- id = try node.extract("duration")
+ type = try row.get("file_id")
+ id = try row.get("duration")
  if let subContent = node["input_message_content"] {
  self.content = try .init(node: subContent, in: context) as InputMessageContent }
- replyMarkup = try node.extract("reply_markup")
+ replyMarkup = try row.get("reply_markup")
  
  }
  
@@ -456,11 +435,11 @@ enum InlineResultError: String, Error {
  
  // NodeRepresentable conforming methods
  init(node: Node, in context: Context) throws {
- type = try node.extract("file_id")
- id = try node.extract("duration")
+ type = try row.get("file_id")
+ id = try row.get("duration")
  if let subContent = node["input_message_content"] {
  self.content = try .init(node: subContent, in: context) as InputMessageContent }
- replyMarkup = try node.extract("reply_markup")
+ replyMarkup = try row.get("reply_markup")
  }
  
  func makeNode() throws -> Node {
@@ -496,11 +475,11 @@ enum InlineResultError: String, Error {
  
  // NodeRepresentable conforming methods
  init(node: Node, in context: Context) throws {
- type = try node.extract("file_id")
- id = try node.extract("duration")
+ type = try row.get("file_id")
+ id = try row.get("duration")
  if let subContent = node["input_message_content"] {
  self.content = try .init(node: subContent, in: context) as InputMessageContent }
- replyMarkup = try node.extract("reply_markup")
+ replyMarkup = try row.get("reply_markup")
  
  }
  
@@ -538,11 +517,11 @@ enum InlineResultError: String, Error {
  
  // NodeRepresentable conforming methods
  init(node: Node, in context: Context) throws {
- type = try node.extract("file_id")
- id = try node.extract("duration")
+ type = try row.get("file_id")
+ id = try row.get("duration")
  if let subContent = node["input_message_content"] {
  self.content = try .init(node: subContent, in: context) as InputMessageContent }
- replyMarkup = try node.extract("reply_markup")
+ replyMarkup = try row.get("reply_markup")
  
  }
  
@@ -576,11 +555,11 @@ enum InlineResultError: String, Error {
  
  // NodeRepresentable conforming methods
  init(node: Node, in context: Context) throws {
- type = try node.extract("file_id")
- id = try node.extract("duration")
+ type = try row.get("file_id")
+ id = try row.get("duration")
  if let subContent = node["input_message_content"] {
  self.content = try .init(node: subContent, in: context) as InputMessageContent }
- replyMarkup = try node.extract("reply_markup")
+ replyMarkup = try row.get("reply_markup")
  
  }
  
@@ -620,11 +599,11 @@ enum InlineResultError: String, Error {
  
  // NodeRepresentable conforming methods
  init(node: Node, in context: Context) throws {
- type = try node.extract("file_id")
- id = try node.extract("duration")
+ type = try row.get("file_id")
+ id = try row.get("duration")
  if let subContent = node["input_message_content"] {
  self.content = try .init(node: subContent, in: context) as InputMessageContent }
- replyMarkup = try node.extract("reply_markup")
+ replyMarkup = try row.get("reply_markup")
  
  }
  
@@ -661,11 +640,11 @@ enum InlineResultError: String, Error {
  
  // NodeRepresentable conforming methods
  init(node: Node, in context: Context) throws {
- type = try node.extract("file_id")
- id = try node.extract("duration")
+ type = try row.get("file_id")
+ id = try row.get("duration")
  if let subContent = node["input_message_content"] {
  self.content = try .init(node: subContent, in: context) as InputMessageContent }
- replyMarkup = try node.extract("reply_markup")
+ replyMarkup = try row.get("reply_markup")
  }
  
  func makeNode() throws -> Node {
@@ -687,25 +666,17 @@ enum InlineResultError: String, Error {
  
  */
 
-// Represents the content of a message to be sent as a result of an inline query.
-public class InputMessageContent: NodeConvertible, JSONConvertible {
-  
-  init() {}
-  
-  // NodeRepresentable conforming methods
-  public required init(node: Node, in context: Context) throws {
-  }
-  
-  public func makeNode() throws -> Node {
-    return try Node(node:["":0])
-  }
-  
-  public func makeNode(context: Context) throws -> Node {
-    return try self.makeNode()
-  }
+/**
+Represents the content of a message to be sent as a result of an inline query.
+- warning: DO NOT USE THIS CLASS, USE A SUB-CLASS.
+*/
+public protocol InputMessageContent: Model {
+
 }
 
-public class InputMessageText: InputMessageContent {
+final public class InputMessageText: InputMessageContent {
+	public var storage = Storage()
+	
   var text: String // Text of the message to be sent.  1-4096 characters.
   var parseMode: String? // Send Markdown or HTML, if you want Telegram apps to show bold, italic, fixed-width text or inline URLs in your bot's message.
   var disableWebPreview: Bool? // Disables link previews for links in the sent message.
@@ -714,138 +685,122 @@ public class InputMessageText: InputMessageContent {
     self.text = text
     self.parseMode = parseMode
     self.disableWebPreview = disableWebPreview
-    super.init()
   }
   
   // NodeRepresentable conforming methods
-  public required init(node: Node, in context: Context) throws {
-    text = try node.extract("message_text")
-    parseMode = try node.extract("parse_mode")
-    disableWebPreview = try node.extract("disable_web_page_preview")
-    try super.init(node: node, in: context)
+  public required init(row: Row) throws {
+    text = try row.get("message_text")
+    parseMode = try row.get("parse_mode")
+    disableWebPreview = try row.get("disable_web_page_preview")
+		
   }
-  
-  public override func makeNode() throws -> Node {
-    var keys: [String:NodeRepresentable] = [
-      "message_text": text]
+	
+  public func makeRow() throws -> Row {
+    var row = Row()
+		try row.set("message_text", text)
+		try row.set("parse_mode", parseMode)
+		try row.set("disable_web_page_preview", disableWebPreview)
     
-    // Optional keys
-    if parseMode != nil { keys["parse_mode"] = parseMode }
-    if disableWebPreview != nil { keys["disable_web_page_preview"] = disableWebPreview }
-    return try Node(node: keys)
+    return row
   }
   
-  public override func makeNode(context: Context) throws -> Node {
-    return try self.makeNode()
-  }
+	
 }
 
-public class InputMessageLocation: InputMessageContent {
+final public class InputMessageLocation: InputMessageContent {
+	public var storage = Storage()
+	
   var latitude: Float // Latitude of the venue in degrees.
   var longitude: Float // Longitude of the venue in degrees.
   
   init(latitude: Float, longitude: Float) {
     self.latitude = latitude
     self.longitude = longitude
-    super.init()
   }
   
   // NodeRepresentable conforming methods
-  public required init(node: Node, in context: Context) throws {
-    latitude = try node.extract("latitude")
-    longitude = try node.extract("longitude")
-    try super.init(node: node, in: context)
+  public init(row: Row) throws {
+    latitude = try row.get("latitude")
+    longitude = try row.get("longitude")
   }
   
-  public override func makeNode() throws -> Node {
-    let keys: [String:NodeRepresentable] = [
-      "latitude": latitude,
-      "longitude": longitude]
-    return try Node(node: keys)
-  }
-  
-  public override func makeNode(context: Context) throws -> Node {
-    return try self.makeNode()
+  public func makeRow() throws -> Row {
+    var row = Row()
+		try row.set("latitude", latitude)
+		try row.set("longitude", longitude)
+		
+		return row
   }
 }
 
 
 
-public class InputMessageVenue: InputMessageContent {
+final public class InputMessageVenue: InputMessageContent {
+	public var storage = Storage()
+	
   var latitude: Float // Latitude of the venue in degrees.
   var longitude: Float // Longitude of the venue in degrees.
   var title: String // Name of the venue.
   var address: String // Address of the venue.
   var foursquareID: String? // Foursquare identifier of the venue, if known.
   
-  override init() {
+	init() {
     self.latitude = 0
     self.longitude = 0
     self.title = ""
     self.address = ""
-    super.init()
   }
   
   // NodeRepresentable conforming methods
-  public required init(node: Node, in context: Context) throws {
-    latitude = try node.extract("latitude")
-    longitude = try node.extract("longitude")
-    title = try node.extract("title")
-    address = try node.extract("address")
-    foursquareID = try node.extract("foursquare_id")
-    try super.init(node: node, in: context)
+  public init(row: Row) throws {
+    latitude = try row.get("latitude")
+    longitude = try row.get("longitude")
+    title = try row.get("title")
+    address = try row.get("address")
+    foursquareID = try row.get("foursquare_id")
   }
   
-  public override func makeNode() throws -> Node {
-    var keys: [String:NodeRepresentable] = [
-      "latitude": latitude,
-      "longitude": longitude,
-      "title": title,
-      "address": address]
-    
-    if foursquareID != nil { keys["foursquare_id"] = foursquareID }
-    return try Node(node: keys)
-  }
-  
-  public override func makeNode(context: Context) throws -> Node {
-    return try self.makeNode()
-  }
-  
+  public func makeRow() throws -> Row {
+    var row = Row()
+		try row.set("latitude", latitude)
+		try row.set("longitude", longitude)
+		try row.set("title", title)
+		try row.set("address", address)
+		try row.set("foursquare_id", foursquareID)
+		
+		return row
+	}
 }
 
-class InputMessageContact: InputMessageContent {
+final public class InputMessageContact: InputMessageContent {
+	public var storage = Storage()
+	
   var phoneNumber: String // Contact's phone number.
   var firstName: String // Contact's first name.
   var lastName: String // Contact's last name.
   
-  override init() {
+	init() {
     self.phoneNumber = ""
     self.firstName = ""
     self.lastName = ""
-    super.init()
   }
   
   // NodeRepresentable conforming methods
-  public required init(node: Node, in context: Context) throws {
-    phoneNumber = try node.extract("phone_number")
-    firstName = try node.extract("first_name")
-    lastName = try node.extract("last_name")
-    try super.init(node: node, in: context)
+  public init(row: Row) throws {
+    phoneNumber = try row.get("phone_number")
+    firstName = try row.get("first_name")
+    lastName = try row.get("last_name")
   }
   
-  public override func makeNode() throws -> Node {
-    let keys: [String:NodeRepresentable] = [
-      "phone_number": phoneNumber,
-      "first_name": firstName,
-      "last_name": lastName]
-    
-    return try Node(node: keys)
-  }
-  
-  public override func makeNode(context: Context) throws -> Node {
-    return try self.makeNode()
-  }
-  
+  public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("phone_number", phoneNumber)
+		try row.set("first_name", firstName)
+		try row.set("last_name", lastName)
+		
+		return row
+	}
+	
 }
 
 

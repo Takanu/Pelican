@@ -45,6 +45,8 @@ internal class DispatchTimer {
   }
 }
 
+/// With Vapor 2 these are currently no longer necessary.
+/*
 // Extensions to manipulate node entries more seamlessly
 extension Node {
   mutating func addNodeEntry(name: String, value: NodeConvertible) throws {
@@ -92,4 +94,4 @@ extension Node {
     }
   }
 }
-
+*/

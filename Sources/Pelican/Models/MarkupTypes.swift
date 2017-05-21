@@ -1,28 +1,29 @@
 
 import Foundation
 import Vapor
-
-
+import FluentProvider
+import JSON
 
 /** 
  Represents a Telegram "Markup Type", that defines additional special actions and interfaces
  alongside a message, such as creating a custom keyboard or forcing a userto reply to the sent 
  message.
  */
-public protocol MarkupType: NodeConvertible, JSONConvertible {
+public protocol MarkupType: Model {
   
 }
 
 public extension MarkupType {
   func getQuery() -> String {
-    return try! self.makeJSON().serialize().toString()
+    return try! self.makeRow().converted(to: JSON.self).serialize().makeString()
   }
 }
 
 
 /// Represents a static keyboard interface that when sent, appears below the message entry box on a Telegram client.
-public class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
-  
+final public class MarkupKeyboard: MarkupType {
+  public var storage = Storage()
+	
   /// An array of keyboard rows, that contain labelled buttons which populate the message keyboard.
   public var keyboard: [[MarkupKeyboardKey]] = [[]]
   /// (Optional) Requests clients to resize the keyboard vertically for optimal fit (e.g., make the keyboard smaller if there are just two rows of buttons).
@@ -180,46 +181,30 @@ public class MarkupKeyboard: NodeConvertible, JSONConvertible, MarkupType {
   }
   
   // Ignore context, just try and build an object from a node.
-  required public init(node: Node, in context: Context) throws {
-    keyboard = try node.extract("keyboard")
-    resizeKeyboard = try node.extract("resize_keyboard")
-    oneTimeKeyboard = try node.extract("one_time_keyboard")
-    selective = try node.extract("selective")
+  public required init(row: Row) throws {
+    keyboard = try row.get("keyboard")
+    resizeKeyboard = try row.get("resize_keyboard")
+    oneTimeKeyboard = try row.get("one_time_keyboard")
+    selective = try row.get("selective")
   }
   
-  public func makeNode() throws -> Node {
-    var keyNode: [Node] = []
-    
-    for row in keyboard {
-      var rowNode: [Node] = []
-      
-      for key in row {
-        let keyNode = try key.makeNode()
-        rowNode.append(keyNode)
-      }
-      
-      keyNode.append(try rowNode.makeNode())
-    }
-    
-    print(keyNode)
-    
-    return try Node(node:[
-      "keyboard": keyNode.makeNode(),
-      "resize_keyboard": resizeKeyboard,
-      "one_time_keyboard": oneTimeKeyboard,
-      "selective": selective
-      ])
-  }
-  
-  // I need the context implementation as well, *sigh*
-  public func makeNode(context: Context) throws -> Node {
-    return try self.makeNode()
-  }
+	public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("keyboard", keyboard)
+		try row.set("resize_keyboard", resizeKeyboard)
+		try row.set("one_time_keyboard", oneTimeKeyboard)
+		try row.set("selective", selective)
+		
+		return row
+	}
 }
 
 
+
 /// Represents a single key of a MarkupKeyboard.
-public struct MarkupKeyboardKey: NodeConvertible, JSONConvertible {
+final public class MarkupKeyboardKey: Model {
+	public var storage = Storage()
+	
   /// The text displayed on the button.  If no other optional is used, this will be sent to the bot when pressed.
   public var text: String
   /// (Optional) If True, the user's phone number will be sent as a contact when the button is pressed. Available in private chats only.
@@ -232,29 +217,20 @@ public struct MarkupKeyboardKey: NodeConvertible, JSONConvertible {
   }
   
   // Ignore context, just try and build an object from a node.
-  public init(node: Node, in context: Context) throws {
-    text = try node.extract("text")
-    requestContact = try node.extract("request_contact") ?? false
-    requestLocation = try node.extract("request_location") ?? false
+	public init(row: Row) throws {
+    text = try row.get("text")
+    requestContact = try row.get("request_contact") ?? false
+    requestLocation = try row.get("request_location") ?? false
   }
   
-  public func makeNode() throws -> Node {
-    var keys = [String:NodeRepresentable]()
-    keys["text"] = text
-    if requestContact == true && requestLocation == false {
-      keys["request_contact"] = requestContact
-    }
-    if requestContact == false && requestLocation == true {
-      keys["request_location"] = requestLocation
-    }
-    
-    return try Node(node: keys)
-  }
-  
-  // I need the context implementation as well, *sigh*
-  public func makeNode(context: Context) throws -> Node {
-    return try self.makeNode()
-  }
+	public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("text", text)
+		try row.set("request_contact", requestContact)
+		try row.set("request_location", requestLocation)
+		
+		return row
+	}
 }
 
 
@@ -289,7 +265,8 @@ public struct MarkupKeyboardKey: NodeConvertible, JSONConvertible {
  and an optional specific inline query in the current chat's input field.
  
 */
-public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
+final public class MarkupInline: Model, MarkupType {
+	public var storage = Storage()
   public var keyboard: [MarkupInlineRow] = []
   
   // Blank!
@@ -534,23 +511,17 @@ public class MarkupInline: NodeConvertible, JSONConvertible, MarkupType {
     return false
   }
   
-  
-  
-  
-  
-  public required init(node: Node, in context: Context) throws {
-    keyboard = try node.extract("keyboard")
+	
+  public required init(row: Row) throws {
+    keyboard = try row.get("keyboard")
   }
   
-  /// Ignore context, just try and build an object from a node.
-  public func makeNode() throws -> Node {
-    return try Node(node:["inline_keyboard":keyboard.makeNode()])
-  }
-  
-  /// I need the context implementation as well, *sigh*
-  public func makeNode(context: Context) throws -> Node {
-    return try Node(node:["inline_keyboard":keyboard.makeNode()])
-  }
+	public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("keyboard", keyboard)
+		
+		return row
+	}
   
   
 }
@@ -561,7 +532,8 @@ Defines a single row on an inline keyboard.
 
 - warning: This will likely be removed in a future version as it's not needed, please use MarkupInline instead.
  */
-public class MarkupInlineRow: NodeConvertible, JSONConvertible {
+final public class MarkupInlineRow: Model {
+	public let storage = Storage()
   public var keys: [MarkupInlineKey] = []
   
   public init() {
@@ -637,26 +609,18 @@ public class MarkupInlineRow: NodeConvertible, JSONConvertible {
     return false
   }
   
-  
-  
+	
   // Ignore context, just try and build an object from a node.
-  public required init(node: Node, in context: Context) throws {
-    let array = node.nodeArray!
-    for item in array {
-      keys.append(try! MarkupInlineKey(node: item, in: context))
-    }
+  public required init(row: Row) throws {
+    keys = try row.get("keys")
   }
-  
-  
-  public func makeNode() throws -> Node {
-    return try keys.makeNode()
-  }
-  
-  // I need the context implementation as well, *sigh*
-  public func makeNode(context: Context) throws -> Node {
-    return try keys.makeNode()
-  }
-  
+	
+	public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("keys", keys)
+		
+		return row
+	}
 }
 
 
@@ -687,7 +651,9 @@ to open it, and when open the client will insert the bot‘s username and a spec
 This can only be used when the bot supports Inline Queries.  Pressing the button will insert the bot‘s username
 and an optional specific inline query in the current chat's input field.
 */
-public class MarkupInlineKey: NodeConvertible, JSONConvertible {
+final public class MarkupInlineKey: Model {
+	public var storage = Storage()
+	
   public var text: String // Label text
   public var data: String
   public var type: InlineButtonType
@@ -745,57 +711,49 @@ public class MarkupInlineKey: NodeConvertible, JSONConvertible {
   }
   
   // Ignore context, just try and build an object from a node.
-  public required init(node: Node, in context: Context) throws {
-    text = try node.extract("text").string
-    data = ""
-    type = .url
-    
-    // Need to figure out how to handle the optional
+  public required init(row: Row) throws {
+    text = try row.get("text")
+    data = try row.get("data")
+    let typeText = try row.get("type") as String
+		
+		switch typeText {
+		case "url":
+			type = .url
+		case "callback_data":
+			type = .callbackData
+		case "switch_inline_query":
+			type = .switchInlineQuery
+		case "switch_inline_query_current_chat":
+			type = .switchInlineQuery_currentChat
+		default:
+			type = .url
+		}
   }
-  
-  // Now make a node from the object <3
-  public func makeNode() throws -> Node {
-    var keys = [String:String]()
-    keys["text"] = text
-    
-    switch type {
-    case .url:
-      keys["url"] = data
-    case .callbackData:
-      keys["callback_data"] = data
-    case .switchInlineQuery:
-      keys["switch_inline_query"] = data
-    case .switchInlineQuery_currentChat:
-      keys["switch_inline_query_current_chat"] = data
-    }
-    
-    return try Node(node:keys)
-  }
-  
-  // I need the context implementation as well, *sigh*
-  public func makeNode(context: Context) throws -> Node {
-    var keys = [String:String]()
-    keys["text"] = text
-    
-    switch type {
-    case .url:
-      keys["url"] = data
-    case .callbackData:
-      keys["callback_data"] = data
-    case .switchInlineQuery:
-      keys["switch_inline_query"] = data
-    case .switchInlineQuery_currentChat:
-      keys["switch_inline_query_current_chat"] = data
-    }
-    
-    return try Node(node:keys)
-  }
+	
+	public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("text", text)
+		try row.set("data", data)
+		
+		switch type {
+		case .url:
+			try row.set("type", "url")
+		case .callbackData:
+			try row.set("type", "callback_data")
+		case .switchInlineQuery:
+			try row.set("type", "switch_inline_query")
+		case .switchInlineQuery_currentChat:
+			try row.set("type", "switch_inline_query_current_chat")
+		}
+		
+		return row
+	}
 }
 
 /**
 Defines what type of function a InlineButtonKey has.
 */
-public enum InlineButtonType {
+public enum InlineButtonType: String {
   case url                           // HTTP url to be opened when button is pressed.
   case callbackData                  // Data to be sent in a callback query to the bot when button is pressed, 1-64 bytes
   case switchInlineQuery             // Prompts the user to select one of their chats, open it and insert the bot‘s username and the specified query in the input field.
@@ -807,7 +765,8 @@ public enum InlineButtonType {
 Represents a special action that when sent with a message, will remove any `MarkupKeyboard` 
 currently active, for either all of or a specified group of users.
 */
-public class MarkupKeyboardRemove: NodeConvertible, JSONConvertible, MarkupType {
+final public class MarkupKeyboardRemove: Model, MarkupType {
+	public var storage = Storage()
 	
 	/// Requests clients to remove the custom keyboard (user will not be able to summon this keyboard)
 	var removeKeyboard: Bool = true
@@ -831,30 +790,20 @@ public class MarkupKeyboardRemove: NodeConvertible, JSONConvertible, MarkupType 
     selective = sel
   }
 	
-	
-	
   // Ignore context, just try and build an object from a node.
-  public required init(node: Node, in context: Context) throws {
-    removeKeyboard = try node.extract("remove_keyboard")
-    selective = try node.extract("selective")
+  public required init(row: Row) throws {
+    removeKeyboard = try row.get("remove_keyboard")
+    selective = try row.get("selective")
     
   }
   
-  // Now make a node from the object <3
-  public func makeNode() throws -> Node {
-    return try! Node(node:[
-      "remove_keyboard": removeKeyboard,
-      "selective": selective
-      ])
-  }
-  
-  // Now make a node from the object <3
-  public func makeNode(context: Context) throws -> Node {
-    return try! Node(node:[
-      "remove_keyboard": removeKeyboard,
-      "selective": selective
-      ])
-  }
+	public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("remove_keyboard", removeKeyboard)
+		try row.set("selective", selective)
+		
+		return row
+	}
   
 }
 
@@ -862,14 +811,13 @@ public class MarkupKeyboardRemove: NodeConvertible, JSONConvertible, MarkupType 
 Represents a special action that when sent with a message, will force Telegram clients to display
 a reply interface to all or a selected group of people in the chat.
 */
-public class MarkupForceReply: NodeConvertible, JSONConvertible, MarkupType {
+final public class MarkupForceReply: Model, MarkupType {
+	public var storage = Storage()
 	
 	/// Shows reply interface to the user, as if they manually selected the bot‘s message and tapped ’Reply'
   public var forceReply: Bool = true
 	/// (Optional) Use this parameter if you want to force reply from specific users only.
   public var selective: Bool = false
-	
-	
 	
 	/**
 	Creates a `MarkupForceReply` instance, to force Telegram clients to display
@@ -888,29 +836,18 @@ public class MarkupForceReply: NodeConvertible, JSONConvertible, MarkupType {
     selective = sel
   }
 	
-	
-	
-	
   // Ignore context, just try and build an object from a node.
-  public required init(node: Node, in context: Context) throws {
-    forceReply = try node.extract("force_reply")
-    selective = try node.extract("selective")
+  public required init(row: Row) throws {
+    forceReply = try row.get("force_reply")
+    selective = try row.get("selective")
     
   }
   
-  // Now make a node from the object <3
-  public func makeNode() throws -> Node {
-    return try! Node(node:[
-      "force_reply": forceReply,
-      "selective": selective
-      ])
-  }
-  
-  // Now make a node from the object <3
-  public func makeNode(context: Context) throws -> Node {
-    return try! Node(node:[
-      "force_reply": forceReply,
-      "selective": selective
-      ])
-  }
+	public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("force_reply", forceReply)
+		try row.set("selective", selective)
+		
+		return row
+	}
 }

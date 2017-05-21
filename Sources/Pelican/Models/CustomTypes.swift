@@ -1,6 +1,9 @@
 
 import Foundation
 import Vapor
+import FluentProvider
+
+/*
 
 // Defines what the thumbnail is being used for.
 enum InlineThumbnailType: String {
@@ -95,3 +98,4 @@ class InputFile: NodeConvertible, JSONConvertible {
     return try self.makeNode()
   }
 }
+*/

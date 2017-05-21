@@ -2,6 +2,7 @@
 import Dispatch     // Linux thing.
 import Foundation
 import Vapor
+import FluentProvider
 import HTTP
 import FormData
 import Multipart
@@ -97,8 +98,10 @@ public struct TelegramUpdateSet {
 }
 
 public final class Pelican: Vapor.Provider {
+	public static let repositoryName = "Pelican"
+
   public let message: String = "Rawr."
-  public var provided: Providable { return Providable() }
+  //public var provided: Providable { return Providable() }
   
   var drop: Droplet
   var cache: CacheManager               // A class for managing previously uploaded files and file links.
@@ -150,9 +153,11 @@ public final class Pelican: Vapor.Provider {
   public var whitelistWarningAction: ((Pelican, Chat) -> ())? // Define an action if someone not on the whitelist messages it.
   public var blacklistPrepareAction: ((Pelican, Chat) -> ())? // Define an action if someone enters the blacklist.
 
+	public func boot(_ config: Config) throws {
+		print("*shrug")
+	}
   
-  
-  
+  // Provider conforming functions
   public init(config: Config) throws {
     guard let token = config["pelican", "token"]?.string else {
       throw TGBotError.KeyMissing
@@ -165,15 +170,16 @@ public final class Pelican: Vapor.Provider {
     self.uploadQueue = DispatchQueue(label: "TG-Upload",
                                      qos: .background,
                                      target: nil)
-    self.drop = Droplet()
+    self.drop = try Droplet()
   }
-  
-  
+	
+	
   public func afterInit(_ drop: Droplet) {
     self.drop = drop
-    try! cache.setBundlePath(drop.workDir + "Public/")
+    try! cache.setBundlePath(drop.config.publicDir)
   }
-  
+	
+	
   public func beforeRun(_ drop: Droplet) {
     if self.sessionSetupAction == nil {
       drop.console.warning(TGBotError.EntryMissing.rawValue, newLine: true)
@@ -196,9 +202,13 @@ public final class Pelican: Vapor.Provider {
     //}
   }
   
-  public func boot(_: Droplet) {}
+  public func boot(_ drop: Droplet) {}
   
-  
+	
+	
+	
+	
+	
   
   public func setCustomData(_ data: NSCopying) {
     self.customData = data.copy(with: nil) as? NSCopying
@@ -212,8 +222,8 @@ public final class Pelican: Vapor.Provider {
     pollInterval = interval
   }
   
-  internal func makeUpdateQuery() -> [String:CustomStringConvertible] {
-    var keys: [String:CustomStringConvertible] = [
+  internal func makeUpdateQuery() -> [String:NodeConvertible] {
+    var keys: [String:NodeConvertible] = [
       "offset": offset,
       "limit": limit,
       "timeout": timeout]
@@ -253,13 +263,15 @@ public final class Pelican: Vapor.Provider {
       // This is just a plain old message
       if allowedUpdates.contains(TGUpdateType.message) {
         if (response.data["result", i, "message"]) != nil {
-          guard let messageNode = response.json?.node["result", i, "message"]!.node else {
+					
+					// Find and build a node based on the search.
+					guard let messageNode = response.json?.makeNode(in: nil)["result", i, "message"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
             offset = update_id + 1
             continue
           }
-          
-          guard let message = try? Message(node: messageNode, in: TGContext.response) else {
+					
+					guard let message = try? Message(row: Row(messageNode)) else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
             offset = update_id + 1
             continue
@@ -272,18 +284,18 @@ public final class Pelican: Vapor.Provider {
       // This is if a message was edited
       if allowedUpdates.contains(TGUpdateType.edited_message) {
         if (response.data["result", i, "edited_message"]) != nil {
-          guard let messageNode = response.json?.node["result", i, "edited_message"]!.node else {
+          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "edited_message"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
             offset = update_id + 1
             continue
           }
           
-          guard let message = try? Message(node: messageNode, in: TGContext.response) else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-          
+					guard let message = try? Message(row: Row(messageNode)) else {
+						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						offset = update_id + 1
+						continue
+					}
+					
           updateSet.editedMessages.append(message)
         }
       }
@@ -291,18 +303,18 @@ public final class Pelican: Vapor.Provider {
       // This is for a channel post
       if allowedUpdates.contains(TGUpdateType.channel_post) {
         if (response.data["result", i, "channel_post"]) != nil {
-          guard let messageNode = response.json?.node["result", i, "channel_post"]!.node else {
+          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "channel_post"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
             offset = update_id + 1
             continue
           }
           
-          guard let message = try? Message(node: messageNode, in: TGContext.response) else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-          
+					guard let message = try? Message(row: Row(messageNode)) else {
+						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						offset = update_id + 1
+						continue
+					}
+					
           updateSet.channelPosts.append(message)
         }
       }
@@ -310,18 +322,18 @@ public final class Pelican: Vapor.Provider {
       // This is for an edited channel post
       if allowedUpdates.contains(TGUpdateType.edited_channel_post) {
         if (response.data["result", i, "edited_channel_post"]) != nil {
-          guard let messageNode = response.json?.node["result", i, "edited_channel_post"]!.node else {
+          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "edited_channel_post"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
             offset = update_id + 1
             continue
           }
           
-          guard let message = try? Message(node: messageNode, in: TGContext.response) else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-          
+					guard let message = try? Message(row: Row(messageNode)) else {
+						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						offset = update_id + 1
+						continue
+					}
+					
           updateSet.editedChannelPosts.append(message)
         }
       }
@@ -330,18 +342,18 @@ public final class Pelican: Vapor.Provider {
       // This type is for when someone tries to search something in the message box for this bot
       if allowedUpdates.contains(TGUpdateType.inline_query) {
         if (response.data["result", i, "inline_query"]) != nil {
-          guard let messageNode = response.json?.node["result", i, "inline_query"]!.node else {
+          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "inline_query"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
             offset = update_id + 1
             continue
           }
           
-          guard let message = try? InlineQuery(node: messageNode, in: TGContext.response) else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-          
+					guard let message = try? InlineQuery(row: Row(messageNode)) else {
+						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						offset = update_id + 1
+						continue
+					}
+					
           updateSet.inlineQueries.append(message)
         }
       }
@@ -349,37 +361,37 @@ public final class Pelican: Vapor.Provider {
       // This type is for when someone has selected an search result from the inline query
       if allowedUpdates.contains(TGUpdateType.chosen_inline_result) {
         if (response.data["result", i, "chosen_inline_result"]) != nil {
-          guard let messageNode = response.json?.node["result", i, "chosen_inline_result"]!.node else {
+          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "chosen_inline_result"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
             offset = update_id + 1
             continue
           }
           
-          guard let message = try? ChosenInlineResult(node: messageNode, in: TGContext.response) else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-          
+					guard let message = try? ChosenInlineResult(row: Row(messageNode)) else {
+						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						offset = update_id + 1
+						continue
+					}
+					
           updateSet.inlineResults.append(message)
         }
       }
       
-      // I think this is related to message buttons?
+      /// Callback Query handling (receiving button presses for inline buttons with callback data)
       if allowedUpdates.contains(TGUpdateType.callback_query) {
         if (response.data["result", i, "callback_query"]) != nil {
-          guard let messageNode = response.json?.node["result", i, "callback_query"]!.node else {
+          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "callback_query"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
             offset = update_id + 1
             continue
           }
           
-          guard let message = try? CallbackQuery(node: messageNode, in: TGContext.response) else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-          
+					guard let message = try? CallbackQuery(row: Row(messageNode)) else {
+						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						offset = update_id + 1
+						continue
+					}
+					
           updateSet.callbackQueries.append(message)
         }
       }

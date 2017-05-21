@@ -9,6 +9,7 @@
 import Dispatch     // Linux thing.
 import Foundation
 import Vapor
+import FluentProvider
 import HTTP
 import FormData
 import Multipart
@@ -40,8 +41,8 @@ public extension Pelican {
     }
     
     // Attempt to extract the response
-    let node = response.json!.node["result"]?.node
-    guard let user = try? User(node: node, in: TGContext.response) else {
+    let node = response.json!.makeNode(in: nil)["result"]!
+		guard let user = try? User.init(row: Row(node)) else {
       drop.console.error(TGReqError.ResponseNotExtracted.rawValue, newLine: true)
       return nil
     }
@@ -53,7 +54,7 @@ public extension Pelican {
   
 
   // Will let you manually fetch updates.
-  public func getUpdates(incrementUpdate: Bool = true) -> [Polymorphic]? {
+  public func getUpdates(incrementUpdate: Bool = true) -> [Node]? {
     // Call the bot API for any new messages
     let query = makeUpdateQuery()
     guard let response = try? drop.client.post(apiURL + "/getUpdates", query: query) else {
@@ -73,7 +74,7 @@ public extension Pelican {
   
   // Sends a message.  Must contain a chat ID, message text and an optional MarkupType.
   public func sendMessage(chatID: Int, text: String, replyMarkup: MarkupType?, parseMode: String = "", disableWebPreview: Bool = false, disableNtf: Bool = false, replyMessageID: Int = 0) -> Message? {
-    var query: [String:CustomStringConvertible] = [
+    var query: [String:NodeConvertible] = [
       "chat_id":chatID,
       "text": text,
       "disable_web_page_preview": disableWebPreview,
@@ -100,8 +101,8 @@ public extension Pelican {
     }
     
     // Attempt to extract the response
-    let node = response.json!.node["result"]?.node
-    guard let message = try? Message(node: node, in: TGContext.response) else {
+    let node = response.json!.makeNode(in: nil)["result"]!
+		guard let message = try? Message(row: Row(node)) else {
       drop.console.error(TGReqError.ResponseNotExtracted.rawValue, newLine: true)
       return nil
     }
@@ -112,7 +113,7 @@ public extension Pelican {
   
   // Forwards a message of any kind.  On success, the sent Message is returned.
   public func forwardMessage(toChatID: Int, fromChatID: Int, fromMessageID: Int, disableNtf: Bool = false) -> Message? {
-    let query: [String:CustomStringConvertible] = [
+    let query: [String:NodeConvertible] = [
       "chat_id":toChatID,
       "from_chat_id": fromChatID,
       "message_id": fromMessageID,
@@ -132,8 +133,8 @@ public extension Pelican {
     }
     
     // Attempt to extract the response
-    let node = response.json!.node["result"]?.node
-    guard let message = try? Message(node: node, in: TGContext.response) else {
+    let node = response.json!.makeNode(in: nil)["result"]!
+    guard let message = try? Message(row: Row(node)) else {
       drop.console.error(TGReqError.ResponseNotExtracted.rawValue, newLine: true)
       return nil
     }
@@ -145,7 +146,7 @@ public extension Pelican {
   // Sends a file that has already been uploaded.
   // The caption can't be used on all types...
   public func sendFile(chatID: Int, file: SendType, replyMarkup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) -> Message? {
-    var query: [String:CustomStringConvertible] = [
+    var query: [String:NodeConvertible] = [
       "chat_id":chatID]
     
     // Ensure only the files that can have caption types get a caption query
@@ -172,13 +173,13 @@ public extension Pelican {
       return nil
     }
     
-    // Attempt to extract the response
-    let node = response.json!.node["result"]?.node
-    guard let message = try? Message(node: node, in: TGContext.response) else {
-      drop.console.error(TGReqError.ResponseNotExtracted.rawValue, newLine: true)
-      return nil
-    }
-    
+		// Attempt to extract the response
+		let node = response.json!.makeNode(in: nil)["result"]!
+		guard let message = try? Message(row: Row(node)) else {
+			drop.console.error(TGReqError.ResponseNotExtracted.rawValue, newLine: true)
+			return nil
+		}
+		
     return message
   }
   
@@ -197,38 +198,39 @@ public extension Pelican {
       return
     }
     
-    // Obtain t
+    // Obtain the file data cache
     let data = cache.get(upload: link)
     if data == nil { return }
     
-    // Make the multipart/form-data
-    let request = Response()
-    var form: [String:Field] = [:]
-    form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
-    form[link.type.rawValue] = Field(name: link.type.rawValue, filename: link.name, part: Part(headers: [:], body: data!))
-    // A filename is required here
-    
-    
-    // Check whether any other query needs to be added
-    if caption != "" { form["caption"] = Field(name: "caption", filename: nil, part: Part(headers: [:], body: caption.bytes)) }
-    if markup != nil { form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: try! markup!.makeJSON().makeBytes())) }
-    if replyMessageID != 0 { form["reply_to_message_id"] = Field(name: "reply_to_message_id", filename: nil, part: Part(headers: [:], body: String(replyMessageID).bytes)) }
-    if disableNtf != false { form["disable_notification"] = Field(name: "disable_notification", filename: nil, part: Part(headers: [:], body: String(disableNtf).bytes)) }
-    
-    
-    // This is the "HEY, I WANT MY BODY TO BE LIKE THIS AND TO PARSE IT LIKE FORM DATA"
-    request.formData = form
-    let url = apiURL + "/" + link.type.method
-    //print(url)
-    //print(request)
-    print("UPLOADING...")
-    
-    let queueDrop = drop
-    
-    uploadQueue.sync {
-      let response = try! queueDrop.client.post(url, headers: request.headers, body: request.body)
-      self.finishUpload(link: link, response: response, callback: callback)
-      
+//    // Make the multipart/form-data
+//    let request = Response()
+//    var form: [String:Field] = [:]
+//    form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
+//    form[link.type.rawValue] = Field(name: link.type.rawValue, filename: link.name, part: Part(headers: [:], body: data!))
+//    // A filename is required here
+//    
+//    
+//    // Check whether any other query needs to be added
+//    if caption != "" { form["caption"] = Field(name: "caption", filename: nil, part: Part(headers: [:], body: caption.bytes)) }
+//    if markup != nil { form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: try! markup!.makeJSON().makeBytes())) }
+//    if replyMessageID != 0 { form["reply_to_message_id"] = Field(name: "reply_to_message_id", filename: nil, part: Part(headers: [:], body: String(replyMessageID).bytes)) }
+//    if disableNtf != false { form["disable_notification"] = Field(name: "disable_notification", filename: nil, part: Part(headers: [:], body: String(disableNtf).bytes)) }
+//    
+//    
+//    // This is the "HEY, I WANT MY BODY TO BE LIKE THIS AND TO PARSE IT LIKE FORM DATA"
+//    request.formData = form
+//    let url = apiURL + "/" + link.type.method
+//    //print(url)
+//    //print(request)
+//    print("UPLOADING...")
+//    
+//    let queueDrop = drop
+//    
+//    uploadQueue.sync {
+//      let response = try! queueDrop.client.post(url, headers: request.headers, body: request.body)
+//      self.finishUpload(link: link, response: response, callback: callback)
+		
+		uploadQueue.sync {
       /*
        // Get the URL in a protected way
        guard let url = URL(string: url) else {
@@ -281,13 +283,13 @@ public extension Pelican {
       return
     }
     
-    // Attempt to extract the response
-    let node = response.json!.node["result"]?.node
-    guard let message = try? Message(node: node, in: TGContext.response) else {
-      drop.console.error(TGReqError.ResponseNotExtracted.rawValue, newLine: true)
-      return
-    }
-    
+		// Attempt to extract the response
+		let node = response.json!.makeNode(in: nil)["result"]!
+		guard let message = try? Message(row: Row(node)) else {
+			drop.console.error(TGReqError.ResponseNotExtracted.rawValue, newLine: true)
+			return
+		}
+		
     // If we have a callback, call it.
     if callback != nil {
       callback!.receiveMessage(message: message)
@@ -306,7 +308,7 @@ public extension Pelican {
   
   /* Use this method to kick a user from a group or a supergroup. In the case of supergroups, the user will not be able to return to the group on their own using invite links, etc., unless unbanned first. The bot must be an administrator in the group for this to work. Returns True on success. */
   public func sendChatAction(chatID: Int, action: ChatAction) {
-    let query: [String:CustomStringConvertible] = [
+    let query: [String:NodeConvertible] = [
       "chat_id": chatID,
       "action": action.rawValue
     ]
@@ -328,7 +330,7 @@ public extension Pelican {
     var adjustedLimit = limit
     if limit > 100 { adjustedLimit = 100 }
     
-    let query: [String:CustomStringConvertible] = [
+    let query: [String:NodeConvertible] = [
       "user_id": userID,
       "offset": offset,
       "limit": adjustedLimit
@@ -346,7 +348,7 @@ public extension Pelican {
   
   /* Use this method to get basic info about a file and prepare it for downloading. For the moment, bots can download files of up to 20MB in size. On success, a File object is returned. The file can then be downloaded via the link https://api.telegram.org/file/bot<token>/<file_path>, where <file_path> is taken from the response. It is guaranteed that the link will be valid for at least 1 hour. When the link expires, a new one can be requested by calling getFile again. */
   public func getFile(fileID: Int) {
-    let query: [String:CustomStringConvertible] = [
+    let query: [String:NodeConvertible] = [
       "file_id": fileID
     ]
     
@@ -362,7 +364,7 @@ public extension Pelican {
   
   /* Use this method to kick a user from a group or a supergroup. In the case of supergroups, the user will not be able to return to the group on their own using invite links, etc., unless unbanned first. The bot must be an administrator in the group for this to work. Returns True on success. */
   public func kickChatMember(chatID: Int, userID: Int) {
-    let query: [String:CustomStringConvertible] = [
+    let query: [String:NodeConvertible] = [
       "chat_id": chatID,
       "user_id": userID
     ]
@@ -380,7 +382,7 @@ public extension Pelican {
   
   /* Use this method for your bot to leave a group, supergroup or channel. Returns True on success. */
   public func leaveChat(chatID: Int, userID: Int) {
-    let query: [String:CustomStringConvertible] = [
+    let query: [String:NodeConvertible] = [
       "chat_id":chatID,
       "user_id": userID
     ]
@@ -399,7 +401,7 @@ public extension Pelican {
   
   /* Use this method to unban a previously kicked user in a supergroup. The user will not return to the group automatically, but will be able to join via link, etc. The bot must be an administrator in the group for this to work. Returns True on success. */
   public func unbanChatMember(chatID: Int, userID: Int) {
-    let query: [String:CustomStringConvertible] = [
+    let query: [String:NodeConvertible] = [
       "chat_id":chatID,
       "user_id": userID
     ]
@@ -416,7 +418,7 @@ public extension Pelican {
   
   /* Use this method to get up to date information about the chat (current name of the user for one-on-one conversations, current username of a user, group or channel, etc.). Returns a Chat object on success. */
   public func getChat(chatID: Int) {
-    let query: [String:CustomStringConvertible] = [
+    let query: [String:NodeConvertible] = [
       "chat_id":chatID,
       ]
     
@@ -434,7 +436,7 @@ public extension Pelican {
   // Doesn't include other bots - if the chat is a group of supergroup and no admins were appointed, only the
   // creator will be returned.
   public func getChatAdministrators(chatID: Int) {
-    let query: [String:CustomStringConvertible] = [
+    let query: [String:NodeConvertible] = [
       "chat_id":chatID,
       ]
     
@@ -450,7 +452,7 @@ public extension Pelican {
   
   // Get the number of members in a chat. Returns Int on success.
   public func getChatMemberCount(chatID: Int) {
-    let query: [String:CustomStringConvertible] = [
+    let query: [String:NodeConvertible] = [
       "chat_id":chatID,
       ]
     
@@ -466,7 +468,7 @@ public extension Pelican {
   
   // Get information about a member of a chat. Returns a ChatMember object on success
   public func getChatMember(chatID: Int, userID: Int) {
-    let query: [String:CustomStringConvertible] = [
+    let query: [String:NodeConvertible] = [
       "chat_id":chatID,
       "user_id": userID
     ]
@@ -485,7 +487,7 @@ public extension Pelican {
   //// TELEGRAM EDIT MESSAGE METHOD IMPLEMENTATIONS
   
   public func editMessageText(chatID: Int, messageID: Int = 0, text: String, replyMarkup: MarkupType?, parseMode: String = "", disableWebPreview: Bool = false, replyMessageID: Int = 0) {
-    var query: [String:CustomStringConvertible] = [
+    var query: [String:NodeConvertible] = [
       "chat_id":chatID,
       "text": text,
       "disable_web_page_preview": disableWebPreview,
@@ -508,7 +510,7 @@ public extension Pelican {
   }
   
   public func editMessageCaption(chatID: Int, messageID: Int = 0, caption: String, replyMarkup: MarkupType?, replyMessageID: Int = 0) {
-    var query: [String:CustomStringConvertible] = [
+    var query: [String:NodeConvertible] = [
       "chat_id":chatID,
       "text": caption,
       ]
@@ -529,7 +531,7 @@ public extension Pelican {
   }
   
   public func editMessageReplyMarkup(chatID: Int, messageID: Int = 0, replyMarkup: MarkupType?, replyMessageID: Int = 0) {
-    var query: [String:CustomStringConvertible] = [
+    var query: [String:NodeConvertible] = [
       "chat_id":chatID,
       ]
     
@@ -555,7 +557,7 @@ public extension Pelican {
   // Send answers to callback queries sent from inline keyboards.
   // The answer will be displayed to the user as a notification at the top of the chat screen or as an alert.
   public func answerCallbackQuery(queryID: String, text: String = "", showAlert: Bool = false, url: String = "", cacheTime: Int = 0) {
-    var query: [String:CustomStringConvertible] = [
+    var query: [String:NodeConvertible] = [
       "callback_query_id":queryID,
       "show_alert": showAlert,
       "cache_time": cacheTime
@@ -578,17 +580,22 @@ public extension Pelican {
   // Use this method to send answers to an inline query. On success, True is returned.
   // No more than 50 results per query are allowed.
   public func answerInlineQuery(inlineQueryID: String, results: [InlineResult], cacheTime: Int = 300, isPersonal: Bool = false, nextOffset: Int = 0, switchPM: String = "", switchPMParam: String = "") {
-    var query: [String:CustomStringConvertible] = [
+		
+		// Build the initial query for the POST request
+    var query: [String:NodeConvertible] = [
       "inline_query_id": inlineQueryID
     ]
-    
-    var resultQuery: [JSON] = []
-    for result in results {
-      let json = try! result.makeJSON()
-      resultQuery.append(json)
-    }
-    
-    query["results"] = try! resultQuery.makeJSON().serialize().toString()
+		
+		// Convert the InlineResult objects into a JSON array
+//    var resultQuery: [JSON] = []
+//    for result in results {
+//      let json = try! result.makeJSON()
+//      resultQuery.append(json)
+//    }
+		
+		// Then serialise it as a query entry
+    //query["results"] = try! resultQuery.makeJSON().serialize().toString()
+		query["results"] = try! results.makeNode(in: nil).formURLEncoded()
     
     // Check whether any other query needs to be added
     if cacheTime != 300 { query["cache_time"] = cacheTime }
@@ -615,7 +622,7 @@ public extension Pelican {
   
   /* Use this method to send a game. On success, the sent Message is returned. */
   public func sendGame(chatID: Int, gameName: String, replyMarkup: MarkupType?, disableNtf: Bool = false, replyMessageID: Int = 0) {
-    var query: [String:CustomStringConvertible] = [
+    var query: [String:NodeConvertible] = [
       "chat_id":chatID,
       "game_short_name": gameName
     ]
@@ -636,7 +643,7 @@ public extension Pelican {
   
   /* Use this method to set the score of the specified user in a game. On success, if the message was sent by the bot, returns the edited Message, otherwise returns True. Returns an error, if the new score is not greater than the user's current score in the chat and force is False. */
   public func setGameScore(userID: Int, score: Int, force: Bool = false, disableEdit: Bool = false, chatID: Int = 0, messageID: Int = 0, inlineMessageID: Int = 0) {
-    var query: [String:CustomStringConvertible] = [
+    var query: [String:NodeConvertible] = [
       "user_id":userID,
       "score": score
     ]
@@ -669,7 +676,7 @@ public extension Pelican {
    
    This method will currently return scores for the target user, plus two of his closest neighbors on each side. Will also return the top three users if the user and his neighbors are not among them. Please note that this behavior is subject to change. */
   public func getGameHighScores(userID: Int, chatID: Int = 0, messageID: Int = 0, inlineMessageID: Int = 0) {
-    var query: [String:CustomStringConvertible] = [
+    var query: [String:NodeConvertible] = [
       "user_id":userID
     ]
     

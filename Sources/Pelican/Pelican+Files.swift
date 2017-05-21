@@ -141,7 +141,7 @@ public class CacheManager {
       // Try getting the bytes
       do {
         let image = try Data(contentsOf: url)
-        let bytes = try image.makeBytes()
+        let bytes = image.makeBytes()
         return bytes
         
       } catch {
