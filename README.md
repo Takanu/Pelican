@@ -55,8 +55,6 @@ Even if you don’t want to make a Telegram bot at all, this provider in the fut
 ### Limitations
 When finished it'll have just one:
 
-- No Webhook Support
-
-Sorry, but maybe later…
+- No Webhook Support - Sorry, but maybe later…
 
 Special thanks to Marvin, my other web developer friends and the Vapor Slack group for putting up with my dumb questions over the last few months.
