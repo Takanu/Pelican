@@ -39,6 +39,7 @@ final public class User: Model {
 		firstName = try row.get("first_name")
 		lastName = try row.get("last_name")
 		username = try row.get("username")
+		languageCode = try row.get("language_code")
 		
 	}
   
@@ -48,6 +49,7 @@ final public class User: Model {
 		try row.set("first_name", firstName)
 		try row.set("last_name", lastName)
 		try row.set("username", username)
+		try row.set("language_code", languageCode)
     return row
   }
 }
@@ -152,7 +154,7 @@ final public class Message: TelegramType {
   public var caption: String? // Caption for the document, photo or video, 0-200 characters.
   
   // Status Message Info
-  public var newChatMember: User?                // A status message specifying information about a new user added to the group.
+  public var newChatMembers: [User]?             // A status message specifying information about new users added to the group.
   public var leftChatMember: User?               // A status message specifying information about a user who left the group.
   public var newChatTitle: String?               // A status message specifying the new title for the chat.
   public var newChatPhoto: [PhotoSize]?          // A status message showing the new chat public photo.
@@ -238,15 +240,15 @@ final public class Message: TelegramType {
 		
 	
 		self.text = try row.get("text")
-		if let entityRow = row["entities"] {
-			self.entities = try entityRow.array?.map( { try MessageEntity(row: $0) } )
+		if let subEntities = row["entities"] {
+			self.entities = try subEntities.array?.map( { try MessageEntity(row: $0) } )
 		}
     self.caption = try row.get("caption")
     
     
     // Status Messages
-    if let subNewChatMember = row["new_chat_member"] {
-      self.newChatMember = try .init(row: Row(subNewChatMember)) as User }
+    if let subNewChatMembers = row["new_chat_member"] {
+			self.newChatMembers = try subNewChatMembers.array?.map( { try User(row: $0) } ) }
     if let subLeftChatMember = row["left_chat_member"] {
       self.leftChatMember = try .init(row: Row(subLeftChatMember)) as User }
     
@@ -665,6 +667,42 @@ final public class Voice: TelegramType, SendType {
 	}
 }
 
+
+/** 
+Represents a VideoNote type, introduced in Telegram 4.0 
+*/
+final public class VideoNote: TelegramType, SendType {
+	public var storage = Storage()
+	var messageTypeName: String = "voice" // MessageType conforming variable for Message class filtering.
+	public var method: String = "/sendVideoNote" // SendType conforming variable for use when sent
+	
+	public var fileID: String
+	public var length: Int
+	public var duration: Int
+	public var thumb: PhotoSize?
+	public var fileSize: Int?
+	
+	// NodeRepresentable conforming methods
+	public required init(row: Row) throws {
+		fileID = try row.get("file_id")
+		length = try row.get("length")
+		duration = try row.get("duration")
+		thumb = try row.get("thumb")
+		fileSize = try row.get("file_size")
+	}
+	
+	public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("file_id", fileID)
+		try row.set("length", length)
+		try row.set("duration", duration)
+		try row.set("thumb", thumb)
+		try row.set("file_size", fileSize)
+		
+		return row
+	}
+}
+
 final public class Contact: TelegramType, SendType {
   public var storage = Storage()
   var messageTypeName: String = "contact" // MessageType conforming variable for Message class filtering.
@@ -903,8 +941,8 @@ final public class CallbackQuery: Model {
   // NodeRepresentable conforming methods
   public required init(row: Row) throws {
     id = try row.get("id")
-    from = try row.get("from")
-    message = try row.get("message")
+		from = try User(row: try row.get("from") )
+		message = try Message(row: try row.get("message") )
     inlineMessageID = try row.get("inline_message_id")
     chatInstance = try row.get("chat_instance")
     data = try row.get("data")
@@ -916,10 +954,10 @@ final public class CallbackQuery: Model {
 		try row.set("id", id)
 		try row.set("from", from)
 		try row.set("message", message)
-		try row.set("inlineMessageID", inlineMessageID)
-		try row.set("chatInstance", chatInstance)
+		try row.set("inline_message_id", inlineMessageID)
+		try row.set("chat_instance", chatInstance)
 		try row.set("data", data)
-		try row.set("gameShortName", gameShortName)
+		try row.set("game_short_name", gameShortName)
 		
 		return row
 	}
