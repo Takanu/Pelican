@@ -82,7 +82,10 @@ public extension Pelican {
     ]
     
     // Check whether any other query needs to be added
-    if replyMarkup != nil { query["reply_markup"] = replyMarkup!.getQuery() }
+    if replyMarkup != nil {
+			print(replyMarkup!.getQuery())
+			query["reply_markup"] = replyMarkup!.getQuery()
+		}
     if parseMode != "" { query["parse_mode"] = parseMode }
     if replyMessageID != 0 { query["reply_to_message_id"] = replyMessageID }
     
@@ -92,7 +95,7 @@ public extension Pelican {
       return nil
     }
     
-    //print(response)
+    print(response)
     
     // Check if the response is valid
     if response.data["ok"]?.bool != true {

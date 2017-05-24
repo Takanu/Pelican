@@ -162,11 +162,18 @@ public final class Pelican: Vapor.Provider {
     guard let token = config["pelican", "token"]?.string else {
       throw TGBotError.KeyMissing
     }
+		
+		Node.fuzzy = [Row.self, JSON.self, Node.self]
+		/*
+			[Chat.self, Message.self, MessageEntity.self, Photo.self, PhotoSize.self,
+									Audio.self, Document.self, Sticker.self, Video.self, Voice.self, Contact.self, Location.self,
+									Venue.self, UserProfilePhotos.self]
+		*/
     
     self.cache = CacheManager()
     self.apiKey = token
     self.apiURL = "https://api.telegram.org/bot" + apiKey
-    
+		
     self.uploadQueue = DispatchQueue(label: "TG-Upload",
                                      qos: .background,
                                      target: nil)

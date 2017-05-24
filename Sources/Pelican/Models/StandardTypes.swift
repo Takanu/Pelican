@@ -11,7 +11,7 @@ enum TGTypeError: String, Error {
 /** 
 Represents a Telegram user or bot.
 */
-final public class User: TelegramType {
+final public class User: Model {
   public var storage = Storage() // The type used for the model to identify between database entries
   public var messageTypeName = "user"
 	

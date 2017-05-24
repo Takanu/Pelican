@@ -208,8 +208,8 @@ public class Prompt: ReceiveUpload {
       let secondRow = prompt.inline.keyboard[rowIndex]
       
       var buttonIndex = 0
-      for button in row.keys {
-        let secondButton = secondRow.keys[buttonIndex]
+      for button in row {
+        let secondButton = secondRow[buttonIndex]
         if button.compare(key: secondButton) == false {
           return false
         }
