@@ -235,9 +235,12 @@ final public class Message: TelegramType {
       self.type = .voice(try .init(row: Row(type)) as Voice) }
       
     else { self.type = .text }
-    
-    self.text = try row.get("text")
-    self.entities = try row.get("entities")
+		
+	
+		self.text = try row.get("text")
+		if let entityRow = row["entities"] {
+			self.entities = try entityRow.array?.map( { try MessageEntity(row: $0) } )
+		}
     self.caption = try row.get("caption")
     
     
@@ -248,7 +251,9 @@ final public class Message: TelegramType {
       self.leftChatMember = try .init(row: Row(subLeftChatMember)) as User }
     
     self.newChatTitle = try row.get("new_chat_title")
-    //self.newChatPhoto = try row.get("new_chat_photo")
+		if let photoRow = row["new_chat_photo"] {
+			self.newChatPhoto = try photoRow.array?.map( { try PhotoSize(row: $0) } )
+		}
     self.deleteChatPhoto = try row.get("delete_chat_photo") ?? false
     self.groupChatCreated = try row.get("group_chat_created") ?? false
     self.supergroupChatCreated = try row.get("supergroup_chat_created") ?? false
@@ -358,7 +363,9 @@ final public class Photo: TelegramType, SendType {
   
   // NodeRepresentable conforming methods
   public required init(row: Row) throws {
-		photos = try row.get("photos")
+		if let photoRow = row["photos"] {
+			self.photos = try photoRow.array?.map( { try PhotoSize(row: $0) } ) ?? []
+		}
 	}
   
 	public func makeRow() throws -> Row {

@@ -15,7 +15,9 @@ public protocol MarkupType: Model {
 
 public extension MarkupType {
   func getQuery() -> String {
-    return try! self.makeRow().converted(to: JSON.self).serialize().makeString()
+		let wrapped = try! self.makeRow().converted()
+		let json =
+    return try! json.serialize().makeString()
   }
 }
 
