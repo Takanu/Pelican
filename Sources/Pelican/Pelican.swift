@@ -178,12 +178,12 @@ public final class Pelican: Vapor.Provider {
                                      qos: .background,
                                      target: nil)
     self.drop = try Droplet()
+		try! cache.setBundlePath(drop.config.publicDir)
   }
 	
 	
   public func afterInit(_ drop: Droplet) {
     self.drop = drop
-    try! cache.setBundlePath(drop.config.publicDir)
   }
 	
 	

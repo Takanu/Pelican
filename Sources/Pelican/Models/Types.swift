@@ -18,6 +18,7 @@ protocol TelegramQuery: NodeConvertible, JSONConvertible {
 
 // Defines classes and structs that can pass specific queries or data to a send function.
 public protocol SendType {
+	var messageTypeName: String { get }
   var method: String { get } // The method used when the API call is made
   func getQuery() -> [String:NodeConvertible] // Whats used to extract the required information
 }

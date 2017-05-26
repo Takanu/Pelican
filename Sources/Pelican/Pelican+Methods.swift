@@ -151,13 +151,14 @@ public extension Pelican {
       "chat_id":chatID]
     
     // Ensure only the files that can have caption types get a caption query
-    //let captionTypes = ["audio", "photo", "video", "document", "voice"]
-    //if caption != "" && captionTypes.index(of: file.messageTypeName) != nil { query["caption"] = caption }
+    let captionTypes = ["audio", "photo", "video", "document", "voice"]
+    if caption != "" && captionTypes.index(of: file.messageTypeName) != nil { query["caption"] = caption }
     
     // Check whether any other query needs to be added
     if replyMarkup != nil { query["reply_markup"] = replyMarkup!.getQuery() }
     if replyMessageID != 0 { query["reply_to_message_id"] = replyMessageID }
     if disableNtf != false { query["disable_notification"] = disableNtf }
+		
     
     // Combine the query built above with the one the file provides
     let finalQuery = query.reduce(file.getQuery(), { r, e in var r = r; r[e.0] = e.1; return r })
@@ -202,37 +203,51 @@ public extension Pelican {
     // Obtain the file data cache
     let data = cache.get(upload: link)
     if data == nil { return }
-    
-//    // Make the multipart/form-data
-//    let request = Response()
-//    var form: [String:Field] = [:]
-//    form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
-//    form[link.type.rawValue] = Field(name: link.type.rawValue, filename: link.name, part: Part(headers: [:], body: data!))
-//    // A filename is required here
-//    
-//    
-//    // Check whether any other query needs to be added
-//    if caption != "" { form["caption"] = Field(name: "caption", filename: nil, part: Part(headers: [:], body: caption.bytes)) }
-//    if markup != nil { form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: try! markup!.makeJSON().makeBytes())) }
-//    if replyMessageID != 0 { form["reply_to_message_id"] = Field(name: "reply_to_message_id", filename: nil, part: Part(headers: [:], body: String(replyMessageID).bytes)) }
-//    if disableNtf != false { form["disable_notification"] = Field(name: "disable_notification", filename: nil, part: Part(headers: [:], body: String(disableNtf).bytes)) }
-//    
-//    
-//    // This is the "HEY, I WANT MY BODY TO BE LIKE THIS AND TO PARSE IT LIKE FORM DATA"
-//    request.formData = form
-//    let url = apiURL + "/" + link.type.method
-//    //print(url)
-//    //print(request)
-//    print("UPLOADING...")
-//    
-//    let queueDrop = drop
-//    
-//    uploadQueue.sync {
-//      let response = try! queueDrop.client.post(url, headers: request.headers, body: request.body)
-//      self.finishUpload(link: link, response: response, callback: callback)
 		
+		
+    // Make the multipart/form-data
+		let url = apiURL + "/" + link.type.method
+    let request = Request(method: .post, uri: url)
+		
+		
+		// Create the form data and assign some initial values
+    var form: [String:FormData.Field] = [:]
+    form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
+    form[link.type.rawValue] = Field(name: link.type.rawValue, filename: link.name, part: Part(headers: [:], body: data!))
+		
+    
+    // Check whether any other query needs to be added as form data.
+    if caption != "" {
+			form["caption"] = Field(name: "caption", filename: nil, part: Part(headers: [:], body: caption.bytes))
+		}
+    if markup != nil {
+			form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: try! markup!.makeRow().converted(to: JSON.self).makeBytes()))
+		}
+    if replyMessageID != 0 {
+			form["reply_to_message_id"] = Field(name: "reply_to_message_id", filename: nil, part: Part(headers: [:], body: String(replyMessageID).bytes))
+		}
+    if disableNtf != false {
+			form["disable_notification"] = Field(name: "disable_notification", filename: nil, part: Part(headers: [:], body: String(disableNtf).bytes))
+		}
+		
+    // This is the "HEY, I WANT MY BODY TO BE LIKE THIS AND TO PARSE IT LIKE FORM DATA"
+    request.formData = form
+		
+    //print(url)
+    //print(request)
+    print("UPLOADING...")
+    
+    let queueDrop = drop
+    
+    uploadQueue.sync {
+      let response = try! queueDrop.client.respond(to: request)
+      self.finishUpload(link: link, response: response, callback: callback)
+		
+			
+		// Old experiment for building client requests, please ignore.
+		/*
 		uploadQueue.sync {
-      /*
+			
        // Get the URL in a protected way
        guard let url = URL(string: url) else {
        print("Error: cannot create URL")

@@ -346,7 +346,7 @@ final public class MessageEntity: Model {
 
 final public class Photo: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "photo" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "photo" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendPhoto" // SendType conforming variable for use when sent
   public var photos: [PhotoSize] = []
   
@@ -417,7 +417,7 @@ final public class PhotoSize: TelegramType {
 
 final public class Audio: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "audio" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "audio" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendAudio" // SendType conforming variable for use when sent
   
   public var fileID: String // Unique identifier for the file
@@ -471,7 +471,7 @@ final public class Audio: TelegramType, SendType {
 
 final public class Document: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "document" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "document" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendDocument" // SendType conforming variable for use when sent
   
   public var fileID: String // Unique file identifier.
@@ -517,7 +517,7 @@ final public class Document: TelegramType, SendType {
 
 final public class Sticker: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "sticker" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "sticker" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendSticker" // SendType conforming variable for use when sent
   
   public var fileID: String // Unique file identifier
@@ -567,7 +567,7 @@ final public class Sticker: TelegramType, SendType {
 
 final public class Video: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "video" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "video" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendVideo" // SendType conforming variable for use when sent
   
   public var fileID: String
@@ -625,7 +625,7 @@ final public class Video: TelegramType, SendType {
 
 final public class Voice: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "voice" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "voice" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendVoice" // SendType conforming variable for use when sent
   
   public var fileID: String
@@ -673,7 +673,7 @@ Represents a VideoNote type, introduced in Telegram 4.0
 */
 final public class VideoNote: TelegramType, SendType {
 	public var storage = Storage()
-	var messageTypeName: String = "voice" // MessageType conforming variable for Message class filtering.
+	public var messageTypeName: String = "video_note" // MessageType conforming variable for Message class filtering.
 	public var method: String = "/sendVideoNote" // SendType conforming variable for use when sent
 	
 	public var fileID: String
@@ -715,7 +715,7 @@ final public class VideoNote: TelegramType, SendType {
 
 final public class Contact: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "contact" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "contact" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendContact" // SendType conforming variable for use when sent
   
   public var phoneNumber: String
@@ -763,7 +763,7 @@ final public class Contact: TelegramType, SendType {
 
 final public class Location: SendType, Model {
   public var storage = Storage()
-  var messageTypeName: String = "location" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "location" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendLocation" // SendType conforming variable for use when sent
   
   public var latitude: Float
@@ -801,7 +801,7 @@ final public class Location: SendType, Model {
 
 final public class Venue: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "venue" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "venue" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendVenue" // SendType conforming variable for use when sent
   
   public var location: Location
