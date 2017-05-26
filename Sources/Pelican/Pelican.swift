@@ -351,12 +351,14 @@ public final class Pelican: Vapor.Provider {
         if (response.data["result", i, "inline_query"]) != nil {
           guard let messageNode = response.json?.makeNode(in: nil)["result", i, "inline_query"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						print("inline_query")
             offset = update_id + 1
             continue
           }
           
 					guard let message = try? InlineQuery(row: Row(messageNode)) else {
 						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						print("inline_query")
 						offset = update_id + 1
 						continue
 					}
@@ -370,12 +372,14 @@ public final class Pelican: Vapor.Provider {
         if (response.data["result", i, "chosen_inline_result"]) != nil {
           guard let messageNode = response.json?.makeNode(in: nil)["result", i, "chosen_inline_result"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						print("Chosen Inline Result")
             offset = update_id + 1
             continue
           }
           
 					guard let message = try? ChosenInlineResult(row: Row(messageNode)) else {
 						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						print("Chosen Inline Result")
 						offset = update_id + 1
 						continue
 					}
@@ -389,12 +393,14 @@ public final class Pelican: Vapor.Provider {
         if (response.data["result", i, "callback_query"]) != nil {
           guard let messageNode = response.json?.makeNode(in: nil)["result", i, "callback_query"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						print("Callback Query")
             offset = update_id + 1
             continue
           }
           
 					guard let message = try? CallbackQuery(row: Row(messageNode)) else {
 						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						print("Callback Query")
 						offset = update_id + 1
 						continue
 					}

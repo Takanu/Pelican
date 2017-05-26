@@ -54,7 +54,9 @@ public struct ChosenInlineResult {
 		resultID = try row.get("result_id")
 		from = try User(row: try row.get("from"))
 		query = try row.get("query")
-		location = try Location(row: try row.get("location"))
+		if let locationSub = row["location"] {
+			location = try Location(row: locationSub)
+		}
 		inlineMessageID = try row.get("inline_message_id")
 	}
 	
