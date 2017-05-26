@@ -94,9 +94,7 @@ public extension Pelican {
       drop.console.error(TGReqError.NoResponse.rawValue, newLine: true)
       return nil
     }
-    
-    print(response)
-    
+		
     // Check if the response is valid
     if response.data["ok"]?.bool != true {
       drop.console.error(TGReqError.BadResponse.rawValue, newLine: true)
@@ -611,15 +609,16 @@ public extension Pelican {
     ]
 		
 		// Convert the InlineResult objects into a JSON array
-//    var resultQuery: [JSON] = []
-//    for result in results {
-//      let json = try! result.makeJSON()
-//      resultQuery.append(json)
-//    }
+    var resultQuery: [Row] = []
+    for result in results {
+      var row = try! result.makeRow() as Row
+			try! row.removeNullEntries()
+      resultQuery.append(row)
+    }
 		
 		// Then serialise it as a query entry
     //query["results"] = try! resultQuery.makeJSON().serialize().toString()
-		query["results"] = try! results.makeNode(in: nil).formURLEncoded()
+		query["results"] = try! resultQuery.converted(to: JSON.self, in: nil).serialize().makeString()
     
     // Check whether any other query needs to be added
     if cacheTime != 300 { query["cache_time"] = cacheTime }
@@ -631,7 +630,6 @@ public extension Pelican {
     // Try sending it!
     do {
       _ = try drop.client.post(apiURL + "/answerInlineQuery", query: query)
-      //print(result)
     }
     catch {
       print(error)

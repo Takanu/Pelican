@@ -286,7 +286,7 @@ final public class Message: TelegramType {
 		try row.set("entities", entities)
 		try row.set("caption", caption)
 		
-		try row.set("new_chat_member", newChatMember)
+		try row.set("new_chat_member", newChatMembers)
 		try row.set("left_chat_member", leftChatMember)
 		try row.set("new_chat_title", newChatTitle)
 		try row.set("new_chat_photo", newChatPhoto)
@@ -681,6 +681,16 @@ final public class VideoNote: TelegramType, SendType {
 	public var duration: Int
 	public var thumb: PhotoSize?
 	public var fileSize: Int?
+	
+	// SendType conforming methods to send itself to Telegram under the provided method.
+	public func getQuery() -> [String:NodeConvertible] {
+		var keys: [String:NodeConvertible] = [
+			"chat_id": fileID]
+		
+		if duration != 0 { keys["duration"] = duration }
+		
+		return keys
+	}
 	
 	// NodeRepresentable conforming methods
 	public required init(row: Row) throws {

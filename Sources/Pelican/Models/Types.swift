@@ -3,7 +3,10 @@ import Foundation
 import Vapor
 import FluentProvider
 
-// For every model that replicates the Telegram API and is designed to build queries and be converted from responses.
+/**
+For any model that replicates the Telegram API, it must inherit fron this to be designed to build queries and be converted from responses
+in a way that Telegram understands.
+*/
 protocol TelegramType: Model {
 }
 
@@ -20,3 +23,28 @@ public protocol SendType {
 }
 
 
+extension Row {
+	
+	/** 
+	Strips row data of any entries that have a value of "null", including any nested data.
+	Useful for constructing queries and requests where null values are not compatible.
+	*/
+	mutating func removeNullEntries() throws {
+
+		if self.object != nil {
+			for row in self.object! {
+				
+				if row.value.isNull == true {
+					self.removeKey(row.key)
+				}
+				
+				else if row.value.object != nil {
+					var newRow = row.value
+					try newRow.removeNullEntries()
+					self.removeKey(row.key)
+					try self.set(row.key, newRow)
+				}
+			}
+		}
+	}
+}

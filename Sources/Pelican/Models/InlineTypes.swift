@@ -17,10 +17,12 @@ final public class InlineQuery: Model {
   // Model conforming methods
   public required init(row: Row) throws {
     id = try row.get("id")
-		from = try row.get("from")
+		from = try User(row: try row.get("from"))
 		query = try row.get("query")
 		offset = try row.get("offset")
-		location = try row.get("location")
+		if let locationSub = row["location"] {
+			location = try Location(row: locationSub)
+		}
   }
 	
 	public func makeRow() throws -> Row {
@@ -50,9 +52,9 @@ public struct ChosenInlineResult {
 	// Model conforming methods
 	public init(row: Row) throws {
 		resultID = try row.get("result_id")
-		from = try row.get("from")
+		from = try User(row: try row.get("from"))
 		query = try row.get("query")
-		location = try row.get("location")
+		location = try Location(row: try row.get("location"))
 		inlineMessageID = try row.get("inline_message_id")
 	}
 	
@@ -80,7 +82,7 @@ final public class InlineResultArticle: InlineResult {
 	public var storage = Storage()
 	
   public var type: String = "article"        // Type of the result being given.
-  public var id: String                      // Unique Identifier for the result, 1-64 bytes.
+  public var tgID: String                    // Unique Identifier for the result, 1-64 bytes.
   public var content: InputMessageContent    // Content of the message to be sent.
   public var replyMarkup: MarkupInline?      // Inline keyboard attached to the message
   
@@ -88,11 +90,11 @@ final public class InlineResultArticle: InlineResult {
   public var url: String?                    // URL of the result.
   public var hideUrl: Bool?                  // Set as true if you don't want the URL to be shown in the message.
   public var description: String?            // Short description of the result.
-  //var thumb: InlineThumbnail?         // Inline thumbnail type.
+  //var thumb: InlineThumbnail?							 // Inline thumbnail type.
 	
   
   public init(id: String, title: String, description: String, contents: String, markup: MarkupInline?) {
-    self.id = id
+		self.tgID = id
     self.title = title
     self.content = InputMessageText(text: contents, parseMode: "", disableWebPreview: nil)
     self.replyMarkup = markup
@@ -102,7 +104,7 @@ final public class InlineResultArticle: InlineResult {
   // NodeRepresentable conforming methods
   public init(row: Row) throws {
     type = try row.get("type")
-    id = try row.get("id")
+    tgID = try row.get("id")
 		content = try row.get("input_message_content")
 		replyMarkup = try row.get("reply_markup")
 		
@@ -112,14 +114,13 @@ final public class InlineResultArticle: InlineResult {
 		description = try row.get("description")
 		//thumb = try row.get("thumb")
   }
-  
-  
+	
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("type", type)
-		try row.set("id", id)
+		try row.set("id", tgID)
 		try row.set("input_message_content", content)
-		try row.set("replyMarkup", replyMarkup)
+		try row.set("reply_markup", replyMarkup)
 		
 		try row.set("title", title)
 		try row.set("url", url)
@@ -129,7 +130,6 @@ final public class InlineResultArticle: InlineResult {
 		
 		return row
 	}
-  
 }
 /**
 
@@ -703,8 +703,6 @@ final public class InputMessageText: InputMessageContent {
     
     return row
   }
-  
-	
 }
 
 final public class InputMessageLocation: InputMessageContent {
