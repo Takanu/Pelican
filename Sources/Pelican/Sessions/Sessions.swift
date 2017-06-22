@@ -6,43 +6,36 @@ import FluentProvider
 // Holds the information for a bot session, when someone is immediately interacting with the bot
 // Ignore this if you want?  What am i, a doctor?
 public class Session {
-  public var storage = Storage()          // Database ID
+  public var storage = Storage() // Database ID
+	
+	// Core Types
   public var bot: Pelican        // The bot associated with this session
   public var chat: Chat          // The chat ID associated with the session.
   public var primaryUser : User? // The primary user associated with this session, not applicable for channels or potentially other things.
   public var users: [User] = []  // Other users associated with this session.  The primary user is likely in this list.
   public var data: NSCopying?    // User-defined data chunk.
-  
-  public var prompts: PromptController    // Container for automating markup options and responses.
-	public var queue: SessionQueue	//	Handler for delayed Telegram API calls and closure execution.
-  var floodLimit: FloodLimit     // External flood tracking system.
+	
+	// Delegates/Controllers
+  public var prompts: PromptController  // Container for automating markup options and responses.
+	public var queue: SessionQueue				// Handler for delayed Telegram API calls and closure execution.
+	public var routes: RouteController		// Handles and matches user requests to available bot functions.
+	
+	// Maintenance
+	var floodLimit: FloodLimit     // External flood tracking system.
+	public var sessionEndAction: ((Session) -> ())? // A command to be used when the session ends.
+	
   
   // Session settings
   var maxSessionTime: Int = 0 // What the current maximum for the session time is.  Set 0 for no timer.
   internal var lastInteractTime: Int = 0 // The last time the session was interacted with.
   var timedOut: Bool { return lastInteractTime <= bot.globalTimer - maxSessionTime }  // Checks whether or not this session has timed out.
-  
-  
-  
+	
+	
   // Response Settings
-  var responseLimit: Int = 0 // The number of times a session will respond in a given timeframe.  Set as 0 for no limit.
-  private var responseCount: Int = 0 // The number of times a response has been made in the timeframe.
-  private var responseTime: Int = 0 // The time at which the last response has been made (in bot time).
-  
-  
-  // Current session state
-  public var messageState: ((Message, Session) -> ())?
-  public var editedMessageState: ((Message, Session) -> ())?
-  public var channelState: ((Message, Session) -> ())?
-  public var editedChannelState: ((Message, Session) -> ())?
-  
-  public var inlineQueryState: ((InlineQuery, Session) -> ())?
-  public var chosenInlineQueryState: ((ChosenInlineResult, Session) -> ())?
-  public var callbackQueryState: ((CallbackQuery, Session) -> ())?
-  
-  public var sessionEndAction: ((Session) -> ())? // A command to be used when the session ends.
-  var actionQueue: [QueueAction] = [] // Any queued actions that need to be monitored.
-  
+  var responseLimit: Int = 0					// The number of times a session will respond in a given timeframe.  Set as 0 for no limit.
+  private var responseCount: Int = 0	// The number of times a response has been made in the timeframe.
+  private var responseTime: Int = 0		// The time at which the last response has been made (in bot time).
+	
   
   // Stored requests
   public var currentMessage: Message?
@@ -58,6 +51,8 @@ public class Session {
     self.chat = chat
     self.prompts = PromptController()
 		self.queue = SessionQueue()
+		self.routes = RouteController()
+		
     self.floodLimit = FloodLimit(clone: floodLimit) // A precaution to only copy the range values
     
     if data != nil {
@@ -98,24 +93,19 @@ public class Session {
     
     // Set the current message
     currentMessage = message
-    
-    // If the message state has a function to perform, try to perform it.
-    if (self.messageState != nil) {
-      
-      // If the response time doesn't match, we're responding to a new batch of messages, so reset it.
-      if bot.globalTimer != responseTime {
-        responseTime = bot.globalTimer
-        responseCount = 0
-      }
-      
-      // If we haven't yet reached our response limit, call the state.
-      if responseCount < responseLimit && responseLimit != 0 {
-        self.messageState!(message, self)
-      }
-      
-      responseCount += 1
-      
-    }
+		
+		// If the response time doesn't match, we're responding to a new batch of messages, so reset it.
+		if bot.globalTimer != responseTime {
+			responseTime = bot.globalTimer
+			responseCount = 0
+		}
+		
+		// If we haven't yet reached our response limit, send a request for the update to be routed
+		if responseCount < responseLimit && responseLimit != 0 {
+			_ = routes.routeRequest(content: message, type: .message, session: self)
+		}
+		
+		responseCount += 1
     
     // Check the flood status
     bumpFlood()
@@ -123,10 +113,8 @@ public class Session {
   
   func filterInlineQuery(query: InlineQuery) {
     
-    // Call the callback query if we have one.
-    if (self.inlineQueryState != nil) {
-      self.inlineQueryState!(query, self)
-    }
+    // Send a route request
+		_ = routes.routeRequest(content: query, type: .inlineQuery, session: self)
     
     // Check the flood status
     bumpFlood()
@@ -134,36 +122,40 @@ public class Session {
   
   func filterInlineResult(query: ChosenInlineResult) {
     
-    // Call the callback query if we have one.
-    if (self.chosenInlineQueryState != nil) {
-      self.chosenInlineQueryState!(query, self)
-    }
+    // Send a route request
+    _ = routes.routeRequest(content: query, type: .chosenInlineResult, session: self)
     
     // Check the flood status
     bumpFlood()
   }
   
-  func filterQuery(query: CallbackQuery) {
+  func filterCallbackQuery(query: CallbackQuery) {
     
-    // Call the callback query if we have one.
-    if (self.callbackQueryState != nil) {
-      self.callbackQueryState!(query, self)
-    }
+    // Send a route request
+    let handled = routes.routeRequest(content: query, type: .callbackQuery, session: self)
     
-    else if prompts.count != 0 {
-      prompts.filterQuery(query, session: self)
+    if handled == false {
+      let promptHandled = prompts.filterQuery(query, session: self)
+			
+			// If this wasn't handled, send a blank response to avoid the INFINITE LOADING ICON.
+			if promptHandled == false {
+				answer(query: query, text: "")
+			}
     }
     
     // Check the flood status
     bumpFlood()
   }
-  
+	
+	
+	
+	
   ////////////////////////////////////////////////////
   //////////// NORMAL SEND REQUESTS
   
   
   // Sends a normal message.  A convenience method to keep core program code clean.
-  public func send(message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) -> Message? {
+  public func send(message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: MessageParseMode = .markdown, webPreview: Bool = false, disableNtf: Bool = false) -> Message? {
     if currentMessage != nil {
       
       var makeReply = 0
@@ -255,19 +247,6 @@ public class Session {
     bot.answerCallbackQuery(queryID: query.id, text: text, showAlert: popup, url: gameURL, cacheTime: 0)
   }
 	
-	/// Clears all states.
-	public func clearStates() {
-		self.messageState = nil
-		self.editedMessageState = nil
-		self.channelState = nil
-		self.editedChannelState = nil
-		
-		self.inlineQueryState = nil
-		self.chosenInlineQueryState = nil
-		self.callbackQueryState = nil
-		
-		print(self.messageState as Any)
-	}
   
   // Bumps the flood limiter, and potentially blacklists or warns the user.
   func bumpFlood() {

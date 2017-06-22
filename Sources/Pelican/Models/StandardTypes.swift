@@ -11,7 +11,7 @@ enum TGTypeError: String, Error {
 /** 
 Represents a Telegram user or bot.
 */
-final public class User: TelegramType {
+final public class User: Model {
   public var storage = Storage() // The type used for the model to identify between database entries
   public var messageTypeName = "user"
 	
@@ -39,6 +39,7 @@ final public class User: TelegramType {
 		firstName = try row.get("first_name")
 		lastName = try row.get("last_name")
 		username = try row.get("username")
+		languageCode = try row.get("language_code")
 		
 	}
   
@@ -48,6 +49,7 @@ final public class User: TelegramType {
 		try row.set("first_name", firstName)
 		try row.set("last_name", lastName)
 		try row.set("username", username)
+		try row.set("language_code", languageCode)
     return row
   }
 }
@@ -128,7 +130,13 @@ public enum MessageType {
   case text
 }
 
-final public class Message: TelegramType {
+public enum MessageParseMode: String {
+	case html = "HTML"
+	case markdown = "Markdown"
+	case none = ""
+}
+
+final public class Message: TelegramType, UserRequest {
   public var storage = Storage() // Unique message identifier for the database
   
   public var tgID: Int // Unique identifier for the Telegram message.
@@ -152,7 +160,7 @@ final public class Message: TelegramType {
   public var caption: String? // Caption for the document, photo or video, 0-200 characters.
   
   // Status Message Info
-  public var newChatMember: User?                // A status message specifying information about a new user added to the group.
+  public var newChatMembers: [User]?             // A status message specifying information about new users added to the group.
   public var leftChatMember: User?               // A status message specifying information about a user who left the group.
   public var newChatTitle: String?               // A status message specifying the new title for the chat.
   public var newChatPhoto: [PhotoSize]?          // A status message showing the new chat public photo.
@@ -235,20 +243,25 @@ final public class Message: TelegramType {
       self.type = .voice(try .init(row: Row(type)) as Voice) }
       
     else { self.type = .text }
-    
-    self.text = try row.get("text")
-    self.entities = try row.get("entities")
+		
+	
+		self.text = try row.get("text")
+		if let subEntities = row["entities"] {
+			self.entities = try subEntities.array?.map( { try MessageEntity(row: $0) } )
+		}
     self.caption = try row.get("caption")
     
     
     // Status Messages
-    if let subNewChatMember = row["new_chat_member"] {
-      self.newChatMember = try .init(row: Row(subNewChatMember)) as User }
+    if let subNewChatMembers = row["new_chat_member"] {
+			self.newChatMembers = try subNewChatMembers.array?.map( { try User(row: $0) } ) }
     if let subLeftChatMember = row["left_chat_member"] {
       self.leftChatMember = try .init(row: Row(subLeftChatMember)) as User }
     
     self.newChatTitle = try row.get("new_chat_title")
-    //self.newChatPhoto = try row.get("new_chat_photo")
+		if let photoRow = row["new_chat_photo"] {
+			self.newChatPhoto = try photoRow.array?.map( { try PhotoSize(row: $0) } )
+		}
     self.deleteChatPhoto = try row.get("delete_chat_photo") ?? false
     self.groupChatCreated = try row.get("group_chat_created") ?? false
     self.supergroupChatCreated = try row.get("supergroup_chat_created") ?? false
@@ -279,7 +292,7 @@ final public class Message: TelegramType {
 		try row.set("entities", entities)
 		try row.set("caption", caption)
 		
-		try row.set("new_chat_member", newChatMember)
+		try row.set("new_chat_member", newChatMembers)
 		try row.set("left_chat_member", leftChatMember)
 		try row.set("new_chat_title", newChatTitle)
 		try row.set("new_chat_photo", newChatPhoto)
@@ -339,7 +352,7 @@ final public class MessageEntity: Model {
 
 final public class Photo: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "photo" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "photo" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendPhoto" // SendType conforming variable for use when sent
   public var photos: [PhotoSize] = []
   
@@ -351,14 +364,16 @@ final public class Photo: TelegramType, SendType {
   // SendType conforming methods
   public func getQuery() -> [String:NodeConvertible] {
     let keys: [String:NodeConvertible] = [
-      "photo": photos[0].fileID]
+			"photo": photos.map( { $0.fileID	})]
     
     return keys
   }
   
   // NodeRepresentable conforming methods
   public required init(row: Row) throws {
-		photos = try row.get("photos")
+		if let photoRow = row["photos"] {
+			self.photos = try photoRow.array?.map( { try PhotoSize(row: $0) } ) ?? []
+		}
 	}
   
 	public func makeRow() throws -> Row {
@@ -408,7 +423,7 @@ final public class PhotoSize: TelegramType {
 
 final public class Audio: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "audio" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "audio" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendAudio" // SendType conforming variable for use when sent
   
   public var fileID: String // Unique identifier for the file
@@ -462,7 +477,7 @@ final public class Audio: TelegramType, SendType {
 
 final public class Document: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "document" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "document" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendDocument" // SendType conforming variable for use when sent
   
   public var fileID: String // Unique file identifier.
@@ -508,7 +523,7 @@ final public class Document: TelegramType, SendType {
 
 final public class Sticker: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "sticker" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "sticker" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendSticker" // SendType conforming variable for use when sent
   
   public var fileID: String // Unique file identifier
@@ -558,7 +573,7 @@ final public class Sticker: TelegramType, SendType {
 
 final public class Video: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "video" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "video" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendVideo" // SendType conforming variable for use when sent
   
   public var fileID: String
@@ -616,7 +631,7 @@ final public class Video: TelegramType, SendType {
 
 final public class Voice: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "voice" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "voice" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendVoice" // SendType conforming variable for use when sent
   
   public var fileID: String
@@ -658,9 +673,55 @@ final public class Voice: TelegramType, SendType {
 	}
 }
 
+
+/** 
+Represents a VideoNote type, introduced in Telegram 4.0 
+*/
+final public class VideoNote: TelegramType, SendType {
+	public var storage = Storage()
+	public var messageTypeName: String = "video_note" // MessageType conforming variable for Message class filtering.
+	public var method: String = "/sendVideoNote" // SendType conforming variable for use when sent
+	
+	public var fileID: String
+	public var length: Int
+	public var duration: Int
+	public var thumb: PhotoSize?
+	public var fileSize: Int?
+	
+	// SendType conforming methods to send itself to Telegram under the provided method.
+	public func getQuery() -> [String:NodeConvertible] {
+		var keys: [String:NodeConvertible] = [
+			"chat_id": fileID]
+		
+		if duration != 0 { keys["duration"] = duration }
+		
+		return keys
+	}
+	
+	// NodeRepresentable conforming methods
+	public required init(row: Row) throws {
+		fileID = try row.get("file_id")
+		length = try row.get("length")
+		duration = try row.get("duration")
+		thumb = try row.get("thumb")
+		fileSize = try row.get("file_size")
+	}
+	
+	public func makeRow() throws -> Row {
+		var row = Row()
+		try row.set("file_id", fileID)
+		try row.set("length", length)
+		try row.set("duration", duration)
+		try row.set("thumb", thumb)
+		try row.set("file_size", fileSize)
+		
+		return row
+	}
+}
+
 final public class Contact: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "contact" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "contact" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendContact" // SendType conforming variable for use when sent
   
   public var phoneNumber: String
@@ -708,7 +769,7 @@ final public class Contact: TelegramType, SendType {
 
 final public class Location: SendType, Model {
   public var storage = Storage()
-  var messageTypeName: String = "location" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "location" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendLocation" // SendType conforming variable for use when sent
   
   public var latitude: Float
@@ -746,7 +807,7 @@ final public class Location: SendType, Model {
 
 final public class Venue: TelegramType, SendType {
   public var storage = Storage()
-  var messageTypeName: String = "venue" // MessageType conforming variable for Message class filtering.
+  public var messageTypeName: String = "venue" // MessageType conforming variable for Message class filtering.
   public var method: String = "/sendVenue" // SendType conforming variable for use when sent
   
   public var location: Location
@@ -876,7 +937,7 @@ class File: Model {
  If the button that originated the query was attached to a message sent by the bot, the field message will be present. If the button was attached to a message sent via the bot (in inline mode), the field inline_message_id will be present. Exactly one of the fields data or game_short_name will be present.
  */
 
-final public class CallbackQuery: Model {
+final public class CallbackQuery: Model, UserRequest {
 	public var storage = Storage()
 	
   public var id: String // Unique identifier for the query.
@@ -896,8 +957,8 @@ final public class CallbackQuery: Model {
   // NodeRepresentable conforming methods
   public required init(row: Row) throws {
     id = try row.get("id")
-    from = try row.get("from")
-    message = try row.get("message")
+		from = try User(row: try row.get("from") )
+		message = try Message(row: try row.get("message") )
     inlineMessageID = try row.get("inline_message_id")
     chatInstance = try row.get("chat_instance")
     data = try row.get("data")
@@ -909,10 +970,10 @@ final public class CallbackQuery: Model {
 		try row.set("id", id)
 		try row.set("from", from)
 		try row.set("message", message)
-		try row.set("inlineMessageID", inlineMessageID)
-		try row.set("chatInstance", chatInstance)
+		try row.set("inline_message_id", inlineMessageID)
+		try row.set("chat_instance", chatInstance)
 		try row.set("data", data)
-		try row.set("gameShortName", gameShortName)
+		try row.set("game_short_name", gameShortName)
 		
 		return row
 	}

@@ -3,7 +3,10 @@ import Foundation
 import Vapor
 import FluentProvider
 
-// For every model that replicates the Telegram API and is designed to build queries and be converted from responses.
+/**
+For any model that replicates the Telegram API, it must inherit fron this to be designed to build queries and be converted from responses
+in a way that Telegram understands.
+*/
 protocol TelegramType: Model {
 }
 
@@ -15,8 +18,41 @@ protocol TelegramQuery: NodeConvertible, JSONConvertible {
 
 // Defines classes and structs that can pass specific queries or data to a send function.
 public protocol SendType {
+	var messageTypeName: String { get }
   var method: String { get } // The method used when the API call is made
   func getQuery() -> [String:NodeConvertible] // Whats used to extract the required information
 }
 
+/**
+Defines a type that encapsulates a request from a user, through Telegram.
+*/
+protocol UserRequest {
+	
+}
 
+
+extension Row {
+	
+	/** 
+	Strips row data of any entries that have a value of "null", including any nested data.
+	Useful for constructing queries and requests where null values are not compatible.
+	*/
+	mutating func removeNullEntries() throws {
+
+		if self.object != nil {
+			for row in self.object! {
+				
+				if row.value.isNull == true {
+					self.removeKey(row.key)
+				}
+				
+				else if row.value.object != nil {
+					var newRow = row.value
+					try newRow.removeNullEntries()
+					self.removeKey(row.key)
+					try self.set(row.key, newRow)
+				}
+			}
+		}
+	}
+}

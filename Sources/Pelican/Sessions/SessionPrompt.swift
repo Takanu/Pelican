@@ -75,16 +75,22 @@ public class PromptController {
   
   /** Filters a query for a prompt to receive and handle.
    */
-  func filterQuery(_ query: CallbackQuery, session: Session) {
-    if enabled == false { return }
+  func filterQuery(_ query: CallbackQuery, session: Session) -> Bool {
+    if enabled == false { return false }
     
     for prompt in prompts {
       if prompt.message != nil {
         if prompt.message!.tgID == query.message?.tgID {
-          prompt.query(query: query, session: session)
+					
+          let handled = prompt.query(query: query, session: session)
+					if handled == true {
+						return true
+					}
         }
       }
     }
+		
+		return false
   }
   
   /** Finds a prompt that matches the given query.
@@ -150,6 +156,8 @@ public class Prompt: ReceiveUpload {
 	/** Removes the inline keyboard from the message if true, when the Prompt is finished.
 	- warning: This will not work when a finish() closure has been defined due to Telegram Bot flood limits */
 	public var removeInlineOnFinish: Bool = false
+	/// If false, results will not be reset when the prompt is sent multiple times.
+	public var resetResultsOnSend: Bool = true
 	
 	
 	/// Executed when an update is received by the prompt that was successful.
@@ -167,6 +175,10 @@ public class Prompt: ReceiveUpload {
 	
 	/// Returns a list of users that interacted with the prompt, ordered from who interacted with it first to last.
   public var getUsersPressed: [User] { return usersPressed }
+	/// Returns a list of users that didn't press any button
+	public var getUsersIdle: [User] {
+		return target.filter( { T in usersPressed.contains(where: { P in T.tgID == P.tgID} ) == false } )
+	}
 	/// Defines whether or not the prompt is in a finished state.
 	public var hasFinished: Bool { return finished }
   
@@ -208,8 +220,8 @@ public class Prompt: ReceiveUpload {
       let secondRow = prompt.inline.keyboard[rowIndex]
       
       var buttonIndex = 0
-      for button in row.keys {
-        let secondButton = secondRow.keys[buttonIndex]
+      for button in row {
+        let secondButton = secondRow[buttonIndex]
         if button.compare(key: secondButton) == false {
           return false
         }
@@ -240,7 +252,12 @@ public class Prompt: ReceiveUpload {
   public func send(session: Session) {
 		
 		/// If it's being reused, reset the results.
-		resetResults()
+		if resetResultsOnSend == true {
+			resetResults()
+		}
+		
+		completed = false
+		finished = false
 		
     for data in inline.getCallbackData()! {
       self.results[data] = []
@@ -264,16 +281,18 @@ public class Prompt: ReceiveUpload {
 	
   
   
-  /** Receives a callback query to see if the prompt can use it as an input.
+  /** 
+	Receives a callback query to see if the prompt can use it as an input.
+	- returns: Whether or not the callback query was successfully handled by the prompt.
    */
-  func query(query: CallbackQuery, session: Session) {
+  func query(query: CallbackQuery, session: Session) -> Bool {
     
     // Return early if some basic conditions are not met
-    if query.data == nil { return }
-    if message == nil { return }
+    if query.data == nil { return false }
+    if message == nil { return false }
     if query.message != nil {
       if query.message!.tgID != message!.tgID {
-        return
+        return false
       }
     }
     
@@ -308,6 +327,8 @@ public class Prompt: ReceiveUpload {
     if completed == true {
 			finish(session: session)
     }
+		
+		return true
   }
   
   
@@ -332,10 +353,8 @@ public class Prompt: ReceiveUpload {
 						results[query]!.append(user)
 						usersPressed.append(user)
 					}
-					
-          print("Prompt Choice Pressed  - \(user.firstName)")
           
-          if usersPressed.count >= activationLimit && activationLimit != 0 {
+          if usersPressed.count >= activationLimit && activationLimit != 0 || activationLimit == 1 {
             completed = true
           }
             
@@ -357,13 +376,15 @@ public class Prompt: ReceiveUpload {
 	- parameter newInline: The new inline keyboard to be used under the message the Prompt belongs to.
 	- parameter newText: The new text to be used for the message body (or caption if the message contains
 	a file).  If nil, the text will be removed.
-	- warning: If the inline keyboard is changed, all currently stored results will be lost.
+	- parameter resetResults: If true, all currently stored results will be lost.
 	*/
-	public func updateMessage(newInline: MarkupInline, newText: String, session: Session) {
+	public func updateMessage(newInline: MarkupInline, newText: String, session: Session, resetResults: Bool = false) {
 		
-		self.inline = newInline
-		for data in inline.getCallbackData()! {
-			self.results[data] = []
+		if resetResults == true {
+			self.inline = newInline
+			for data in inline.getCallbackData()! {
+				self.results[data] = []
+			}
 		}
 		
 		self.text = newText
@@ -395,13 +416,15 @@ public class Prompt: ReceiveUpload {
 	
 	/**
 	Attempts to update the inline keyboard of the currently displayed message.
-	- warning: If the inline keyboard is changed, all currently stored results will be lost.
 	- parameter newInline: The new inline keyboard to be used under the message the Prompt belongs to.
+	- parameter resetResults: If true, all currently stored results will be lost.
 	*/
-	public func updateInline(newInline: MarkupInline, session: Session) {
-		self.inline = newInline
-		for data in inline.getCallbackData()! {
-			self.results[data] = []
+	public func updateInline(newInline: MarkupInline, session: Session, resetResults: Bool = false) {
+		if resetResults == true {
+			self.inline = newInline
+			for data in inline.getCallbackData()! {
+				self.results[data] = []
+			}
 		}
 		
 		if self.file != nil {
@@ -494,7 +517,7 @@ public class Prompt: ReceiveUpload {
       let data = result.key
       let name = inline.getLabel(withData: result.key)
       let users = result.value
-      returnResults.append((data, name!, users))
+      returnResults.append((name!, data, users))
     }
     
     return returnResults
@@ -507,8 +530,6 @@ public class Prompt: ReceiveUpload {
    */
   private func resetResults() {
     usersPressed = []
-    completed = false
-		finished = false
     results.removeAll()
 		
     for data in inline.getCallbackData()! {

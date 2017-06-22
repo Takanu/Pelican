@@ -15,7 +15,7 @@ public protocol MarkupType: Model {
 
 public extension MarkupType {
   func getQuery() -> String {
-    return try! self.makeRow().converted(to: JSON.self).serialize().makeString()
+		return try! self.makeRow().converted(to: JSON.self).serialize().makeString()
   }
 }
 
@@ -25,7 +25,7 @@ final public class MarkupKeyboard: MarkupType {
   public var storage = Storage()
 	
   /// An array of keyboard rows, that contain labelled buttons which populate the message keyboard.
-  public var keyboard: [[MarkupKeyboardKey]] = [[]]
+  public var keyboard: [[MarkupKeyboardKey]] = []
   /// (Optional) Requests clients to resize the keyboard vertically for optimal fit (e.g., make the keyboard smaller if there are just two rows of buttons).
   public var resizeKeyboard: Bool = true
   /// (Optional) Requests clients to hide the keyboard as soon as it's been used.
@@ -267,7 +267,8 @@ final public class MarkupKeyboardKey: Model {
 */
 final public class MarkupInline: Model, MarkupType {
 	public var storage = Storage()
-  public var keyboard: [MarkupInlineRow] = []
+	public var keyboard: [[MarkupInlineKey]] = []
+  //public var keyboard: [MarkupInlineRow] = []
   
   // Blank!
   public init() {
@@ -280,11 +281,11 @@ final public class MarkupInline: Model, MarkupType {
 	- parameter buttonsIn: The buttons to be included in the keyboard.
   */
   public init(withButtons buttonsIn: MarkupInlineKey...) {
-    let row = MarkupInlineRow()
+		var array: [MarkupInlineKey] = []
     for button in buttonsIn {
-      row.addButton(button)
+      array.append(button)
     }
-		keyboard.append(row)
+		keyboard.append(array)
   }
   
 	/**
@@ -293,12 +294,12 @@ final public class MarkupInline: Model, MarkupType {
 	- parameter pair: A sequence of label/url String tuples that will define each key on the keyboard.
 	*/
   public init(withURL sequence: (label: String, url: String)...) {
-    let row = MarkupInlineRow()
+    var array: [MarkupInlineKey] = []
     for tuple in sequence {
       let button = MarkupInlineKey(fromURL: tuple.url, label: tuple.label)
-      row.addButton(button)
+      array.append(button)
     }
-    keyboard.append(row)
+    keyboard.append(array)
   }
   
 	/**
@@ -307,12 +308,12 @@ final public class MarkupInline: Model, MarkupType {
 	- parameter pair: A sequence of label/callback String tuples that will define each key on the keyboard.
 	*/
   public init(withCallback sequence: (label: String, query: String)...) {
-    let row = MarkupInlineRow()
+    var array: [MarkupInlineKey] = []
     for tuple in sequence {
       let button = MarkupInlineKey(fromCallbackData: tuple.query, label: tuple.label)
-      row.addButton(button)
+      array.append(button)
     }
-    keyboard.append(row)
+    keyboard.append(array)
   }
 	
 	/**
@@ -322,12 +323,12 @@ final public class MarkupInline: Model, MarkupType {
 	*/
 	public init(withCallback array: [[(label: String, query: String)]]) {
 		for row in array {
-			let newRow = MarkupInlineRow()
+			var array: [MarkupInlineKey] = []
 			for tuple in row {
 				let button = MarkupInlineKey(fromCallbackData: tuple.query, label: tuple.label)
-				newRow.addButton(button)
+				array.append(button)
 			}
-			keyboard.append(newRow)
+			keyboard.append(array)
 		}
 	}
 	
@@ -337,12 +338,12 @@ final public class MarkupInline: Model, MarkupType {
 	- parameter pair: A sequence of label/"Inline Query Current Chat" String tuples that will define each key on the keyboard.
 	*/
 	public init(withInlineQueryCurrent sequence: (label: String, query: String)...) {
-		let row = MarkupInlineRow()
+		var array: [MarkupInlineKey] = []
 		for tuple in sequence {
 			let button = MarkupInlineKey(fromInlineQueryCurrent: tuple.query, label: tuple.label)
-			row.addButton(button)
+			array.append(button)
 		}
-		keyboard.append(row)
+		keyboard.append(array)
 	}
 	
 	/**
@@ -351,12 +352,12 @@ final public class MarkupInline: Model, MarkupType {
 	- parameter pair: A sequence of label/"Inline Query New Chat" String tuples that will define each key on the keyboard.
 	*/
 	public init(withInlineQueryNewChat sequence: (label: String, query: String)...) {
-		let row = MarkupInlineRow()
+		var array: [MarkupInlineKey] = []
 		for label in sequence {
 			let button = MarkupInlineKey(fromInlineQueryNewChat: label.query, label: label.label)
-			row.addButton(button)
+			array.append(button)
 		}
-		keyboard.append(row)
+		keyboard.append(array)
 	}
 	
 	/**
@@ -368,14 +369,14 @@ final public class MarkupInline: Model, MarkupType {
 	- parameter labels: A sequence of String labels that will define each key on the keyboard.
 	*/
   public init(withGenCallback sequence: String...) {
-    let row = MarkupInlineRow()
+    var array: [MarkupInlineKey] = []
     var id = 1
     for label in sequence {
       let button = MarkupInlineKey(fromCallbackData: String(id), label: label)
-      row.addButton(button)
+      array.append(button)
       id += 1
     }
-    keyboard.append(row)
+    keyboard.append(array)
   }
   
 	/**
@@ -390,13 +391,13 @@ final public class MarkupInline: Model, MarkupType {
   public init(withGenCallback rows: [[String]]) {
     var id = 1
     for row in rows {
-      let newRow = MarkupInlineRow()
+      var array: [MarkupInlineKey] = []
       for label in row {
         let button = MarkupInlineKey(fromCallbackData: String(id), label: label)
-        newRow.addButton(button)
+        array.append(button)
         id += 1
       }
-      keyboard.append(newRow)
+      keyboard.append(array)
     }
     
   }
@@ -404,14 +405,22 @@ final public class MarkupInline: Model, MarkupType {
 	/**
 	Adds an extra row to the keyboard based on the sequence of buttons you provide.
 	*/
-	public func addRow(_ sequence: MarkupInlineKey...) {
-		let newRow = MarkupInlineRow()
+	public func addRow(sequence: MarkupInlineKey...) {
+		var array: [MarkupInlineKey] = []
 		
 		for button in sequence {
-			newRow.addButton(button)
+			array.append(button)
 		}
 		
-		keyboard.append(newRow)
+		keyboard.append(array)
+	}
+	
+	/**
+	Adds an extra row to the keyboard based on the array of buttons you provide.
+	*/
+	public func addRow(array: [MarkupInlineKey]) {
+		
+		keyboard.append(array)
 	}
   
   
@@ -421,7 +430,7 @@ final public class MarkupInline: Model, MarkupType {
   public func getCallbackData() -> [String]? {
     var data: [String] = []
     for row in keyboard {
-      for key in row.keys {
+      for key in row {
         
         if key.type == .callbackData {
           data.append(key.data)
@@ -438,7 +447,7 @@ final public class MarkupInline: Model, MarkupType {
   public func getLabels() -> [String] {
     var labels: [String] = []
 		for row in keyboard {
-      for key in row.keys {
+      for key in row {
           labels.append(key.text)
       }
     }
@@ -451,7 +460,7 @@ final public class MarkupInline: Model, MarkupType {
    */
   public func getLabel(withData data: String) -> String? {
     for row in keyboard {
-      for key in row.keys {
+      for key in row {
         
         if key.data == data { return key.text }
       }
@@ -465,7 +474,7 @@ final public class MarkupInline: Model, MarkupType {
    */
   public func getKey(withData data: String) -> MarkupInlineKey? {
     for row in keyboard {
-      for key in row.keys {
+      for key in row {
         
         if key.data == data { return key }
       }
@@ -479,9 +488,31 @@ final public class MarkupInline: Model, MarkupType {
 	Replaces a key with another provided one, by trying to match the given data with a key
    */
   public func replaceKey(usingType type: InlineButtonType, data: String, newKey: MarkupInlineKey) -> Bool {
-    for row in keyboard {
-      let result = row.replaceKey(usingType: type, data: data, newKey: newKey)
-      if result == true { return true }
+		
+    for (rowIndex, row) in keyboard.enumerated() {
+			var newRow = row
+			var replaced = false
+			
+			// Iterate through each key in each row for a match
+			for (i, key) in newRow.enumerated() {
+				if replaced == true { continue }
+				
+				if key.type == type {
+					if key.data == data {
+						newRow.remove(at: i)
+						newRow.insert(newKey, at: i)
+						replaced = true
+					}
+				}
+			}
+			
+			// If we made a match, switch out the rows and exit
+			if replaced == true {
+				keyboard.remove(at: rowIndex)
+				keyboard.insert(newRow, at: rowIndex)
+				return true
+			}
+			
     }
     
     return false
@@ -491,136 +522,76 @@ final public class MarkupInline: Model, MarkupType {
 	Replaces a key with another provided one, by trying to match the keys it has with one that's provided.
    */
   public func replaceKey(oldKey: MarkupInlineKey, newKey: MarkupInlineKey) -> Bool {
-    for row in keyboard {
-      let result = row.replaceKey(oldKey: oldKey, newKey: newKey)
-      if result == true { return true }
-    }
-    
-    return false
+		
+		for (rowIndex, row) in keyboard.enumerated() {
+			var newRow = row
+			var replaced = false
+			
+			// Iterate through each key in each row for a match
+			for (i, key) in newRow.enumerated() {
+				if replaced == true { continue }
+				
+				if key.compare(key: oldKey) == true {
+					newRow.remove(at: i)
+					newRow.insert(newKey, at: i)
+					replaced = true
+				}
+			}
+			
+			// If we made a match, switch out the rows and exit
+			if replaced == true {
+				keyboard.remove(at: rowIndex)
+				keyboard.insert(newRow, at: rowIndex)
+				return true
+			}
+		}
+		
+		return false
   }
-  
+	
   /** 
 	Tries to find and delete a key, based on a match with one provided.
    */
   public func deleteKey(key: MarkupInlineKey) -> Bool {
-    for row in keyboard {
-      let result = row.deleteKey(key: key)
-      if result == true { return true }
-    }
-    
-    return false
+		
+		for (rowIndex, row) in keyboard.enumerated() {
+			var newRow = row
+			var removed = false
+			
+			// Iterate through each key in each row for a match
+			for (i, key) in newRow.enumerated() {
+				if removed == true { continue }
+				
+				if key.compare(key: key) == true {
+					newRow.remove(at: i)
+					removed = true
+				}
+			}
+			
+			// If we made a match, switch out the rows and exit
+			if removed == true {
+				keyboard.remove(at: rowIndex)
+				keyboard.insert(newRow, at: rowIndex)
+				return true
+			}
+		}
+		
+		return false
   }
   
 	
   public required init(row: Row) throws {
-    keyboard = try row.get("keyboard")
+    keyboard = try row.get("inline_keyboard")
   }
   
 	public func makeRow() throws -> Row {
 		var row = Row()
-		try row.set("keyboard", keyboard)
+		try row.set("inline_keyboard", keyboard)
 		
 		return row
 	}
   
   
-}
-
-
-/** 
-Defines a single row on an inline keyboard.
-
-- warning: This will likely be removed in a future version as it's not needed, please use MarkupInline instead.
- */
-final public class MarkupInlineRow: Model {
-	public let storage = Storage()
-  public var keys: [MarkupInlineKey] = []
-  
-  public init() {
-  }
-  
-  // If you want to do it the hard way
-  public init(withButtons buttonsIn: MarkupInlineKey...) {
-    for button in buttonsIn {
-      keys.append(button)
-    }
-  }
-  
-  // A quick type for generating buttons.
-  public init(withURL pair: (String, String)...) {
-    for label in pair {
-      let button = MarkupInlineKey(fromURL: label.0, label: label.1)
-      keys.append(button)
-    }
-  }
-  public func addButton(_ button: MarkupInlineKey) {
-    keys.append(button)
-  }
-  
-  
-  /** Replaces a key with another provided one, by trying to match the given data with an existing key.
-   */
-  public func replaceKey(usingType type: InlineButtonType, data: String, newKey: MarkupInlineKey) -> Bool {
-    for (i, key) in keys.enumerated() {
-      
-      if key.type == type {
-        if key.data == data {
-          keys.remove(at: i)
-          keys.insert(newKey, at: i)
-          return true
-        }
-      }
-    }
-    
-    return false
-  }
-  
-  /** Replaces a key with another provided one, by trying to match the provided old key with one the row has.
-   */
-  public func replaceKey(oldKey: MarkupInlineKey, newKey: MarkupInlineKey) -> Bool {
-    for (i, key) in keys.enumerated() {
-      
-      if key.type == oldKey.type {
-        if key.data == oldKey.data {
-          keys.remove(at: i)
-          keys.insert(newKey, at: i)
-          return true
-        }
-      }
-    }
-    
-    return false
-  }
-  
-  /** Removes keys that match with the given key
-   */
-  public func deleteKey(key: MarkupInlineKey) -> Bool {
-    
-    for (i, key) in keys.enumerated() {
-      if key.type == key.type {
-        if key.data == key.data {
-          
-          keys.remove(at: i)
-          return true
-        }
-      }
-    }
-    
-    return false
-  }
-  
-	
-  // Ignore context, just try and build an object from a node.
-  public required init(row: Row) throws {
-    keys = try row.get("keys")
-  }
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("keys", keys)
-		
-		return row
-	}
 }
 
 
@@ -713,19 +684,29 @@ final public class MarkupInlineKey: Model {
   // Ignore context, just try and build an object from a node.
   public required init(row: Row) throws {
     text = try row.get("text")
-    data = try row.get("data")
-    let typeText = try row.get("type") as String
 		
-		switch typeText {
-		case "url":
+		if row["url"] != nil {
+			data = try row.get("url")
 			type = .url
-		case "callback_data":
-			type = .callbackData
-		case "switch_inline_query":
-			type = .switchInlineQuery
-		case "switch_inline_query_current_chat":
-			type = .switchInlineQuery_currentChat
-		default:
+		}
+		
+		else if row["callback_data"] != nil {
+			data = try row.get("callback_data")
+			type = .url
+		}
+		
+		else if row["switch_inline_query"] != nil {
+			data = try row.get("switch_inline_query")
+			type = .url
+		}
+		
+		else if row["switch_inline_query_current_chat"] != nil {
+			data = try row.get("switch_inline_query_current_chat")
+			type = .url
+		}
+		
+		else {
+			data = ""
 			type = .url
 		}
   }
@@ -733,17 +714,16 @@ final public class MarkupInlineKey: Model {
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("text", text)
-		try row.set("data", data)
 		
 		switch type {
 		case .url:
-			try row.set("type", "url")
+			try row.set("url", data)
 		case .callbackData:
-			try row.set("type", "callback_data")
+			try row.set("callback_data", data)
 		case .switchInlineQuery:
-			try row.set("type", "switch_inline_query")
+			try row.set("switch_inline_query", data)
 		case .switchInlineQuery_currentChat:
-			try row.set("type", "switch_inline_query_current_chat")
+			try row.set("switch_inline_query_current_chat", data)
 		}
 		
 		return row

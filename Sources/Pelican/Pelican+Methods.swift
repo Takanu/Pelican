@@ -73,7 +73,7 @@ public extension Pelican {
   
   
   // Sends a message.  Must contain a chat ID, message text and an optional MarkupType.
-  public func sendMessage(chatID: Int, text: String, replyMarkup: MarkupType?, parseMode: String = "", disableWebPreview: Bool = false, disableNtf: Bool = false, replyMessageID: Int = 0) -> Message? {
+  public func sendMessage(chatID: Int, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .none, disableWebPreview: Bool = false, disableNtf: Bool = false, replyMessageID: Int = 0) -> Message? {
     var query: [String:NodeConvertible] = [
       "chat_id":chatID,
       "text": text,
@@ -82,8 +82,11 @@ public extension Pelican {
     ]
     
     // Check whether any other query needs to be added
-    if replyMarkup != nil { query["reply_markup"] = replyMarkup!.getQuery() }
-    if parseMode != "" { query["parse_mode"] = parseMode }
+    if replyMarkup != nil {
+			print(replyMarkup!.getQuery())
+			query["reply_markup"] = replyMarkup!.getQuery()
+		}
+    if parseMode != .none { query["parse_mode"] = parseMode.rawValue }
     if replyMessageID != 0 { query["reply_to_message_id"] = replyMessageID }
     
     // Try sending it!
@@ -91,9 +94,7 @@ public extension Pelican {
       drop.console.error(TGReqError.NoResponse.rawValue, newLine: true)
       return nil
     }
-    
-    //print(response)
-    
+		
     // Check if the response is valid
     if response.data["ok"]?.bool != true {
       drop.console.error(TGReqError.BadResponse.rawValue, newLine: true)
@@ -150,13 +151,14 @@ public extension Pelican {
       "chat_id":chatID]
     
     // Ensure only the files that can have caption types get a caption query
-    //let captionTypes = ["audio", "photo", "video", "document", "voice"]
-    //if caption != "" && captionTypes.index(of: file.messageTypeName) != nil { query["caption"] = caption }
+    let captionTypes = ["audio", "photo", "video", "document", "voice"]
+    if caption != "" && captionTypes.index(of: file.messageTypeName) != nil { query["caption"] = caption }
     
     // Check whether any other query needs to be added
     if replyMarkup != nil { query["reply_markup"] = replyMarkup!.getQuery() }
     if replyMessageID != 0 { query["reply_to_message_id"] = replyMessageID }
     if disableNtf != false { query["disable_notification"] = disableNtf }
+		
     
     // Combine the query built above with the one the file provides
     let finalQuery = query.reduce(file.getQuery(), { r, e in var r = r; r[e.0] = e.1; return r })
@@ -185,7 +187,10 @@ public extension Pelican {
   
   /** I mean you're not "necessarily" uploading a file but whatever, it'll do for now */
   public func uploadFile(link: FileLink, callback: ReceiveUpload? = nil, chatID: Int, markup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) {
-    
+		
+		
+		// The PhotoSize/Photo model stopped working, this can't be used until later.
+		/*
     // Check to see if we need to upload this in the first place.
     // If not, send the file using the link.
     let search = cache.find(upload: link, bot: self)
@@ -197,41 +202,56 @@ public extension Pelican {
       }
       return
     }
-    
+		*/
+
     // Obtain the file data cache
     let data = cache.get(upload: link)
     if data == nil { return }
-    
-//    // Make the multipart/form-data
-//    let request = Response()
-//    var form: [String:Field] = [:]
-//    form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
-//    form[link.type.rawValue] = Field(name: link.type.rawValue, filename: link.name, part: Part(headers: [:], body: data!))
-//    // A filename is required here
-//    
-//    
-//    // Check whether any other query needs to be added
-//    if caption != "" { form["caption"] = Field(name: "caption", filename: nil, part: Part(headers: [:], body: caption.bytes)) }
-//    if markup != nil { form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: try! markup!.makeJSON().makeBytes())) }
-//    if replyMessageID != 0 { form["reply_to_message_id"] = Field(name: "reply_to_message_id", filename: nil, part: Part(headers: [:], body: String(replyMessageID).bytes)) }
-//    if disableNtf != false { form["disable_notification"] = Field(name: "disable_notification", filename: nil, part: Part(headers: [:], body: String(disableNtf).bytes)) }
-//    
-//    
-//    // This is the "HEY, I WANT MY BODY TO BE LIKE THIS AND TO PARSE IT LIKE FORM DATA"
-//    request.formData = form
-//    let url = apiURL + "/" + link.type.method
-//    //print(url)
-//    //print(request)
-//    print("UPLOADING...")
-//    
-//    let queueDrop = drop
-//    
-//    uploadQueue.sync {
-//      let response = try! queueDrop.client.post(url, headers: request.headers, body: request.body)
-//      self.finishUpload(link: link, response: response, callback: callback)
 		
+		
+    // Make the multipart/form-data
+		let url = apiURL + "/" + link.type.method
+    let request = Request(method: .post, uri: url)
+		
+		
+		// Create the form data and assign some initial values
+    var form: [String:FormData.Field] = [:]
+    form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
+    form[link.type.rawValue] = Field(name: link.type.rawValue, filename: link.name, part: Part(headers: [:], body: data!))
+		
+    
+    // Check whether any other query needs to be added as form data.
+    if caption != "" {
+			form["caption"] = Field(name: "caption", filename: nil, part: Part(headers: [:], body: caption.bytes))
+		}
+    if markup != nil {
+			form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: try! markup!.makeRow().converted(to: JSON.self).makeBytes()))
+		}
+    if replyMessageID != 0 {
+			form["reply_to_message_id"] = Field(name: "reply_to_message_id", filename: nil, part: Part(headers: [:], body: String(replyMessageID).bytes))
+		}
+    if disableNtf != false {
+			form["disable_notification"] = Field(name: "disable_notification", filename: nil, part: Part(headers: [:], body: String(disableNtf).bytes))
+		}
+		
+    // This is the "HEY, I WANT MY BODY TO BE LIKE THIS AND TO PARSE IT LIKE FORM DATA"
+    request.formData = form
+		
+    //print(url)
+    //print(request)
+    print("UPLOADING...")
+    
+    let queueDrop = drop
+    
+    uploadQueue.sync {
+      let response = try! queueDrop.client.respond(to: request)
+      self.finishUpload(link: link, response: response, callback: callback)
+		
+			
+		// Old experiment for building client requests, please ignore.
+		/*
 		uploadQueue.sync {
-      /*
+			
        // Get the URL in a protected way
        guard let url = URL(string: url) else {
        print("Error: cannot create URL")
@@ -548,8 +568,29 @@ public extension Pelican {
       print(error)
     }
   }
-  
-  
+	
+	/**
+	Use this method to delete a message. A message can only be deleted if it was sent less than 48 hours ago. 
+	
+	- note: Any such recently sent outgoing message may be deleted. Additionally, if the bot is an administrator in a group chat, it can delete any message. If the bot is an administrator in a supergroup, it can delete messages from any other user and service messages about people joining or leaving the group (other types of service messages may only be removed by the group creator). In channels, bots can only remove their own messages.
+	*/
+	public func deleteMessage(chatID: Int, messageID: Int) {
+		
+		let query: [String:NodeConvertible] = [
+			"chat_id":chatID,
+			"message_id":messageID
+			]
+		
+		// Try sending it!
+		do {
+			_ = try drop.client.post(apiURL + "/deleteMessage", query: query)
+		}
+		catch {
+			print(error)
+		}
+	}
+	
+	
   //////////////////////////////////////////////////////////////////////////////////
   //// TELEGRAM CALLBACK METHOD IMPLEMENTATIONS
   
@@ -587,15 +628,16 @@ public extension Pelican {
     ]
 		
 		// Convert the InlineResult objects into a JSON array
-//    var resultQuery: [JSON] = []
-//    for result in results {
-//      let json = try! result.makeJSON()
-//      resultQuery.append(json)
-//    }
+    var resultQuery: [Row] = []
+    for result in results {
+      var row = try! result.makeRow() as Row
+			try! row.removeNullEntries()
+      resultQuery.append(row)
+    }
 		
 		// Then serialise it as a query entry
     //query["results"] = try! resultQuery.makeJSON().serialize().toString()
-		query["results"] = try! results.makeNode(in: nil).formURLEncoded()
+		query["results"] = try! resultQuery.converted(to: JSON.self, in: nil).serialize().makeString()
     
     // Check whether any other query needs to be added
     if cacheTime != 300 { query["cache_time"] = cacheTime }
@@ -607,7 +649,6 @@ public extension Pelican {
     // Try sending it!
     do {
       _ = try drop.client.post(apiURL + "/answerInlineQuery", query: query)
-      //print(result)
     }
     catch {
       print(error)
