@@ -1,5 +1,5 @@
 # Pelican Alpha
-## (Vapor 1.5x) Telegram API Wrapper for Swift x Vapor.
+## (Vapor 2) Telegram API Wrapper for Swift x Vapor.
 
 Hi 2-3 people that somehow both like Telegram, Swift and Vapor!   This is a Provider that gives your Droplet a complete solution for creating and managing Telegram bots.  **It's still a little rough and not everything has been finished, so be careful**
 
