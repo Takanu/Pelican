@@ -6,7 +6,7 @@ import FluentProvider
 // Holds the information for a bot session, when someone is immediately interacting with the bot
 // Ignore this if you want?  What am i, a doctor?
 public class Session {
-  public var storage = Storage()          // Database ID
+  public var storage = Storage() // Database ID
 	
 	// Core Types
   public var bot: Pelican        // The bot associated with this session
@@ -16,8 +16,8 @@ public class Session {
   public var data: NSCopying?    // User-defined data chunk.
 	
 	// Delegates/Controllers
-  public var prompts: PromptController    // Container for automating markup options and responses.
-	public var queue: SessionQueue	//	Handler for delayed Telegram API calls and closure execution.
+  public var prompts: PromptController  // Container for automating markup options and responses.
+	public var queue: SessionQueue				// Handler for delayed Telegram API calls and closure execution.
 	public var routes: RouteController		// Handles and matches user requests to available bot functions.
 	
 	// Maintenance
@@ -32,12 +32,9 @@ public class Session {
 	
 	
   // Response Settings
-  var responseLimit: Int = 0 // The number of times a session will respond in a given timeframe.  Set as 0 for no limit.
-  private var responseCount: Int = 0 // The number of times a response has been made in the timeframe.
-  private var responseTime: Int = 0 // The time at which the last response has been made (in bot time).
-  
-	
-//  var actionQueue: [QueueAction] = [] // Any queued actions that need to be monitored.
+  var responseLimit: Int = 0					// The number of times a session will respond in a given timeframe.  Set as 0 for no limit.
+  private var responseCount: Int = 0	// The number of times a response has been made in the timeframe.
+  private var responseTime: Int = 0		// The time at which the last response has been made (in bot time).
 	
   
   // Stored requests
@@ -138,7 +135,12 @@ public class Session {
     let handled = routes.routeRequest(content: query, type: .callbackQuery, session: self)
     
     if handled == false {
-      prompts.filterQuery(query, session: self)
+      let promptHandled = prompts.filterQuery(query, session: self)
+			
+			// If this wasn't handled, send a blank response to avoid the INFINITE LOADING ICON.
+			if promptHandled == false {
+				answer(query: query, text: "")
+			}
     }
     
     // Check the flood status

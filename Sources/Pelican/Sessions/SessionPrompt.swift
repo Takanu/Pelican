@@ -75,16 +75,22 @@ public class PromptController {
   
   /** Filters a query for a prompt to receive and handle.
    */
-  func filterQuery(_ query: CallbackQuery, session: Session) {
-    if enabled == false { return }
+  func filterQuery(_ query: CallbackQuery, session: Session) -> Bool {
+    if enabled == false { return false }
     
     for prompt in prompts {
       if prompt.message != nil {
         if prompt.message!.tgID == query.message?.tgID {
-          prompt.query(query: query, session: session)
+					
+          let handled = prompt.query(query: query, session: session)
+					if handled == true {
+						return true
+					}
         }
       }
     }
+		
+		return false
   }
   
   /** Finds a prompt that matches the given query.
@@ -275,16 +281,18 @@ public class Prompt: ReceiveUpload {
 	
   
   
-  /** Receives a callback query to see if the prompt can use it as an input.
+  /** 
+	Receives a callback query to see if the prompt can use it as an input.
+	- returns: Whether or not the callback query was successfully handled by the prompt.
    */
-  func query(query: CallbackQuery, session: Session) {
+  func query(query: CallbackQuery, session: Session) -> Bool {
     
     // Return early if some basic conditions are not met
-    if query.data == nil { return }
-    if message == nil { return }
+    if query.data == nil { return false }
+    if message == nil { return false }
     if query.message != nil {
       if query.message!.tgID != message!.tgID {
-        return
+        return false
       }
     }
     
@@ -319,6 +327,8 @@ public class Prompt: ReceiveUpload {
     if completed == true {
 			finish(session: session)
     }
+		
+		return true
   }
   
   

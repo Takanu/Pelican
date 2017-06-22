@@ -10,23 +10,27 @@ import Foundation
 import Vapor
 
 /**
-Enables the sorting and responding of user requests using a modular routing system, matching user requests to routes.
-
-Routes can be specific or ambiguous, and can be provided for any type of interaction a user can have with your bot.
+Manages all the routes available to a Session at any given time, and routes applicable user requests given to a Session
+to any available and matching routes.
 */
 public class RouteController {
 	
-	private var routes: [RequestType:[Route]] = [:]
+	/**
+	The currently active set of routes for the Session.
+	- warning: It's recommended to just use the provided functions for editing and removing routes, only use this if
+	you need something custom 👌.
+	*/
+	public var collection: [RequestType:[Route]] = [:]
 	
 	
 	init() {
-		routes[.message] = []
-		routes[.editedMessage] = []
-		routes[.channel] = []
-		routes[.editedChannel] = []
-		routes[.inlineQuery] = []
-		routes[.chosenInlineResult] = []
-		routes[.callbackQuery] = []
+		collection[.message] = []
+		collection[.editedMessage] = []
+		collection[.channel] = []
+		collection[.editedChannel] = []
+		collection[.inlineQuery] = []
+		collection[.chosenInlineResult] = []
+		collection[.callbackQuery] = []
 	}
 	
 	/**
@@ -38,7 +42,7 @@ public class RouteController {
 		
 			
 		// Run through all available routes
-		for route in routes[type]!	{
+		for route in collection[type]!	{
 			
 			// Extract and execute the contained action.
 			let action = route.getAction
@@ -127,49 +131,93 @@ public class RouteController {
 	/** 
 	Adds a route to the session, enabling it to be used to receive user requests.  If the session already has a route that 
 	matches the one provided in type and filter, it will be overwritten.
-	- parameter route: The route to be added to the controller.
+	- parameter routes: The routes to be added to the controller.
 	*/
-	public func add(_ route: Route) {
+	public func add(_ routes: Route...) {
 		
-		var routeArray = routes[route.getType]!
-		
-		if route.filter != "" {
+		for route in routes {
+			var routeArray = collection[route.getType]!
 			
-			// If an existing route already exists with the same criteria, remove it.
-			if routeArray.first(where: { $0.filter == route.filter } ) != nil {
+			if route.filter != "" {
 				
-				let index = routeArray.index(where: {$0.filter == route.filter } )!
-				routeArray.remove(at: index)
+				// If an existing route already exists with the same criteria, remove it.
+				if routeArray.first(where: { $0.filter == route.filter } ) != nil {
+					
+					let index = routeArray.index(where: {$0.filter == route.filter } )!
+					routeArray.remove(at: index)
+				}
+				
+				routeArray.insert(route, at: 0)
+			}
+				
+			else {
+				routeArray.append(route)
 			}
 			
-			routeArray.insert(route, at: 0)
+			collection[route.getType] = routeArray
 		}
+	}
+	
+	/**
+	Removes a route based on a given route type and filter name.
+	- parameter type: The request target of the route you wish to remove.
+	- parameter filter: The filter of the route to be removed.
+	- returns: True if a route matched the given criteria and was removed, false if not.
+	*/
+	public func remove(type: RequestType, filter: String) -> Bool {
+		
+		var routeSet = collection[type]!
+		
+		for route in routeSet {
 			
-		else {
-			routeArray.append(route)
+			if let index = routeSet.index(where: {$0.filter == filter} ) {
+				routeSet.remove(at: index)
+				collection[type]! = routeSet
+				return true
+			}
 		}
 		
-		routes[route.getType] = routeArray
+		return false
 	}
 	
 	/**
-	Clears all routes of a given type from the session.
+	Clears all routes of a given request target from the session.
+	- parameter type: The request target you wish to clear.
 	*/
 	public func clear(type: RequestType) {
-		routes[type] = []
+		collection[type] = []
 	}
 	
 	/**
-	Clears all routes.  All of them
+	Clears all routes of a given type that have no defined filter.  Useful if you have one or two routes
+	that act as a default request collector, that due to the current state of the bot require removal.
+	*/
+	public func clearUnfiltered(type: RequestType) {
+		
+		var newRouteSet: [Route] = []
+		
+		for route in collection[type]! {
+			
+			if route.filter != "" {
+				newRouteSet.append(route)
+			}
+		}
+		
+		collection[type]! = newRouteSet
+	}
+	
+	
+	/**
+	Clears all routes for all available user request types.
 	*/
 	public func clearAll() {
-		routes[.message] = []
-		routes[.editedMessage] = []
-		routes[.channel] = []
-		routes[.editedChannel] = []
-		routes[.inlineQuery] = []
-		routes[.chosenInlineResult] = []
-		routes[.callbackQuery] = []
+		collection[.message] = []
+		collection[.editedMessage] = []
+		collection[.channel] = []
+		collection[.editedChannel] = []
+		collection[.inlineQuery] = []
+		collection[.chosenInlineResult] = []
+		collection[.callbackQuery] = []
 	}
 	
 }
@@ -177,16 +225,18 @@ public class RouteController {
 
 
 /**
-Defines a specific route that can be assigned to a session to match user requests to specific bot functionality.
-
-Routes can be specific or ambiguous, and can be provided for any type of interaction a user can have with your bot.
+Defines a single action to be used on a Session RouteController (`session.routes`), to connect user 
+requests to bot functionality in a modular and contained way.
 */
 public class Route {
 	
-	/** The route that user responses are compared against, to decide whether or not to use it.
+	/** 
+	The route that user responses are compared against, to decide whether or not to use it.
 	Leave it blank if the route is dynamic and wishes to receive any already unclaimed responses.
 	*/
 	public var filter: String = ""
+	
+	/// The type of user request the route targets.
 	private var type: RequestType
 	
 	/// Retrieves the route type, that determines what kind of user responses it is targeting.
@@ -198,7 +248,9 @@ public class Route {
 	/// Retrieves the action associated to the route.
 	public var getAction: RouteActionType { return action	}
 	
-	
+	/**
+	Initialises a route with a Message-type action and "Message" user response type.
+	*/
 	public init(messageRoute: String, action: @escaping (Message, Session) -> (Bool) ) {
 		self.filter = messageRoute
 		self.type = .message
@@ -243,6 +295,9 @@ public class Route {
 	
 }
 
+/**
+Defines an available action type that a route can contain.
+*/
 public enum RouteActionType {
 	case message((Message, Session) -> (Bool))
 	case inlineQuery((InlineQuery, Session) -> (Bool))
@@ -250,6 +305,9 @@ public enum RouteActionType {
 	case callbackQuery((CallbackQuery, Session) -> (Bool))
 }
 
+/**
+Defines the type of request that a route can be assigned to.
+*/
 public enum RequestType {
 	case message
 	case editedMessage
