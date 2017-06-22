@@ -23,6 +23,13 @@ public protocol SendType {
   func getQuery() -> [String:NodeConvertible] // Whats used to extract the required information
 }
 
+/**
+Defines a type that encapsulates a request from a user, through Telegram.
+*/
+protocol UserRequest {
+	
+}
+
 
 extension Row {
 	

@@ -73,7 +73,7 @@ public extension Pelican {
   
   
   // Sends a message.  Must contain a chat ID, message text and an optional MarkupType.
-  public func sendMessage(chatID: Int, text: String, replyMarkup: MarkupType?, parseMode: String = "", disableWebPreview: Bool = false, disableNtf: Bool = false, replyMessageID: Int = 0) -> Message? {
+  public func sendMessage(chatID: Int, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .none, disableWebPreview: Bool = false, disableNtf: Bool = false, replyMessageID: Int = 0) -> Message? {
     var query: [String:NodeConvertible] = [
       "chat_id":chatID,
       "text": text,
@@ -86,7 +86,7 @@ public extension Pelican {
 			print(replyMarkup!.getQuery())
 			query["reply_markup"] = replyMarkup!.getQuery()
 		}
-    if parseMode != "" { query["parse_mode"] = parseMode }
+    if parseMode != .none { query["parse_mode"] = parseMode.rawValue }
     if replyMessageID != 0 { query["reply_to_message_id"] = replyMessageID }
     
     // Try sending it!
@@ -187,7 +187,10 @@ public extension Pelican {
   
   /** I mean you're not "necessarily" uploading a file but whatever, it'll do for now */
   public func uploadFile(link: FileLink, callback: ReceiveUpload? = nil, chatID: Int, markup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) {
-    
+		
+		
+		// The PhotoSize/Photo model stopped working, this can't be used until later.
+		/*
     // Check to see if we need to upload this in the first place.
     // If not, send the file using the link.
     let search = cache.find(upload: link, bot: self)
@@ -199,7 +202,8 @@ public extension Pelican {
       }
       return
     }
-    
+		*/
+
     // Obtain the file data cache
     let data = cache.get(upload: link)
     if data == nil { return }

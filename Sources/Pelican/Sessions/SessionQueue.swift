@@ -61,7 +61,7 @@ public class SessionQueue {
 		queue.append(action)
 		session!.bot.addSessionEvent(session: session!)
 		
-		print("New Delay - \(execTime)")
+		//print("New Delay - \(execTime)")
 	}
 	
 	/** 
@@ -90,7 +90,7 @@ public class SessionQueue {
 	- parameter message: The text message you wish to send.
 	- parameter markup: If any special message functions should be applied.
 	*/
-	public func addMessageEx(delay: Int, viewTime: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
+	public func addMessageEx(delay: Int, viewTime: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: MessageParseMode = .none, webPreview: Bool = false, disableNtf: Bool = false) {
 		self.add(byDelay: delay, viewTime: viewTime) { session in
 			_ = session.send(message: message, markup: markup, reply: reply, parseMode: parseMode, webPreview: webPreview, disableNtf: disableNtf)
 		}
@@ -129,8 +129,8 @@ public class SessionQueue {
 	
 	/** Increments the timer and checks if any actions need executing.  Returns true if no actions are left */
 	func incrementTimer() -> Bool {
-		print("Checking for actions...")
-		print(queue.map({$0.time}))
+		//print("Checking for actions...")
+		//print(queue.map({$0.time}))
 		
 		time += 1
 		
@@ -145,7 +145,7 @@ public class SessionQueue {
 					time = 0
 				}
 				
-				print("Executing Action - \(action.time)")
+				//print("Executing Action - \(action.time)")
 				action.action(session!)
 				
 				// Also return true if empty

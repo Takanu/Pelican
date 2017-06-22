@@ -130,7 +130,13 @@ public enum MessageType {
   case text
 }
 
-final public class Message: TelegramType {
+public enum MessageParseMode: String {
+	case html = "HTML"
+	case markdown = "Markdown"
+	case none = ""
+}
+
+final public class Message: TelegramType, UserRequest {
   public var storage = Storage() // Unique message identifier for the database
   
   public var tgID: Int // Unique identifier for the Telegram message.
@@ -358,7 +364,7 @@ final public class Photo: TelegramType, SendType {
   // SendType conforming methods
   public func getQuery() -> [String:NodeConvertible] {
     let keys: [String:NodeConvertible] = [
-      "photo": photos[0].fileID]
+			"photo": photos.map( { $0.fileID	})]
     
     return keys
   }
@@ -931,7 +937,7 @@ class File: Model {
  If the button that originated the query was attached to a message sent by the bot, the field message will be present. If the button was attached to a message sent via the bot (in inline mode), the field inline_message_id will be present. Exactly one of the fields data or game_short_name will be present.
  */
 
-final public class CallbackQuery: Model {
+final public class CallbackQuery: Model, UserRequest {
 	public var storage = Storage()
 	
   public var id: String // Unique identifier for the query.

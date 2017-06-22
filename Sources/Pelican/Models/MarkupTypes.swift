@@ -405,12 +405,20 @@ final public class MarkupInline: Model, MarkupType {
 	/**
 	Adds an extra row to the keyboard based on the sequence of buttons you provide.
 	*/
-	public func addRow(_ sequence: MarkupInlineKey...) {
+	public func addRow(sequence: MarkupInlineKey...) {
 		var array: [MarkupInlineKey] = []
 		
 		for button in sequence {
 			array.append(button)
 		}
+		
+		keyboard.append(array)
+	}
+	
+	/**
+	Adds an extra row to the keyboard based on the array of buttons you provide.
+	*/
+	public func addRow(array: [MarkupInlineKey]) {
 		
 		keyboard.append(array)
 	}

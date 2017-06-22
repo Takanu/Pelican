@@ -472,7 +472,7 @@ public final class Pelican: Vapor.Provider {
       if query.message != nil {
         if sessions[Int(query.message!.chat.tgID)] != nil {
           let session = sessions[Int(query.message!.chat.tgID)]
-          session?.filterQuery(query: query)
+          session?.filterCallbackQuery(query: query)
           bumpSession(session!)
         }
       }
