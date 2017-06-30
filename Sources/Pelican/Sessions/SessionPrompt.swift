@@ -1,5 +1,5 @@
 //
-//  SessionPrompt.swift
+//  ChatSessionPrompt.swift
 //  Pelican
 //
 //  Created by Takanu Kyriako on 27/03/2017.
@@ -14,7 +14,7 @@ import Vapor
  */
 public class PromptController {
   var prompts: [Prompt] = []
-  var session: Session?
+  var session: ChatSession?
   public var enabled: Bool = true
   public var count: Int { return prompts.count }
   
@@ -32,7 +32,7 @@ public class PromptController {
   }
 	
 	/** 
-	Creates a prompt thats connected to the Session, enabling it to automatically receive callback queries and react to player input,
+	Creates a prompt thats connected to the ChatSession, enabling it to automatically receive callback queries and react to player input,
 	as well as to be sent in a chat.  A prompt is a specific model and controller system for defining a message attached to an inline
 	message keyboard, including how it's sent and how it reacts to user input.
 	- parameter inline: The inline keyboard to be used in this Prompt.
@@ -40,7 +40,7 @@ public class PromptController {
 	- parameter upload: A specific file to be sent as the contents of the message belonging to this prompt.
 	- parameter update: (Optional) The closure that is executed every time the prompt receives a callback query.
 	*/
-	public func createPrompt(name: String, inline: MarkupInline, text: String, file: FileLink?, update: ((Session, Prompt) -> ())? ) -> Prompt {
+	public func createPrompt(name: String, inline: MarkupInline, text: String, file: FileLink?, update: ((ChatSession, Prompt) -> ())? ) -> Prompt {
 		let prompt = Prompt(name: name, inline: inline, text: text, file: file, update: update)
 		prompt.controller = self
 		self.add(prompt)
@@ -75,7 +75,7 @@ public class PromptController {
   
   /** Filters a query for a prompt to receive and handle.
    */
-  func filterQuery(_ query: CallbackQuery, session: Session) -> Bool {
+  func filterQuery(_ query: CallbackQuery, session: ChatSession) -> Bool {
     if enabled == false { return false }
     
     for prompt in prompts {
@@ -161,9 +161,9 @@ public class Prompt: ReceiveUpload {
 	
 	
 	/// Executed when an update is received by the prompt that was successful.
-  public var update: ((Session, Prompt) -> ())?
+  public var update: ((ChatSession, Prompt) -> ())?
 	/// Executed when the Prompt has finished operating in it's current cycle.
-  public var finish: ((Session, Prompt) -> ())?
+  public var finish: ((ChatSession, Prompt) -> ())?
   
   // Results and next steps
   var usersPressed: [User] = []             // Who ended up pressing a button.
@@ -185,7 +185,7 @@ public class Prompt: ReceiveUpload {
 	/** 
 	For internal use only, Prompts have to be attached to the PromptController in order to function.
 	*/
-	init(name: String, inline: MarkupInline, text: String, file: FileLink?, update: ((Session, Prompt) -> ())? ) {
+	init(name: String, inline: MarkupInline, text: String, file: FileLink?, update: ((ChatSession, Prompt) -> ())? ) {
 		self.name = name
     self.inline = inline
     self.text = text
@@ -249,7 +249,7 @@ public class Prompt: ReceiveUpload {
 	the previously sent instance of this prompt will stop functioning (this behaviour will
 	likely change in the future).
    */
-  public func send(session: Session) {
+  public func send(session: ChatSession) {
 		
 		/// If it's being reused, reset the results.
 		if resetResultsOnSend == true {
@@ -266,11 +266,11 @@ public class Prompt: ReceiveUpload {
     // If we have an upload link, use that to send our prompt
     // Otherwise just send it normally
     if self.file != nil {
-      session.send(link: self.file!, markup: inline, callback: self, caption: text)
+      session.uploadFile(file!, caption: text, markup: inline, replyID: 0, disableNtf: false, callback: self)
     }
     
     else {
-      self.message = session.send(message: text, markup: inline)
+      self.message = session.sendMessage(text, markup: inline, reply: false, webPreview: false, disableNtf: false)
     }
 		
 		// If we have a timer, make it tick.
@@ -285,7 +285,7 @@ public class Prompt: ReceiveUpload {
 	Receives a callback query to see if the prompt can use it as an input.
 	- returns: Whether or not the callback query was successfully handled by the prompt.
    */
-  func query(query: CallbackQuery, session: Session) -> Bool {
+  func query(query: CallbackQuery, session: ChatSession) -> Bool {
     
     // Return early if some basic conditions are not met
     if query.data == nil { return false }
@@ -305,7 +305,7 @@ public class Prompt: ReceiveUpload {
     let success = pressButton(user, query: data)
     if success == true {
       if alertSuccess != "" {
-        session.answer(query: query, text: alertSuccess)
+        session.answerCallbackQuery(queryID: query.id, text: alertSuccess)
       }
 			
 			// Call the update closure and enclose the result
@@ -319,7 +319,7 @@ public class Prompt: ReceiveUpload {
       
 		// Answer with an alert failure if you well... failed to contribute.
     else if success == false && alertFailure != "" {
-      session.answer(query: query, text: alertFailure)
+      session.answerCallbackQuery(queryID: query.id, text: alertFailure)
     }
     
     
@@ -370,6 +370,7 @@ public class Prompt: ReceiveUpload {
     return false
   }
 	
+	
 	/** 
 	Attempts to update both the inline keyboard and text of the currently displayed message.
 	If no inline keyboard or text is defined, those components will be removed from the message.
@@ -378,7 +379,7 @@ public class Prompt: ReceiveUpload {
 	a file).  If nil, the text will be removed.
 	- parameter resetResults: If true, all currently stored results will be lost.
 	*/
-	public func updateMessage(newInline: MarkupInline, newText: String, session: Session, resetResults: Bool = false) {
+	public func updateMessage(newInline: MarkupInline, newText: String, session: ChatSession, resetResults: Bool = false) {
 		
 		if resetResults == true {
 			self.inline = newInline
@@ -390,27 +391,29 @@ public class Prompt: ReceiveUpload {
 		self.text = newText
 		
 		if self.file != nil {
-			session.edit(caption: text, message: message!, markup: inline)
+			session.editCaption(withMessageID: message!.tgID, caption: text, markup: inline)
 		}
 			
 		else {
-			session.edit(withMessage: message!, text: text, markup: inline)
+			session.editMessage(withMessageID: message!.tgID, text: text, markup: inline, webPreview: false)
 		}
 	}
+	
+	
 	/**
 	Attempts to update the text of the currently displayed message.
 	- parameter newText: The new text to be used for the message body (or caption if the message contains
 	a file).  If empty, the text will be removed.
 	*/
-	public func updateText(newText: String, session: Session) {
+	public func updateText(newText: String, session: ChatSession) {
 		self.text = newText
 		
 		if self.file != nil {
-			session.edit(caption: text, message: message!, markup: inline)
+			session.editCaption(withMessageID: message!.tgID, caption: text, markup: inline)
 		}
 			
 		else {
-			session.edit(withMessage: message!, text: text, markup: inline)
+			session.editMessage(withMessageID: message!.tgID, text: text, markup: inline, webPreview: false)
 		}
 	}
 	
@@ -419,7 +422,7 @@ public class Prompt: ReceiveUpload {
 	- parameter newInline: The new inline keyboard to be used under the message the Prompt belongs to.
 	- parameter resetResults: If true, all currently stored results will be lost.
 	*/
-	public func updateInline(newInline: MarkupInline, session: Session, resetResults: Bool = false) {
+	public func updateInline(newInline: MarkupInline, session: ChatSession, resetResults: Bool = false) {
 		if resetResults == true {
 			self.inline = newInline
 			for data in inline.getCallbackData()! {
@@ -428,11 +431,11 @@ public class Prompt: ReceiveUpload {
 		}
 		
 		if self.file != nil {
-			session.edit(caption: text, message: message!, markup: inline)
+			session.editCaption(withMessageID: message!.tgID, caption: text, markup: inline)
 		}
 			
 		else {
-			session.edit(withMessage: message!, text: text, markup: inline)
+			session.editMessage(withMessageID: message!.tgID, text: text, markup: inline, webPreview: false)
 		}
 	}
 	
@@ -441,7 +444,7 @@ public class Prompt: ReceiveUpload {
 	calling the finish() closure if it exists.  Results will remain until the prompt
 	is sent again.
    */
-  public func finish(session: Session) {
+  public func finish(session: ChatSession) {
 		
 		// If it completed itself and the timer existed, ensure the action is removed to prevent a second trigger.
 		if completed == true {
@@ -465,11 +468,11 @@ public class Prompt: ReceiveUpload {
 		// Otherwise if we want to remove the inline keyboard automatically when done, do it!
 		else if removeInlineOnFinish == true {
 			if self.file != nil {
-				session.edit(caption: text, message: message!, markup: nil)
+				session.editCaption(withMessageID: message!.tgID, caption: text, markup: nil)
 			}
 				
 			else {
-				session.edit(withMessage: message!, text: text, markup: nil)
+				session.editMessage(withMessageID: message!.tgID, text: text, markup: nil, webPreview: false)
 			}
 		}
   }

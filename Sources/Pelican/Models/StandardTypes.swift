@@ -136,7 +136,7 @@ public enum MessageParseMode: String {
 	case none = ""
 }
 
-final public class Message: TelegramType, UserRequest {
+final public class Message: TelegramType, ChatUpdateModel {
   public var storage = Storage() // Unique message identifier for the database
   
   public var tgID: Int // Unique identifier for the Telegram message.
@@ -937,21 +937,22 @@ class File: Model {
  If the button that originated the query was attached to a message sent by the bot, the field message will be present. If the button was attached to a message sent via the bot (in inline mode), the field inline_message_id will be present. Exactly one of the fields data or game_short_name will be present.
  */
 
-final public class CallbackQuery: Model, UserRequest {
+final public class CallbackQuery: Model, ChatUpdateModel {
 	public var storage = Storage()
 	
-  public var id: String // Unique identifier for the query.
-  public var from: User // The sender of the query.
-  public var message: Message? // message with the callback button that originated from the query.  Won't be available if it's too old.
+  public var id: String								// Unique identifier for the query.
+  public var from: User								// The sender of the query.
+  public var message: Message?				// message with the callback button that originated from the query.  Won't be available if it's too old.
   public var inlineMessageID: String? // Identifier of the message sent via the bot in inline mode that originated the query.
-  public var chatInstance: String? // Global identifier, uniquely corresponding to the chat to which the message with the callback button was sent.  Useful for high scores in games.
-  public var data: String? // Data associated with the callback button.  Be aware that a bad client can send arbitrary data here.
-  public var gameShortName: String? // Short name of a Game to be returned, serves as the unique identifier for the game.
+  public var chatInstance: String			// Global identifier, uniquely corresponding to the chat to which the message with the callback button was sent.  Useful for high scores in games.
+  public var data: String?						// Data associated with the callback button.  Be aware that a bad client can send arbitrary data here.
+  public var gameShortName: String?		// Short name of a Game to be returned, serves as the unique identifier for the game.
   
   
-  public init(id: String, from: User) {
+	public init(id: String, from: User, chatInstance: String) {
     self.id = id
     self.from = from
+		self.chatInstance = chatInstance
   }
   
   // NodeRepresentable conforming methods

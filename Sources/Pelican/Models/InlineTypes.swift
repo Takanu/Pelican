@@ -5,7 +5,7 @@ import FluentProvider
 
 /** Represents an incoming inline query. When the user sends an empty query, your bot could return some default or trending results.
  */
-final public class InlineQuery: Model, UserRequest {
+final public class InlineQuery: Model, UserUpdateModel {
 	public var storage = Storage()
 	
   public var id: String // Unique identifier for this query.
@@ -40,7 +40,7 @@ final public class InlineQuery: Model, UserRequest {
 
 /** Represents a result of an inline query that was chosen by the user and sent to their chat partner. 
  */
-public struct ChosenInlineResult: UserRequest {
+public struct ChosenInlineResult: UserUpdateModel {
 	public var storage = Storage()
 	
   var resultID: String // The unique identifier for the result that was chosen.
