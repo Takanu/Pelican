@@ -130,6 +130,8 @@ public final class Pelican: Vapor.Provider {
   public let message: String = "Rawr."
   //public var provided: Providable { return Providable() }
 	
+	
+	// CORE PROPERTIES
 	/// The droplet this provider is running on.
   var drop: Droplet
 	/// The cache system responsible for handling the re-using of already uploaded files and assets, to preserve system resources.
@@ -140,29 +142,40 @@ public final class Pelican: Vapor.Provider {
   var apiURL: String
 	/// Defines an object to be used for custom data, to be used purely for cloning into newly-created ChatSessions.  DO NOT EDIT CONTENTS.
   private var customData: NSCopying?
-  
-  // Variables used for long polling
+	
+	
+  // CONNECTION SETTINGS
   public var offset: Int = 0
   public var limit: Int = 100
   public var timeout: Int = 0
-  public var allowedUpdates: [UpdateType] = []						// Leave empty if all are allowed, otherwise specify.
-  public var ignoreInitialUpdates: Bool = true       // If the bot has just started, it will ignore all received messages since it has been offline.
+	
+	/// The maximum number of times the bot will attempt to get a response before it logs an error.
+	public var maxRequestAttempts: Int = 0
+	/// Defines what update types the bot will receive.  Leave empty if all are allowed, or otherwise specify to optimise the bot.
+  public var allowedUpdates: [UpdateType] = []
+	/// If true, the bot will ignore any historic messages it has received while it has been offline.
+  public var ignoreInitialUpdates: Bool = true
   private var started: Bool = false
   public var hasStarted: Bool { return started }
-  
-  // Timers
+	
+	
+  // QUEUES
+	/// The time the bot started operating.
+	var timeStarted: Date
+	/// The time the last update the bot has received from Telegram.
+	var timeLastUpdate: Date
+	
   fileprivate var updateQueue: UpdateQueue?
   var uploadQueue: DispatchQueue
   var pollInterval: Int = 0
   var globalTimer: Int = 0        // Used for executing scheduled events.
   public var getTime: Int { return globalTimer }
-  
-  // Connection settings
-  public var maxRequestAttempts: Int = 0 // The maximum number of times the bot will attempt to get a response before it logs an error.
-  
-  // ChatSessions
-	private var chatSessions: [Int:ChatSession] = [:]						// The currently active sessions, ordered by how recently it was interacted with (longer = smaller index).
-  private var chatSessionActivity: [ChatSession] = []					// Records when a session was last used, to keep track of when sessions need to be closed.
+	
+	
+	
+  // SESSIONS
+	/// The currently active sessions, ordered by their chat ID.
+	private var chatSessions: [Int:ChatSession] = [:]
   private var chatSessionEvents: [Int:ChatSession] = [:]			// Used for keeping track of sessions that have events.
 	private var userSessions: [Int:UserSession] = [:]						// Keeps track of the individual users currently interacting with the bot.
 	
@@ -179,15 +192,26 @@ public final class Pelican: Vapor.Provider {
   public var sessionEndAction: ((ChatSession) -> ())?  // What should be run when the session ends.  Could be nothing!
 	
 	
+	// SESSION TIMEOUTS
+	/// A list of sessions to be checked by Pelican to ensure they do not reach the timeout threshold set by the session.
+	var chatSessionActivity: [Int:ChatSession] = [:]
+	/// A list of sessions to be checked by Pelican to ensure they do not reach the timeout threshold set by the session.
+	var userSessionActivity: [Int:UserSession] = [:]
+	/// A list of the chat sessions Pelican has yet to check for timeout since it's last check.
+	var chatSessionActivityLeft: [ChatSession] = []
+	/// A list of the user sessions Pelican has yet to check for timeout since it's last check.
+	var userSessionActivityLeft: [UserSession] = []
+	/// Enables the automatic checking of Pelican sessions for timeouts.  If set to false, this can be done manually using `checkTimeouts()`.
+	public var enableTimeoutChecks: Bool = true
+	/// Defines how many sessions Pelican will check for timeouts each second, if any sessions have a timeout value.
+	public var timeoutCheckFrequency: Int = 100
+	/// Defines the maximum number of sessions Pelican will check for timeouts, regardless of `timeoutCheckFrequency`.
+	public var timeoutCheckMaximum: Int = 250
+	
+	
   // Flood Limit
   public var floodLimit: FloodLimit = FloodLimit(limit: 250, range: 300, breachLimit: 2, breachReset: 500)  // Settings that define flood limit restrictions for each session
   public var floodLimitWarning: ((UserSession) -> ())? // An optional warning to send to people the first time they hit the flood warning.
-	
-	
-  // Response Settings
-  public var responseLimit: Int = 0  // The number of times a session will respond to a message in a given poll interval before ignoring them.  Set as 0 for no limit.
-  public var restrictUsers: Bool = false // Restricts the users that can use a session to only those specified in the session list if true.
-	
 	
 	
   // Blacklist
@@ -195,13 +219,18 @@ public final class Pelican: Vapor.Provider {
 	public var mod: Moderator
 	/// Define an action if someone enters the blacklist.
   public var blacklistPrepareAction: ((Pelican, Chat) -> ())?
-
+	
+	
+	// Boots the provider?
 	public func boot(_ config: Config) throws {
 		print("*shrug")
 	}
-  
+	
+	
   // Provider conforming functions
   public init(config: Config) throws {
+		
+		// Obtain the token from pelican.json
     guard let token = config["pelican", "token"]?.string else {
       throw TGBotError.KeyMissing
     }
@@ -213,14 +242,22 @@ public final class Pelican: Vapor.Provider {
 									Venue.self, UserProfilePhotos.self]
 		*/
 		
+		// Initialise controls and timers
 		self.mod = Moderator()
     self.cache = CacheManager()
     self.apiKey = token
     self.apiURL = "https://api.telegram.org/bot" + apiKey
 		
+		// Initialise timers
+		self.timeStarted = Date()
+		self.timeLastUpdate = Date()
+		
+		// Initialise upload queue and droplet
     self.uploadQueue = DispatchQueue(label: "TG-Upload",
                                      qos: .background,
                                      target: nil)
+		
+		// This is a bit dodgy
     self.drop = try Droplet()
 		try! cache.setBundlePath(drop.config.publicDir)
   }
@@ -492,7 +529,6 @@ public final class Pelican: Vapor.Provider {
     
     // Check the global timer for any scheduled events
     globalTimer += pollInterval
-    checkChatSessionActivity()
     checkChatSessionQueues()
 		
 		
@@ -559,7 +595,100 @@ public final class Pelican: Vapor.Provider {
 				//session.bumpFlood()
 			}
 		}
+		
+		
+		// Check for timeouts.  If true, calculate a check amount and execute the function.
+		if enableTimeoutChecks == true {
+			
+			let calendar = Calendar.init(identifier: .gregorian)
+			let comparison = calendar.compare(timeLastUpdate, to: Date(), toGranularity: .second)
+			
+			var checkAmount = timeoutCheckFrequency * comparison.rawValue
+			if checkAmount > timeoutCheckMaximum { checkAmount = timeoutCheckMaximum }
+			
+			checkTimeouts(amount: checkAmount, resetList: false)
+		}
+		
+		// Update the last active time.
+		timeLastUpdate = Date()
+		
   }
+	
+	/**
+	Checks Pelican's User and Chat session lists to see if any sessions have timed out, and removes the ones that have.
+	- parameter amount: The amount of sessions in total that the function will check.  Set to 0 to check all stored sessions.
+	- parameter resetList: Pelican remembers the sessions you have yet to check if the `amount` parameter is not 0.  Set this to false if you wish Pelican to continue
+	checking from where it left off on the list, or false if you want it to reset it's checks.
+	- note: If you haven't set `enableTimeoutChecks` to false, this will automatically be performed by Pelican based on the check frequency you have set.
+	*/
+	public func checkTimeouts(amount: Int, resetList: Bool) {
+		
+		if amount == 0 {
+			
+			for session in chatSessionActivity.values {
+				if session.hasTimeout == true {
+					
+					removeChatSession(chatID: session.chatID)
+				}
+			}
+			
+			for session in userSessionActivity.values {
+				if session.hasTimeout == true {
+					
+					removeUserSession(userID: session.userID)
+				}
+			}
+		}
+			
+		
+		
+		else {
+			
+			// If we have been requested to reset the leftover timeout checks, do it!
+			if resetList == true {
+				chatSessionActivityLeft = chatSessionActivity.values.array
+				userSessionActivityLeft = userSessionActivity.values.array
+			}
+			
+			// Build the ratios between chats and users, and use that to build a total for each
+			let total = chatSessionActivity.values.count + userSessionActivity.values.count
+			let userRatio = userSessionActivity.values.count / total
+			let chatRatio = chatSessionActivity.values.count / total
+			
+			let userCheckCount = userRatio * amount
+			let chatCheckCount = chatRatio * amount
+			
+			
+			for _ in 0..<userCheckCount {
+				
+				// If the leftover array equals 0, populate them.
+				if chatSessionActivityLeft.count == 0 {
+					chatSessionActivityLeft = chatSessionActivity.values.array
+				}
+				
+				let session = chatSessionActivityLeft.removeFirst()
+				if session.hasTimeout == true {
+					
+					removeChatSession(chatID: session.chatID)
+				}
+			}
+			
+			for _ in 0..<chatCheckCount {
+				
+				// If the leftover array equals 0, populate them.
+				if userSessionActivityLeft.count == 0 {
+					userSessionActivityLeft = userSessionActivity.values.array
+				}
+				
+				let session = userSessionActivityLeft.removeFirst()
+				if session.hasTimeout == true {
+					
+					removeUserSession(userID: session.userID)
+				}
+			}
+		}
+		
+	}
 	
 	
 	/**
@@ -588,10 +717,8 @@ public final class Pelican: Vapor.Provider {
 		if sessionSetupAction == nil { print(TGBotError.EntryMissing.rawValue) ; return }
 		let session = ChatSession(bot: self, chatID:chatID, data: customData, floodLimit: floodLimit, setup: self.sessionSetupAction!, sessionEndAction: self.sessionEndAction)
 		session.postInit()
-		session.responseLimit = self.responseLimit
 		
 		chatSessions[chatID] = session
-		chatSessionActivity.append(session)
 		
 		print("ChatSession added.")
 		print("Current Active ChatSessions: ")
@@ -609,53 +736,6 @@ public final class Pelican: Vapor.Provider {
 		let session = UserSession(bot: self, user: user, floodLimit: floodLimit)
 		return session
 	}
-	
-  /**
-	Bumps a session up the activity queue based on perceived activity.  Only bump if it's clear that the session
-	has been interacted with.
-	*/
-  internal func bumpChatSession(_ session: ChatSession) {
-    
-    // Find the session to be bumped up
-    for (index, value) in chatSessionActivity.enumerated() {
-      
-      // If found, pull it from the stack and add it to the end.
-      if value.chatID == session.chatID {
-        chatSessionActivity.remove(at: index)
-        chatSessionActivity.append(session)
-      }
-    }
-  }
-  
-  /**
-	Reviews session activity using the `sessionActivity`, and decided whether any sessions need to be removed based on their timeout values.
-	*/
-  internal func checkChatSessionActivity() {
-    // If no max session time is set (and it really should be) , ignore checks.
-    if defaultMaxChatSessionTime == 0 { return }
-    
-    // While the first session is timed out, end it and remove it from all stacks.
-    while chatSessionActivity.first?.timedOut == true {
-      
-      let session = chatSessionActivity.first!
-      //print("ChatSession Time Out - ", (session.chat.title ?? session.chat.firstName!))
-      //print(String(session.chat.tgID) + " - " + (session.chat.title ?? session.chat.firstName!))
-      
-      if session.sessionEndAction != nil {
-        session.sessionEndAction!(session)
-      }
-      
-      // Remove the session from all arrays
-      chatSessions.removeValue(forKey: session.chatID)
-      chatSessionEvents.removeValue(forKey: session.chatID)
-      chatSessionActivity.remove(at: 0)
-      
-      //print("ChatSession Removed.")
-      //print("Current Active ChatSessions: ")
-      //print(sessions)
-    }
-  }
-  
   
   
   /**
@@ -697,9 +777,9 @@ public final class Pelican: Vapor.Provider {
 		chatSessions.removeValue(forKey: chatID)
 		chatSessionEvents.removeValue(forKey: chatID)
 		
-		for (index, value) in chatSessionActivity.enumerated() {
-			if value.chatID == chatID {
-				chatSessionActivity.remove(at: index)
+		for (index, _) in chatSessionActivity.enumerated() {
+			if index == chatID {
+				chatSessionActivity.removeValue(forKey: chatID)
 			}
 		}
 	}

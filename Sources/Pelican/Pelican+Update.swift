@@ -85,6 +85,8 @@ public protocol Update {
 	var type: DataType { get set }
 	/// The data package contained in the update.
 	var data: Data { get set }
+	/// The time the update was received by Pelican.
+	var time: Date { get }
 	
 	/// The basic package of content provided in the update by the sending user, to be used by Route filters.
 	var content: String { get set }
@@ -100,6 +102,7 @@ public struct ChatUpdate: Update {
 	
 	public var type: ChatUpdateType
 	public var data: ChatUpdateModel
+	public var time = Date()
 	public var content: String
 	
 	public var from: User?
@@ -163,6 +166,7 @@ public struct UserUpdate: Update {
 	
 	public var type: UserUpdateType
 	public var data: UserUpdateModel
+	public var time = Date()
 	public var content: String
 	
 	var from: User

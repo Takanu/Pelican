@@ -16,13 +16,15 @@ the chat sessions the user is actively participating in and other key pieces of 
 
 UserSession is also used to handle InlineQuery and ChosenInlineResult routes, as only UserSessions will receive inline updates.
 */
-public class UserSession {
+public class UserSession: Session {
 	
 	
 	//  CORE INTERNAL VARIABLES
 	public var bot: Pelican
 	/// The user information associated with this session.
 	public var info: User
+	/// The ID of the user associated with this session.
+	public var userID: Int
 	/// The chat sessions the user is currently actively occupying.
 	public var chatSessions: [ChatSession] = []
 	/** A user-defined type assigned by Pelican on creation, used to cleanly associate custom functionality and
@@ -31,12 +33,35 @@ public class UserSession {
 	public var data: NSCopying?
 	
 	
-	// Delegates/Controllers
+	// DELEGATES / CONTROLLERS
 	public var routes = RouteController<UserUpdateType, UserSession, UserUpdate>()
-	/// What permission lists the user is currently on.
 	var permissions: [String] = []
-	/// Defines the permission lists the user is currently on, internally determined by Pelican's Moderator delegate (`bot.mod`).
-	public var getPermissions: [String] { return permissions }
+	
+	
+	// TIME AND ACTIVITY
+	public var timeStarted = Date()
+	var timeLastActive = Date()
+	var timeoutLength: Int {
+		get {
+			return self.timeoutLength
+		}
+		
+		set(newTimeout) {
+			
+			// If the new timeout is a usable number, add it to the sessions that need their activity checked.
+			if timeoutLength <= 0 && newTimeout > 0 {
+				self.timeoutLength = newTimeout
+				bot.userSessionActivity[userID] = self
+			}
+				
+				// If the number has been zeroed out, remove it from the activity list.
+			else if timeoutLength > 0 && newTimeout <= 0 {
+				self.timeoutLength = newTimeout
+				bot.userSessionActivity.removeValue(forKey: userID)
+			}
+		}
+	}
+	
 	
 	// Flood Controls
 	var floodLimit: FloodLimit     // External flood tracking system.
@@ -48,6 +73,7 @@ public class UserSession {
 	init(bot: Pelican, user: User, floodLimit: FloodLimit) {
 		self.bot = bot
 		self.info = user
+		self.userID = user.tgID
 		self.floodLimit = floodLimit
 	}
 	
@@ -92,7 +118,7 @@ public class UserSession {
 			
 			// If we've reached the maximum maximum limit, add this chat ID to the blacklist
 			if floodLimit.reachedLimit {
-				_ = bot.mod.addUsers(toList: "blacklist", users: self)
+				_ = bot.mod.add(toList: "blacklist", users: self)
 				//bot.blacklistChatSession(session: self)
 				return
 			}

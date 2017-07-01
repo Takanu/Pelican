@@ -31,7 +31,7 @@ public class Moderator {
 	Attempts to add a user to an existing list.
 	- returns: True if successful, false if the list does not exist.
 	*/
-	public func addUsers(toList name: String, users: UserSession...) -> Bool {
+	public func add(toList name: String, users: UserSession...) -> Bool {
 		
 		// If it doesn't exist, return false
 		if userLists[name] == nil { return false }
@@ -54,7 +54,7 @@ public class Moderator {
 	Attempts to remove a user from an existing list.
 	- returns: True if successful, false if the list does not exist.
 	*/
-	public func removeUsers(fromList name: String, users: UserSession...) -> Bool {
+	public func remove(fromList name: String, users: UserSession...) -> Bool {
 		
 		// If it doesn't exist, return false
 		if userLists[name] == nil { return false }
@@ -81,7 +81,7 @@ public class Moderator {
 	Attempts to add chat IDs to a given list.
 	- returns: True if successful, false if the list does not exist.
 	*/
-	public func addChats(toList name: String, chatIDs: Int...) -> Bool {
+	public func add(toList name: String, chatIDs: Int...) -> Bool {
 		
 		if chatLists[name] == nil { return false }
 		
@@ -108,7 +108,7 @@ public class Moderator {
 	- returns: True if successful or if it was already removed, false if the list does not exist.
 	If removed, any chats that currently have an active session will also
 	*/
-	public func removeChats(fromList name: String, chatIDs: Int...) -> Bool {
+	public func remove(fromList name: String, chatIDs: Int...) -> Bool {
 		
 		if chatLists[name] == nil { return false }
 		
