@@ -203,9 +203,9 @@ public final class Pelican: Vapor.Provider {
 	var userSessionActivityLeft: [UserSession] = []
 	/// Enables the automatic checking of Pelican sessions for timeouts.  If set to false, this can be done manually using `checkTimeouts()`.
 	public var enableTimeoutChecks: Bool = true
-	/// Defines how many sessions Pelican will check for timeouts each second, if any sessions have a timeout value.
+	/// Defines how many sessions Pelican will check for timeouts each second, if any sessions have a timeout value.  This number is split between User and Chat sessions with an active timeout value.
 	public var timeoutCheckFrequency: Int = 100
-	/// Defines the maximum number of sessions Pelican will check for timeouts, regardless of `timeoutCheckFrequency`.
+	/// Defines the maximum number of sessions Pelican will check for timeouts, regardless of `timeoutCheckFrequency`.  This number is split between User and Chat sessions with an active timeout value.
 	public var timeoutCheckMaximum: Int = 250
 	
 	
@@ -652,11 +652,14 @@ public final class Pelican: Vapor.Provider {
 			
 			// Build the ratios between chats and users, and use that to build a total for each
 			let total = chatSessionActivity.values.count + userSessionActivity.values.count
-			let userRatio = userSessionActivity.values.count / total
 			let chatRatio = chatSessionActivity.values.count / total
+			let userRatio = userSessionActivity.values.count / total
 			
-			let userCheckCount = userRatio * amount
-			let chatCheckCount = chatRatio * amount
+			var chatCheckCount = chatRatio * amount
+			var userCheckCount = userRatio * amount
+			
+			if chatCheckCount > chatSessionActivity.count { chatCheckCount = chatSessionActivity.count }
+			if userCheckCount > userSessionActivity.count { userCheckCount = userSessionActivity.count }
 			
 			
 			for _ in 0..<userCheckCount {

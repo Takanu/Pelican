@@ -77,7 +77,7 @@ public class ChatSessionQueue {
 	*/
 	public func addMessage(delay: Int, viewTime: Int, message: String, markup: MarkupType? = nil) {
 		self.add(byDelay: delay, viewTime: viewTime) { session in
-			_ = session.sendMessage(message, markup: markup, reply: false, webPreview: false, disableNtf: false)
+			_ = session.sendMessage(message, markup: markup)
 		}
 	}
 	
@@ -92,7 +92,7 @@ public class ChatSessionQueue {
 	*/
 	public func addMessageEx(delay: Int, viewTime: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: MessageParseMode = .none, webPreview: Bool = false, disableNtf: Bool = false) {
 		self.add(byDelay: delay, viewTime: viewTime) { session in
-			_ = session.sendMessage(message, markup: markup, reply: reply, parseMode: parseMode, webPreview: webPreview, disableNtf: disableNtf)
+			_ = session.sendMessage(message, markup: markup)
 		}
 	}
 	
@@ -102,7 +102,7 @@ public class ChatSessionQueue {
 		let viewTime = calculateReadTime(text: dialog)
 		
 		self.add(byDelay: delay, viewTime: viewTime) { session in
-			_ = session.sendMessage(dialog, markup: markup, reply: false, webPreview: false, disableNtf: false)
+			_ = session.sendMessage(dialog, markup: markup)
 		}
 	}
 	

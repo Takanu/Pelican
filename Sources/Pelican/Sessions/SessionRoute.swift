@@ -97,6 +97,37 @@ public class RouteController<UpdateType: UpdateCollection, Session, UpdateObject
 	}
 	
 	/**
+	Adds a single route to the session based on the components that make up a route for this controller, enabling it to be used to receive user requests.  
+	If the session already has a route that matches the one provided in type and filter, it will be overwritten.
+	- parameter routes: The routes to be added to the controller.
+	*/
+	public func add(_ pattern: String, type: UpdateType, action: @escaping (Session, UpdateObject) -> (Bool) ) {
+		
+		let route = Route.init(pattern, type: type, action: action)
+		
+		var routeArray = collection[route.getType]!
+		
+		if route.pattern != "" {
+			
+			// If an existing route already exists with the same criteria, remove it.
+			if routeArray.first(where: { $0.pattern == route.pattern } ) != nil {
+				
+				let index = routeArray.index(where: {$0.pattern == route.pattern } )!
+				routeArray.remove(at: index)
+			}
+			
+			routeArray.insert(route, at: 0)
+		}
+			
+		else {
+			routeArray.append(route)
+		}
+		
+		collection[route.getType] = routeArray
+	}
+
+	
+	/**
 	Removes a route based on a given route type and filter name.
 	- parameter type: The request target of the route you wish to remove.
 	- parameter filter: The filter of the route to be removed.

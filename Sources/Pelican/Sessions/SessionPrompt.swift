@@ -270,7 +270,7 @@ public class Prompt: ReceiveUpload {
     }
     
     else {
-      self.message = session.sendMessage(text, markup: inline, reply: false, webPreview: false, disableNtf: false)
+      self.message = session.sendMessage(text, markup: inline)
     }
 		
 		// If we have a timer, make it tick.
