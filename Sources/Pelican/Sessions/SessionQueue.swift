@@ -1,5 +1,5 @@
 //
-//  SessionActions.swift
+//  ChatSessionActions.swift
 //  Pelican
 //
 //  Created by Takanu Kyriako on 27/03/2017.
@@ -10,18 +10,18 @@ import Foundation
 import Vapor
 
 /** 
-Defines a class that handles the creation, coordination and execution of delayed Telegram API calls inside a session.
+Defines a class that handles the creation, coordination and execution of delayed Telegram API calls inside a chat session.
 Useful when preparing sequences of messages to be sent out in order to present language and information in a steadier
 and more natural manner.  
 
 This is designed as a simple content scheduler and not a full dispatch/job system currently.  For that look to other
 frameworks such as Jobs - https://github.com/BrettRToomey/Jobs.
 */
-public class SessionQueue {
+public class ChatSessionQueue {
 	/// The list of actions currently queued for dispatch.
 	var queue: [QueueAction] = []
 	/// The session this queue belongs to.
-	var session: Session?
+	var session: ChatSession?
 	/** The current time "playback" point for the action queue.  When the queue is reset this resets to 0, and will only start being counted
 	once an action is available. */
 	var time: Int = 0
@@ -35,7 +35,7 @@ public class SessionQueue {
 	- parameter name: A name for the action, that can be used to search for and edit the action later on.
 	- parameter action: The closure to be executed when the queue executes this action.
 	*/
-	public func add(byDelay delay: Int, viewTime: Int, name: String = "", action: @escaping (Session) -> ()) {
+	public func add(byDelay delay: Int, viewTime: Int, name: String = "", action: @escaping (ChatSession) -> ()) {
 		
 		// Calculate what kind of delay we're using
 		var execTime = 0
@@ -59,7 +59,7 @@ public class SessionQueue {
 		// Add it directly to the end of the stack
 		let action = QueueAction(session: session!, execTime: execTime, viewTime: viewTime, action: action, name: name)
 		queue.append(action)
-		session!.bot.addSessionEvent(session: session!)
+		session!.bot.addChatSessionEvent(session: session!)
 		
 		//print("New Delay - \(execTime)")
 	}
@@ -77,7 +77,7 @@ public class SessionQueue {
 	*/
 	public func addMessage(delay: Int, viewTime: Int, message: String, markup: MarkupType? = nil) {
 		self.add(byDelay: delay, viewTime: viewTime) { session in
-			_ = session.send(message: message, markup: markup)
+			_ = session.sendMessage(message, markup: markup)
 		}
 	}
 	
@@ -92,7 +92,7 @@ public class SessionQueue {
 	*/
 	public func addMessageEx(delay: Int, viewTime: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: MessageParseMode = .none, webPreview: Bool = false, disableNtf: Bool = false) {
 		self.add(byDelay: delay, viewTime: viewTime) { session in
-			_ = session.send(message: message, markup: markup, reply: reply, parseMode: parseMode, webPreview: webPreview, disableNtf: disableNtf)
+			_ = session.sendMessage(message, markup: markup)
 		}
 	}
 	
@@ -102,7 +102,7 @@ public class SessionQueue {
 		let viewTime = calculateReadTime(text: dialog)
 		
 		self.add(byDelay: delay, viewTime: viewTime) { session in
-			_ = session.send(message: dialog, markup: markup)
+			_ = session.sendMessage(dialog, markup: markup)
 		}
 	}
 	
@@ -189,12 +189,12 @@ public class SessionQueue {
 // Defines a queued action for a specific session, to be run at a later date
 class QueueAction {
   var name: String = ""				// Only used if the user may later want to find and remove the action before being played.
-  var session: Session				// The session to be affected
+  var session: ChatSession				// The session to be affected
 	var viewTime: Int = 0				// (Optional)
   var time: Int								// The time at which this should be executed.
-  var action: (Session) -> ()	// The closure to be executed.
+  var action: (ChatSession) -> ()	// The closure to be executed.
   
-	init(session: Session, execTime: Int, viewTime: Int, action: @escaping (Session) -> (), name: String = "") {
+	init(session: ChatSession, execTime: Int, viewTime: Int, action: @escaping (ChatSession) -> (), name: String = "") {
     self.name = name
     self.session = session
     self.time = execTime

@@ -247,7 +247,7 @@ final public class MarkupKeyboardKey: Model {
  back to the session and to a `callbackState` if one exists.  
  
  Alternatively if the keyboard the button belongs to is part of a `Prompt`, it will automatically 
- be received by it in the respective Session, and the prompt will respond based on how you have set 
+ be received by it in the respective ChatSession, and the prompt will respond based on how you have set 
  it up.
  
  **URL**
@@ -605,7 +605,7 @@ This sends a small String back to the bot as a `CallbackQuery`, which is automat
 back to the session and to a `callbackState` if one exists.
 
 Alternatively if the keyboard the button belongs to is part of a `Prompt`, it will automatically
-be received by it in the respective Session, and the prompt will respond based on how you have set
+be received by it in the respective ChatSession, and the prompt will respond based on how you have set
 it up.
 
 **URL**

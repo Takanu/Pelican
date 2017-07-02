@@ -275,7 +275,7 @@ public extension Pelican {
        req.httpShouldHandleCookies = false
        
        // Set the task
-       let task = URLSession.shared.dataTask(with: req) {
+       let task = URLChatSession.shared.dataTask(with: req) {
        data, handler, error in
        
        let result = try! JSON(bytes: (data?.array)!)
@@ -506,7 +506,7 @@ public extension Pelican {
   //////////////////////////////////////////////////////////////////////////////////
   //// TELEGRAM EDIT MESSAGE METHOD IMPLEMENTATIONS
   
-  public func editMessageText(chatID: Int, messageID: Int = 0, text: String, replyMarkup: MarkupType?, parseMode: String = "", disableWebPreview: Bool = false, replyMessageID: Int = 0) {
+  public func editMessageText(chatID: Int, messageID: Int = 0, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .none, disableWebPreview: Bool = false) {
     var query: [String:NodeConvertible] = [
       "chat_id":chatID,
       "text": text,
@@ -516,8 +516,7 @@ public extension Pelican {
     // Check whether any other query needs to be added
     if messageID != 0 { query["message_id"] = messageID }
     if replyMarkup != nil { query["reply_markup"] = replyMarkup!.getQuery() }
-    if parseMode != "" { query["parse_mode"] = parseMode }
-    if replyMessageID != 0 { query["reply_to_message_id"] = replyMessageID }
+    if parseMode != .none { query["parse_mode"] = parseMode.rawValue }
     
     // Try sending it!
     do {
@@ -528,8 +527,29 @@ public extension Pelican {
       print(error)
     }
   }
-  
-  public func editMessageCaption(chatID: Int, messageID: Int = 0, caption: String, replyMarkup: MarkupType?, replyMessageID: Int = 0) {
+	
+	public func editMessageText(inlineMessageID: Int, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .none, disableWebPreview: Bool = false) {
+		var query: [String:NodeConvertible] = [
+			"inline_message_id":inlineMessageID,
+			"text": text,
+			"disable_web_page_preview": disableWebPreview,
+			]
+		
+		// Check whether any other query needs to be added
+		if replyMarkup != nil { query["reply_markup"] = replyMarkup!.getQuery() }
+		if parseMode != .none { query["parse_mode"] = parseMode.rawValue }
+		
+		// Try sending it!
+		do {
+			_ = try drop.client.post(apiURL + "/editMessageText", query: query)
+			//print(result)
+		}
+		catch {
+			print(error)
+		}
+	}
+	
+  public func editMessageCaption(chatID: Int, messageID: Int = 0, caption: String, replyMarkup: MarkupType?) {
     var query: [String:NodeConvertible] = [
       "chat_id":chatID,
       "text": caption,
@@ -538,7 +558,6 @@ public extension Pelican {
     // Check whether any other query needs to be added
     if messageID != 0 { query["message_id"] = messageID }
     if replyMarkup != nil { query["reply_markup"] = replyMarkup!.getQuery() }
-    if replyMessageID != 0 { query["reply_to_message_id"] = replyMessageID }
     
     // Try sending it!
     do {

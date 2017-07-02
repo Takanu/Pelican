@@ -1,5 +1,5 @@
 //
-//  SessionFlood.swift
+//  ChatSessionFlood.swift
 //  Pelican
 //
 //  Created by Takanu Kyriako on 27/03/2017.
