@@ -2,6 +2,49 @@
 import Foundation
 import Vapor
 
+
+/**
+Contains the permissions associated with a single user or chat.
+*/
+public class Permissions {
+	
+	enum IDType {
+		case chat
+		case user
+	}
+	
+	private var type: IDType
+	private var id: Int = 0
+	private var list: [String] = []
+	
+	public var getID: Int { return id }
+	public var getList: [String] { return list }
+	
+	fileprivate init(chatID: Int) {
+		self.type = .chat
+		self.id = chatID
+	}
+	
+	fileprivate init(userID: Int) {
+		self.type = .user
+		self.id = userID
+	}
+	
+	func add(_ permission: String) {
+		
+		if list.contains(permission) == true { return }
+		list.append(permission)
+	}
+	
+	func remove(_ permission: String) {
+		
+		if let index = list.index(of: permission) {
+			list.remove(at: index)
+		}
+	}
+	
+}
+
 /**
 Manages user access to the bot through a permanent blacklist feature (that works in conjunction with FloodLimit), while
 enabling the creation of custom user lists for flexible permission and other custom user and chat grouping systems.
@@ -9,203 +52,50 @@ enabling the creation of custom user lists for flexible permission and other cus
 public class Moderator {
 	
 	/// Holds the main bot class to ensure access to Chat and User Session lists.
-	var bot: Pelican?
-	
-	var chatLists: [String:[Int]] = [:]
-	var userLists: [String:[Int]] = [:]
+	var chats: [Int:Permissions] = [:]
+	var users: [Int:Permissions] = [:]
 	
 	var chatBlacklist: [Int] = []
 	var userBlacklist: [Int] = []
 	
-	var chatListSwitch: [String:Bool] = [:]
-	var userListSwitch: [String:Bool] = [:]
-	
-	var getChatCategories: [String] { return chatLists.keys.array }
-	var getUserCategories: [String] { return userLists.keys.array }
-	var getChatLists: [String:[Int]] { return chatLists }
-	var getUserLists: [String:[Int]] { return userLists }
+	var getChats: [Int:Permissions] { return chats }
+	var getUsers: [Int:Permissions] { return users }
   
 	public init() { }
 	
 	/**
-	Attempts to add a user to an existing list.
-	- returns: True if successful, false if the list does not exist.
+	Returns a permissions list for a given Chat ID.  If no permissions exist, 
+	a new object is created and catalogued by Moderator.
 	*/
-	public func add(toList name: String, users: UserSession...) -> Bool {
+	public func getPermissions(chatID: Int) -> Permissions {
 		
-		// If it doesn't exist, return false
-		if userLists[name] == nil { return false }
-		
-		// Otherwise add the user to the list and ensure their user session is amended.
-		for user in users {
-			
-			let id = user.info.tgID
-			
-			if userLists[name]!.contains(id) == false {
-				userLists[name]!.append(user.info.tgID)
-				user.permissions.append(name)
-			}
+		if chats[chatID] != nil {
+			return chats[chatID]!
 		}
-		
-		return true
-	}
-	
-	/**
-	Attempts to remove a user from an existing list.
-	- returns: True if successful, false if the list does not exist.
-	*/
-	public func remove(fromList name: String, users: UserSession...) -> Bool {
-		
-		// If it doesn't exist, return false
-		if userLists[name] == nil { return false }
-		
-		// Otherwise add the user to the list and ensure their user session is amended.
-		for user in users {
-			
-			let id = user.info.tgID
-			
-			if let listIndex = userLists[name]!.index(of: id) {
-				userLists[name]!.remove(at: listIndex)
-				
-				// Remove it from the session permissions list if it was on it.
-				if let permIndex = user.permissions.index(of: name) {
-					user.permissions.remove(at: permIndex)
-				}
-			}
-		}
-		
-		return true
-	}
-	
-	/**
-	Attempts to add chat IDs to a given list.
-	- returns: True if successful, false if the list does not exist.
-	*/
-	public func add(toList name: String, chatIDs: Int...) -> Bool {
-		
-		if chatLists[name] == nil { return false }
-		
-		for id in chatIDs {
-			
-			if chatLists[name]!.contains(id) == false {
-				chatLists[name]!.append(id)
-			}
-			
-			// If the chat exists as a session, modify it's permissions
-			if bot!.getChatSessions[id] != nil {
-				
-				if bot!.getChatSessions[id]!.permissions.contains(name) == false {
-					bot!.getChatSessions[id]!.permissions.append(name)
-				}
-			}
-		}
-		
-		return true
-	}
-	
-	/**
-	Attempts to remove chat IDs to a given Moderator list.
-	- returns: True if successful or if it was already removed, false if the list does not exist.
-	If removed, any chats that currently have an active session will also
-	*/
-	public func remove(fromList name: String, chatIDs: Int...) -> Bool {
-		
-		if chatLists[name] == nil { return false }
-		
-		for id in chatIDs {
-			
-			// If the ID is in the list, remove it
-			if let listIndex = chatLists[name]!.index(of: id) {
-				chatLists[name]!.remove(at: listIndex)
-			
-				// If the chat exists as a session, modify it's permissions
-				if bot!.getChatSessions[id] != nil {
-					
-					let session = bot!.getChatSessions[id]!
-					
-					if let permIndex = session.permissions.index(of: name) {
-						bot!.getChatSessions[id]!.permissions.remove(at: permIndex)
-					}
-				}
-			}
-		}
-		
-		return true
-	}
-	
-	/**
-	Creates a new user list category.
-	*/
-	public func addUserList(name: String) {
-		
-		if userLists[name] != nil { return }
-			
-		else {
-			userLists[name] = []
-		}
-	}
-	
-	/**
-	Deletes a user list category, and all the entries in it.  Please note that the blacklist cannot be removed.
-	*/
-	public func removeUserList(name: String) {
-		
-		if userLists[name] == nil { return }
-		
-		// Remove the permission tag from any users that currently have it.
-		for id in userLists[name]! {
-			
-			// If the chat exists as a session, modify it's permissions
-			if bot!.getUserSessions[id] != nil {
-				
-				let session = bot! .getUserSessions[id]!
-				
-				if let permIndex = session.permissions.index(of: name) {
-					bot!.getUserSessions[id]!.permissions.remove(at: permIndex)
-				}
-			}
-		}
-		
-		userLists.removeValue(forKey: name)
-	}
-	
-	/**
-	Adds a new chat list category
-	*/
-	public func addChatList(name: String) {
-		
-		if chatLists[name] != nil { return }
 		
 		else {
-			chatLists[name] = []
+			let permissions = Permissions(chatID: chatID)
+			chats[chatID] = permissions
+			return permissions
 		}
 	}
 	
-	/** 
-	Removes a chat list category, and all the entries in it if it has any.
-	Please note that the blacklist cannot be removed.
+	/**
+	Returns a permissions list for a given Chat ID.  If no permissions exist,
+	a new object is created and catalogued by Moderator.
 	*/
-	public func removeChatList(name: String) {
+	public func getPermissions(userID: Int) -> Permissions {
 		
-		if chatLists[name] == nil { return }
-		
-		// Remove the permission tag from any users that currently have it.
-		for id in chatLists[name]! {
-			
-			// If the chat exists as a session, modify it's permissions
-			if bot!.getChatSessions[id] != nil {
-				
-				let session = bot!.getChatSessions[id]!
-				
-				if let permIndex = session.permissions.index(of: name) {
-					bot!.getChatSessions[id]!.permissions.remove(at: permIndex)
-				}
-			}
+		if users[userID] != nil {
+			return users[userID]!
 		}
-		
-		chatLists.removeValue(forKey: name)
+			
+		else {
+			let permissions = Permissions(userID: userID)
+			users[userID] = permissions
+			return permissions
+		}
 	}
-	
 	
 	// BLACKLIST
 	
@@ -221,9 +111,6 @@ public class Moderator {
 			if userBlacklist.contains(id) == false {
 				userBlacklist.append(id)
 			}
-			
-			// Ask Pelican to remove the session, as it can perform any necessary clean-up operations.
-			bot!.removeUserSession(userID: id)
 		}
 	}
 	
@@ -240,9 +127,6 @@ public class Moderator {
 			if chatBlacklist.contains(id) == false {
 				chatBlacklist.append(id)
 			}
-			
-			// Ask Pelican to remove the session, as it can perform any necessary clean-up operations.
-			bot!.removeChatSession(chatID: id)
 		}
 	}
 	

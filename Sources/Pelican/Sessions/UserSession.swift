@@ -16,11 +16,12 @@ the chat sessions the user is actively participating in and other key pieces of 
 
 UserSession is also used to handle InlineQuery and ChosenInlineResult routes, as only UserSessions will receive inline updates.
 */
-public class UserSession: Session {
-	
+open class UserSession: Session {
 	
 	//  CORE INTERNAL VARIABLES
-	public var bot: Pelican
+	public var builderID: Int
+	
+	
 	/// The user information associated with this session.
 	public var info: User
 	/// The ID of the user associated with this session.
@@ -30,87 +31,58 @@ public class UserSession: Session {
 	/** A user-defined type assigned by Pelican on creation, used to cleanly associate custom functionality and
 	variables to an individual user session.
 	*/
-	public var data: NSCopying?
 	
 	
 	// DELEGATES / CONTROLLERS
-	public var routes = RouteController<UserUpdateType, UserSession, UserUpdate>()
-	var permissions: [String] = []
+	
+	/// Handles and matches user requests to available bot functions.
+	public var routes: RouteController
+	
+	public var permissions: Permissions
 	
 	
 	// TIME AND ACTIVITY
 	public var timeStarted = Date()
-	var timeLastActive = Date()
-	var timeoutLength: Int {
-		get {
-			return self.timeoutLength
-		}
-		
-		set(newTimeout) {
-			
-			// If the new timeout is a usable number, add it to the sessions that need their activity checked.
-			if timeoutLength <= 0 && newTimeout > 0 {
-				self.timeoutLength = newTimeout
-				bot.userSessionActivity[userID] = self
-			}
-				
-				// If the number has been zeroed out, remove it from the activity list.
-			else if timeoutLength > 0 && newTimeout <= 0 {
-				self.timeoutLength = newTimeout
-				bot.userSessionActivity.removeValue(forKey: userID)
-			}
-		}
-	}
+	public var timeLastActive = Date()
+	public var timeoutLength: Int = 0
+	
+	
+	// CALLBACKS
+	public var sendRequest: (TelegramRequest) -> (TelegramResponse)
+	public var sendEvent: (SessionEvent) -> ()
 	
 	
 	// Flood Controls
-	var floodLimit: FloodLimit     // External flood tracking system.
+	//var floodLimit: FloodLimit     // External flood tracking system.
 	
 	
-	/**
-	Initialises a basic user session.
-	*/
-	init(bot: Pelican, user: User, floodLimit: FloodLimit) {
-		self.bot = bot
-		self.info = user
-		self.userID = user.tgID
-		self.floodLimit = floodLimit
+	public required init(bot: Pelican, builder: SessionBuilder, update: Update) {
+		
+		self.builderID = builder.getID
+		
+		self.info = update.from!
+		self.userID = update.from!.tgID
+		//self.floodLimit = floodLimit
+		self.permissions = bot.mod.getPermissions(userID: self.userID)
+		self.routes = RouteController()
+		
+		self.sendRequest = bot.sendRequest(_:)
+		self.sendEvent = bot.sendEvent(_:)
 	}
 	
-	public func filterUpdate(update: UserUpdate) {
+	public func postInit() {
 		
-		if update.type == .inlineQuery {
-			
-			let query = update.data as! InlineQuery
-			filterInlineQuery(query: query)
-		}
-		
-		else {
-			
-			let query = update.data as! ChosenInlineResult
-			filterInlineResult(query: query)
-		}
 	}
 	
 	
-	private func filterInlineQuery(query: InlineQuery) {
+	public func update(_ update: Update) {
 		
-		// Send a route request
-		//_ = routes.routeRequest(content: query, type: .inlineQuery, session: self)
+		// This needs revising, whatever...
+		let handled = routes.routeRequest(update: update, type: update.type, session: self)
 		
-		// Check the flood status
-		//bumpFlood()
 	}
 	
-	private func filterInlineResult(query: ChosenInlineResult) {
-		
-		// Send a route request
-		//_ = routes.routeRequest(content: query, type: .chosenInlineResult, session: self)
-		
-		// Check the flood status
-		//bumpFlood()
-	}
-	
+	/*
 	/// Bumps the flood limiter, and potentially blacklists or warns the user.
 	func bumpFlood() {
 		let limitHit = floodLimit.bump(globalTime: bot.globalTimer)
@@ -118,7 +90,7 @@ public class UserSession: Session {
 			
 			// If we've reached the maximum maximum limit, add this chat ID to the blacklist
 			if floodLimit.reachedLimit {
-				_ = bot.mod.add(toList: "blacklist", users: self)
+				//_ = bot.mod.add(toList: "blacklist", users: self)
 				//bot.blacklistChatSession(session: self)
 				return
 			}
@@ -129,15 +101,15 @@ public class UserSession: Session {
 			}
 		}
 	}
+
 	
 	/**
 	Responds to an inline query with an array of results.
 	*/
 	public func sendInlineResults(_ inlineResults: [InlineResult], queryID: String, cache: Int = 300, isPersonal: Bool = false, nextOffset: Int = 0, switchPM: String = "", switchPMParam: String = "") {
 		
-		bot.answerInlineQuery(inlineQueryID: queryID, results: inlineResults, cacheTime: cache, isPersonal: isPersonal, nextOffset: nextOffset, switchPM: switchPM, switchPMParam: switchPMParam)
+		let request = TelegramRequest.answerInlineQuery(inlineQueryID: queryID, results: inlineResults, cacheTime: cache, isPersonal: isPersonal, nextOffset: nextOffset, switchPM: switchPM, switchPMParam: switchPMParam)
+		sendRequest(request)
 	}
-	
-	
-	
+	*/
 }

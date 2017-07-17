@@ -266,11 +266,11 @@ public class Prompt: ReceiveUpload {
     // If we have an upload link, use that to send our prompt
     // Otherwise just send it normally
     if self.file != nil {
-      session.uploadFile(file!, caption: text, markup: inline, replyID: 0, disableNtf: false, callback: self)
+      session.send.file(file!, caption: text, markup: inline, replyID: 0, disableNtf: false, callback: self)
     }
     
     else {
-      self.message = session.sendMessage(text, markup: inline)
+      //self.message = session.sendMessage(text, markup: inline)
     }
 		
 		// If we have a timer, make it tick.
@@ -305,7 +305,7 @@ public class Prompt: ReceiveUpload {
     let success = pressButton(user, query: data)
     if success == true {
       if alertSuccess != "" {
-        session.answerCallbackQuery(queryID: query.id, text: alertSuccess)
+        session.answer.callbackQuery(queryID: query.id, text: alertSuccess, showAlert: true)
       }
 			
 			// Call the update closure and enclose the result
@@ -319,7 +319,7 @@ public class Prompt: ReceiveUpload {
       
 		// Answer with an alert failure if you well... failed to contribute.
     else if success == false && alertFailure != "" {
-      session.answerCallbackQuery(queryID: query.id, text: alertFailure)
+      session.answer.callbackQuery(queryID: query.id, text: alertFailure, showAlert: true)
     }
     
     
@@ -391,11 +391,11 @@ public class Prompt: ReceiveUpload {
 		self.text = newText
 		
 		if self.file != nil {
-			session.editCaption(withMessageID: message!.tgID, caption: text, markup: inline)
+			session.edit.caption(messageID: message!.tgID, caption: text, replyMarkup: inline)
 		}
 			
 		else {
-			session.editMessage(withMessageID: message!.tgID, text: text, markup: inline, webPreview: false)
+			session.edit.caption(messageID: message!.tgID, caption: text, replyMarkup: inline)
 		}
 	}
 	
@@ -409,11 +409,11 @@ public class Prompt: ReceiveUpload {
 		self.text = newText
 		
 		if self.file != nil {
-			session.editCaption(withMessageID: message!.tgID, caption: text, markup: inline)
+			session.edit.caption(messageID: message!.tgID, caption: text, replyMarkup: inline)
 		}
 			
 		else {
-			session.editMessage(withMessageID: message!.tgID, text: text, markup: inline, webPreview: false)
+			session.edit.message(messageID: message!.tgID, inlineMessageID: nil, text: text, replyMarkup: inline)
 		}
 	}
 	
@@ -431,11 +431,11 @@ public class Prompt: ReceiveUpload {
 		}
 		
 		if self.file != nil {
-			session.editCaption(withMessageID: message!.tgID, caption: text, markup: inline)
+			session.edit.caption(messageID: message!.tgID, caption: text, replyMarkup: inline)
 		}
 			
 		else {
-			session.editMessage(withMessageID: message!.tgID, text: text, markup: inline, webPreview: false)
+			session.edit.message(messageID: message!.tgID, inlineMessageID: nil, text: text, replyMarkup: inline)
 		}
 	}
 	
@@ -468,16 +468,16 @@ public class Prompt: ReceiveUpload {
 		// Otherwise if we want to remove the inline keyboard automatically when done, do it!
 		else if removeInlineOnFinish == true {
 			if self.file != nil {
-				session.editCaption(withMessageID: message!.tgID, caption: text, markup: nil)
+				session.edit.caption(messageID: message!.tgID, caption: text, replyMarkup: nil)
 			}
 				
 			else {
-				session.editMessage(withMessageID: message!.tgID, text: text, markup: nil, webPreview: false)
+				session.edit.caption(messageID: message!.tgID, caption: text, replyMarkup: nil)
 			}
 		}
   }
 	
-  
+	
   
   /** Returns a single, successful regardless of whether there was a tie, by random selelcting from the tied options.
    Includes results for the users that selected it.

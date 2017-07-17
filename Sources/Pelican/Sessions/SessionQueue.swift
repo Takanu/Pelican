@@ -59,7 +59,7 @@ public class ChatSessionQueue {
 		// Add it directly to the end of the stack
 		let action = QueueAction(session: session!, execTime: execTime, viewTime: viewTime, action: action, name: name)
 		queue.append(action)
-		session!.bot.addChatSessionEvent(session: session!)
+		//session!.bot.addChatSessionEvent(session: session!)
 		
 		//print("New Delay - \(execTime)")
 	}
@@ -77,7 +77,7 @@ public class ChatSessionQueue {
 	*/
 	public func addMessage(delay: Int, viewTime: Int, message: String, markup: MarkupType? = nil) {
 		self.add(byDelay: delay, viewTime: viewTime) { session in
-			_ = session.sendMessage(message, markup: markup)
+			_ = session.send.message(message, markup: markup)
 		}
 	}
 	
@@ -92,7 +92,7 @@ public class ChatSessionQueue {
 	*/
 	public func addMessageEx(delay: Int, viewTime: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: MessageParseMode = .none, webPreview: Bool = false, disableNtf: Bool = false) {
 		self.add(byDelay: delay, viewTime: viewTime) { session in
-			_ = session.sendMessage(message, markup: markup)
+			_ = session.send.message(message, markup: markup)
 		}
 	}
 	
@@ -102,7 +102,7 @@ public class ChatSessionQueue {
 		let viewTime = calculateReadTime(text: dialog)
 		
 		self.add(byDelay: delay, viewTime: viewTime) { session in
-			_ = session.sendMessage(dialog, markup: markup)
+			_ = session.send.message(dialog, markup: markup)
 		}
 	}
 	

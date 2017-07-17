@@ -128,6 +128,34 @@ public enum MessageType {
   case video(Video)
   case voice(Voice)
   case text
+	
+	/// Returns the name of the type as a string.
+	func name() -> String {
+		switch self {
+		case .audio(_):
+			return "audio"
+		case .contact(_):
+			return "contact"
+		case .document(_):
+			return "document"
+		case .game(_):
+			return "game"
+		case .photo(_):
+			return "photo"
+		case .location(_):
+			return "location"
+		case .sticker(_):
+			return "sticker"
+		case .venue(_):
+			return "venue"
+		case .video(_):
+			return "video"
+		case .voice(_):
+			return "voice"
+		case .text:
+			return "text"
+		}
+	}
 }
 
 public enum MessageParseMode: String {
@@ -136,7 +164,7 @@ public enum MessageParseMode: String {
 	case none = ""
 }
 
-final public class Message: TelegramType, ChatUpdateModel {
+final public class Message: TelegramType, UpdateModel {
   public var storage = Storage() // Unique message identifier for the database
   
   public var tgID: Int // Unique identifier for the Telegram message.
@@ -160,6 +188,8 @@ final public class Message: TelegramType, ChatUpdateModel {
   public var caption: String? // Caption for the document, photo or video, 0-200 characters.
   
   // Status Message Info
+	// This should be condensed into a single entity using an enumerator, as a status message can only represent one of these things
+	
   public var newChatMembers: [User]?             // A status message specifying information about new users added to the group.
   public var leftChatMember: User?               // A status message specifying information about a user who left the group.
   public var newChatTitle: String?               // A status message specifying the new title for the chat.
@@ -171,7 +201,8 @@ final public class Message: TelegramType, ChatUpdateModel {
   public var migrateToChatID: Int?               // The group has been migrated to a supergroup with the specified identifier.  This can be greater than 32-bits so you have been warned...
   public var migrateFromChatID: Int?             // The supergroup has been migrated from a group with the specified identifier.
   public var pinnedMessage: Message?             // Specified message was pinned?
-  
+	
+	
   init(id: Int, date: Int, chat:Chat) {
     self.tgID = id
     self.date = date
@@ -937,7 +968,7 @@ class File: Model {
  If the button that originated the query was attached to a message sent by the bot, the field message will be present. If the button was attached to a message sent via the bot (in inline mode), the field inline_message_id will be present. Exactly one of the fields data or game_short_name will be present.
  */
 
-final public class CallbackQuery: Model, ChatUpdateModel {
+final public class CallbackQuery: Model, UpdateModel {
 	public var storage = Storage()
 	
   public var id: String								// Unique identifier for the query.
