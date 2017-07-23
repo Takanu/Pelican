@@ -2,7 +2,7 @@
 //  Request+Edit.swift
 //  PelicanTests
 //
-//  Created by Ido Constantine on 10/07/2017.
+//  Created by Takanu Kyriako on 10/07/2017.
 //
 //
 

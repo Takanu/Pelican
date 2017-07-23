@@ -10,21 +10,43 @@ import Foundation
 import Vapor
 
 /** 
-Defines a class that handles the creation, coordination and execution of delayed Telegram API calls inside a chat session.
-Useful when preparing sequences of messages to be sent out in order to present language and information in a steadier
-and more natural manner.  
-
-This is designed as a simple content scheduler and not a full dispatch/job system currently.  For that look to other
-frameworks such as Jobs - https://github.com/BrettRToomey/Jobs.
+Defines a class that acts as a proxy for the Pelican-managed Schedule class, thats used to delay the execution of functions.
+This class includes many helper and convenience functions to make
 */
 public class ChatSessionQueue {
-	/// The list of actions currently queued for dispatch.
-	var queue: [QueueAction] = []
-	/// The session this queue belongs to.
-	var session: ChatSession?
-	/** The current time "playback" point for the action queue.  When the queue is reset this resets to 0, and will only start being counted
-	once an action is available. */
-	var time: Int = 0
+	
+	/// CALLBACKS
+	/// The chat ID of the session this queue belongs to.
+	var chatID: Int
+	/// The Pelican-shared Schedule object, for queuing events to be executed at a later date.
+	var schedule: Schedule
+	/// A callback to the Pelican `sendRequest` method, enabling the class to send it's own requests.
+	var sendRequest: (TelegramRequest) -> (TelegramResponse)
+	
+	
+	/** 
+	Copies of the ScheduleEvents that are generated to submit to the schedule, in case this class needs to remove
+	any events already in the schedule.
+	*/
+	var eventHistory: [ScheduleEvent] = []
+	
+	/// The point at which the last addition to the queue is set to play, relative to the current time value.
+	var lastEventTime: Double = 0
+	
+	/// The last event "view time" request, used to calculate when the next event should be queued at.
+	var lastEventViewTime: Double = 0
+	
+
+	
+	/**
+	Initialises the Queue class with a Pelican-derived Schedule.
+	*/
+	init(chatID: Int, schedule: Schedule, request: @escaping (TelegramRequest) -> (TelegramResponse)) {
+		
+		self.chatID = chatID
+		self.schedule = schedule
+		self.sendRequest = request
+	}
 	
 	/** 
 	Adds an action to the session queue, that allows an enclosure to be executed at a later time, with the included session.
@@ -35,33 +57,18 @@ public class ChatSessionQueue {
 	- parameter name: A name for the action, that can be used to search for and edit the action later on.
 	- parameter action: The closure to be executed when the queue executes this action.
 	*/
-	public func add(byDelay delay: Int, viewTime: Int, name: String = "", action: @escaping (ChatSession) -> ()) {
+	public func action(delay: Duration, viewTime: Duration, action: @escaping () -> ()) -> ScheduleEvent {
 		
 		// Calculate what kind of delay we're using
-		var execTime = 0
-		if queue.count > 0 {
-			let lastAction = self.queue.last!
-			
-			// If the delay is longer than the view time, use that.  Otherwise use the delay
-			if lastAction.viewTime > delay {
-				execTime = lastAction.time + lastAction.viewTime
-			}
-			
-			else if lastAction.viewTime <= delay {
-				execTime = lastAction.time + delay
-			}
-		}
+		let execTime = bumpEventTime(delay: delay, viewTime: viewTime)
 		
-		else {
-			execTime = delay
-		}
 		
 		// Add it directly to the end of the stack
-		let action = QueueAction(session: session!, execTime: execTime, viewTime: viewTime, action: action, name: name)
-		queue.append(action)
-		//session!.bot.addChatSessionEvent(session: session!)
+		let event = ScheduleEvent(delayUnixTime: execTime, action: action)
+		schedule.add(event)
+		eventHistory.append(event)
 		
-		//print("New Delay - \(execTime)")
+		return event
 	}
 	
 	/** 
@@ -75,10 +82,19 @@ public class ChatSessionQueue {
 	- parameter message: The text message you wish to send.
 	- parameter markup: If any special message functions should be applied.
 	*/
-	public func addMessage(delay: Int, viewTime: Int, message: String, markup: MarkupType? = nil) {
-		self.add(byDelay: delay, viewTime: viewTime) { session in
-			_ = session.send.message(message, markup: markup)
+	public func message(delay: Duration, viewTime: Duration, message: String, markup: MarkupType? = nil) {
+		
+		// Calculate what kind of delay we're using
+		let execTime = bumpEventTime(delay: delay, viewTime: viewTime)
+		
+		let event = ScheduleEvent(delayUnixTime: execTime) {
+			
+			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: message, replyMarkup: markup	)
+			_ = self.sendRequest(request)
 		}
+		
+		schedule.add(event)
+		eventHistory.append(event)
 	}
 	
 	/**
@@ -90,33 +106,61 @@ public class ChatSessionQueue {
 	- parameter message: The text message you wish to send.
 	- parameter markup: If any special message functions should be applied.
 	*/
-	public func addMessageEx(delay: Int, viewTime: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: MessageParseMode = .none, webPreview: Bool = false, disableNtf: Bool = false) {
-		self.add(byDelay: delay, viewTime: viewTime) { session in
-			_ = session.send.message(message, markup: markup)
+	public func messageEx(delay: Duration, viewTime: Duration, message: String, markup: MarkupType? = nil, parseMode: MessageParseMode = .none, replyID: Int = 0, webPreview: Bool = false, disableNtf: Bool = false) {
+		
+		// Calculate what kind of delay we're using
+		let execTime = bumpEventTime(delay: delay, viewTime: viewTime)
+		
+		let event = ScheduleEvent(delayUnixTime: execTime) {
+			
+			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: message, replyMarkup: markup, parseMode: parseMode, disableWebPreview: webPreview, disableNtf: disableNtf, replyMessageID: replyID)
+			_ = self.sendRequest(request)
 		}
+		
+		schedule.add(event)
+		eventHistory.append(event)
 	}
 	
 	
 	/// Properly calculates a wait time to send a message based on a pause and the previous dialog length.
-	public func addDialog(delay: Int, dialog: String, markup: MarkupType? = nil) {
+	public func dialog(delay: Int, dialog: String, markup: MarkupType? = nil) {
+		
 		let viewTime = calculateReadTime(text: dialog)
 		
-		self.add(byDelay: delay, viewTime: viewTime) { session in
-			_ = session.send.message(dialog, markup: markup)
+		// Calculate what kind of delay we're using
+		let execTime = bumpEventTime(delay: (viewTime + delay).seconds, viewTime: 0.seconds)
+		
+		let event = ScheduleEvent(delayUnixTime: execTime) {
+			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: dialog, replyMarkup: markup	)
+			_ = self.sendRequest(request)
 		}
+		
+		schedule.add(event)
+		eventHistory.append(event)
 	}
 	
-	/*
-	// Edits the text contents of a message in a delayed fashion.  A last sent message must be available.
-	public func addEdit(delay: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
+	func bumpEventTime(delay: Duration, viewTime: Duration) -> Double {
 		
-	}
-	
-	// Edits the text contents of a message in a delayed fashion.  A last sent message must be available.
-	public func addEditEx(viewTime: Int, message: String, markup: MarkupType? = nil, reply: Bool = false, parseMode: String = "", webPreview: Bool = false, disableNtf: Bool = false) {
+		// Calculate what kind of delay we're using
+		var execTime = lastEventTime + lastEventViewTime
 		
+		// If we have a last event view time that is shorter than the delay, extend the execTime by this.
+		if (lastEventViewTime - delay.unixTime) > 0 {
+			execTime += lastEventViewTime - delay.unixTime
+		}
+		
+		// Otherwise just add the delay directly
+		else {
+			execTime += delay.unixTime
+		}
+		
+		
+		// Set the new last timer values
+		lastEventTime = execTime
+		lastEventViewTime = viewTime.unixTime
+		
+		return execTime
 	}
-	*/
 	
 	/** Calculates a read time for dialog-specific queue functions */
 	func calculateReadTime(text: String) -> Int {
@@ -127,93 +171,22 @@ public class ChatSessionQueue {
 		return Int(readTime)
 	}
 	
-	/** Increments the timer and checks if any actions need executing.  Returns true if no actions are left */
-	func incrementTimer() -> Bool {
-		//print("Checking for actions...")
-		//print(queue.map({$0.time}))
-		
-		time += 1
-		
-		if queue.first != nil {
-			while queue.first!.time <= time {
-				
-				let action = queue.first!
-				queue.removeFirst()
-				
-				// If the queue is empty, reset the timer
-				if queue.count == 0 {
-					time = 0
-				}
-				
-				//print("Executing Action - \(action.time)")
-				action.action(session!)
-				
-				// Also return true if empty
-				if queue.count == 0 {
-					return true
-				}
-				
-				
-			}
-			return false
-		}
-		
-		else {
-			time = 0
-			return true
-		}
-	}
-	
-	/** 
-	Attempts to find an action that matches the name provided to remove it from the queue.
-	Does not affect already calculated times (currently). 
+	/**
+	Removes a scheduled event from being executed.
 	*/
-	public func remove(name: String) -> Bool {
-		for (index, action) in queue.enumerated() {
-			if action.name == name {
-				queue.remove(at: index)
-				return true
-			}
-		}
+	public func remove(_ event: ScheduleEvent) {
 		
-		return false
+		schedule.remove(event)
 	}
 	
 	/** Clears all actions in the queue. */
 	public func clear() {
-		queue.removeAll()
-		time = 0
+		lastEventTime = 0
+		lastEventViewTime = 0
+		
+		for event in eventHistory {
+			_ = schedule.remove(event)
+		}
 	}
-}
-
-// Defines a queued action for a specific session, to be run at a later date
-class QueueAction {
-  var name: String = ""				// Only used if the user may later want to find and remove the action before being played.
-  var session: ChatSession				// The session to be affected
-	var viewTime: Int = 0				// (Optional)
-  var time: Int								// The time at which this should be executed.
-  var action: (ChatSession) -> ()	// The closure to be executed.
-  
-	init(session: ChatSession, execTime: Int, viewTime: Int, action: @escaping (ChatSession) -> (), name: String = "") {
-    self.name = name
-    self.session = session
-    self.time = execTime
-		self.viewTime = viewTime
-    self.action = action
-  }
-  
-  func execute() {
-    action(session)
-  }
-	
-	/*
-  func changeTime(_ globalTime: Int) {
-    time = globalTime
-  }
-	*/
-  
-  func delay(by: Int) {
-    time += by
-  }
 }
 

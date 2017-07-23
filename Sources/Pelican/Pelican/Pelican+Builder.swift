@@ -2,7 +2,7 @@
 //  File.swift
 //  PelicanTests
 //
-//  Created by Ido Constantine on 07/07/2017.
+//  Created by Takanu Kyriako on 07/07/2017.
 //
 //
 
@@ -14,6 +14,7 @@ Defines a return result for the SessionBuilder's `collision` function, that dete
 has also been captured by other builders.
 */
 public enum BuilderCollision: String {
+	
 	/// Used when you wish to do nothing with the update
 	case pass
 	/// Used when you wish for the session that would have been executed in the update to be included for other capturing sessions to use.
@@ -21,6 +22,8 @@ public enum BuilderCollision: String {
 	/// Used when you wish for the session to execute with the update.
 	case execute
 }
+
+
 
 /**
 Defines a class that will be used by Pelican to automatically generate Sessions based on two key components:

@@ -125,6 +125,7 @@ public class Prompt: ReceiveUpload {
   var text: String = ""
   var file: FileLink?
   var inline: MarkupInline
+	var event: ScheduleEvent?
   var message: Message?
   var controller: PromptController?   // Links back to the controller for removal when complete, if required.
 	var timer: Int = 0
@@ -275,7 +276,10 @@ public class Prompt: ReceiveUpload {
 		
 		// If we have a timer, make it tick.
 		if timer > 0 {
-			session.queue.add(byDelay: self.timer, viewTime: 0, name: "prompt_\(name)_timer", action: self.finish)
+			event = session.queue.action(delay: self.timer.seconds, viewTime: 0.seconds) {
+				
+				self.finish!(session, self)
+			}
 		}
   }
 	
@@ -449,7 +453,7 @@ public class Prompt: ReceiveUpload {
 		// If it completed itself and the timer existed, ensure the action is removed to prevent a second trigger.
 		if completed == true {
 			if timer > 0 {
-				_ = session.queue.remove(name: "prompt_\(name)_timer")
+				_ = session.queue.remove(event!)
 			}
 		}
 		
@@ -547,7 +551,8 @@ public class Prompt: ReceiveUpload {
 		
 		// If we have a timer, make it tick now the message is confirmed as sent.
 		if timer > 0 {
-			self.controller!.session!.queue.add(byDelay: self.timer, viewTime: 0, name: "prompt_\(name)_timer", action: self.finish)
+			//self.controller!.session!.queue.
+			//self.controller!.session!.queue.add(byDelay: self.timer, viewTime: 0, name: "prompt_\(name)_timer", action: self.finish)
 		}
   }
 }

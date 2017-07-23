@@ -19,22 +19,48 @@ private class UpdateQueue {
                                     target: nil)
   
   private let interval: TimeInterval
+	private var lastExecuteTime: TimeInterval
   private let execute: () -> Void
   private var operation: DispatchWorkItem?
   
   init(interval: TimeInterval, execute: @escaping () -> Void) {
     self.interval = interval
+		self.lastExecuteTime = TimeInterval.init(0)
     self.execute = execute
+		
+		
   }
-  
+	
   func start() {
-    let operation = DispatchWorkItem(qos: .userInteractive, flags: .enforceQoS) { [weak self] in
-      
-      defer { self?.start() }
-      self?.execute()
-    }
-    self.operation = operation
-    queue.asyncAfter(deadline: .now() + interval, execute: operation)
+		
+		self.operation = DispatchWorkItem(qos: .userInteractive, flags: .enforceQoS) { [weak self] in
+			
+			// Record the starting time and execute the loop
+			let startTime = Date()
+			self?.execute()
+			
+			defer {
+				
+				// Build a time interval for the loop
+				self?.lastExecuteTime = abs(startTime.timeIntervalSinceNow)
+				self?.start()
+			}
+			
+		}
+		
+		// Account for loop time in the asynchronous delay.
+		let delayTime = interval - lastExecuteTime
+		
+		// If the delay time left is below 0, execute the loop immediately.
+		if delayTime <= 0 {
+		 	queue.async(execute: self.operation!)
+		}
+		
+		// Otherwise use the built delay time.
+		else {
+			queue.asyncAfter(wallDeadline: .now() + delayTime, execute: self.operation!)
+		}
+		
   }
   
   func stop() {
@@ -175,23 +201,8 @@ public final class Pelican: Vapor.Provider {
   // SESSIONS
 	/// The sets of sessions that are currently active, encapsulated within their respective builders.
 	private var sessions: [SessionBuilder] = []
-	
-	
-	// SESSION TIMEOUTS
-	/// A list of sessions to be checked by Pelican to ensure they do not reach the timeout threshold set by the session.
-	var chatSessionActivity: [Int:ChatSession] = [:]
-	/// A list of sessions to be checked by Pelican to ensure they do not reach the timeout threshold set by the session.
-	var userSessionActivity: [Int:UserSession] = [:]
-	/// A list of the chat sessions Pelican has yet to check for timeout since it's last check.
-	var chatSessionActivityLeft: [ChatSession] = []
-	/// A list of the user sessions Pelican has yet to check for timeout since it's last check.
-	var userSessionActivityLeft: [UserSession] = []
-	/// Enables the automatic checking of Pelican sessions for timeouts.  If set to false, this can be done manually using `checkTimeouts()`.
-	public var enableTimeoutChecks: Bool = true
-	/// Defines how many sessions Pelican will check for timeouts each second, if any sessions have a timeout value.  This number is split between User and Chat sessions with an active timeout value.
-	public var timeoutCheckFrequency: Int = 100
-	/// Defines the maximum number of sessions Pelican will check for timeouts, regardless of `timeoutCheckFrequency`.  This number is split between User and Chat sessions with an active timeout value.
-	public var timeoutCheckMaximum: Int = 250
+	/// The schedule system for sessions to use to delay the execution of actions.
+	public var schedule = Schedule()
 	
 	
   // Blacklist
@@ -567,7 +578,6 @@ public final class Pelican: Vapor.Provider {
 			
 			
 			// Execute what executables are left
-			
 			for builder in executables {
 				_ = builder.execute(bot: self, update: update)
 			}
@@ -576,18 +586,8 @@ public final class Pelican: Vapor.Provider {
 		print(updates)
 		
 		
-		// Check for timeouts.  If true, calculate a check amount and execute the function.
-		if enableTimeoutChecks == true {
-			
-			let calendar = Calendar.init(identifier: .gregorian)
-			let comparison = calendar.compare(timeLastUpdate, to: Date(), toGranularity: .second)
-			
-			var checkAmount = timeoutCheckFrequency * comparison.rawValue
-			if checkAmount > timeoutCheckMaximum { checkAmount = timeoutCheckMaximum }
-			
-			//checkTimeouts(amount: checkAmount, resetList: false)
-		}
-		
+		// Check the schedule.
+		schedule.run()
 		
 		
 		// Update the last active time.

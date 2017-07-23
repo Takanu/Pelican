@@ -2,7 +2,7 @@
 //  SessionEvent.swift
 //  PelicanTests
 //
-//  Created by Ido Constantine on 06/07/2017.
+//  Created by Takanu Kyriako on 06/07/2017.
 //
 //
 

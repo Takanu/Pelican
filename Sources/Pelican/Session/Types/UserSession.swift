@@ -2,7 +2,7 @@
 //  UserChatSession.swift
 //  party
 //
-//  Created by Ido Constantine on 26/06/2017.
+//  Created by Takanu Kyriako on 26/06/2017.
 //
 //
 
@@ -38,7 +38,11 @@ open class UserSession: Session {
 	/// Handles and matches user requests to available bot functions.
 	public var routes: RouteController
 	
+	/// Stores what Moderator-controlled permissions the User Session has.
 	public var permissions: Permissions
+	
+	/// Stores a link to the schedule, that allows events to be executed at a later date.
+	public var schedule: Schedule
 	
 	
 	// TIME AND ACTIVITY
@@ -63,8 +67,9 @@ open class UserSession: Session {
 		self.info = update.from!
 		self.userID = update.from!.tgID
 		//self.floodLimit = floodLimit
-		self.permissions = bot.mod.getPermissions(userID: self.userID)
 		self.routes = RouteController()
+		self.permissions = bot.mod.getPermissions(userID: self.userID)
+		self.schedule = bot.schedule
 		
 		self.sendRequest = bot.sendRequest(_:)
 		self.sendEvent = bot.sendEvent(_:)

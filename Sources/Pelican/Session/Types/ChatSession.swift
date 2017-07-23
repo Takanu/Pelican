@@ -2,7 +2,7 @@
 //  ChatSession.swift
 //  party
 //
-//  Created by Ido Constantine on 02/07/2017.
+//  Created by Takanu Kyriako on 02/07/2017.
 //
 //
 
@@ -52,6 +52,9 @@ open class ChatSession: Session {
 	/// Stores what Moderator-controlled permissions the Chat Session has.
 	public var permissions: Permissions
 	
+	/// Stores a link to the schedule, that allows events to be executed at a later date.
+	public var schedule: Schedule
+	
 	
 	// CALLBACKS
 	public var sendRequest: (TelegramRequest) -> (TelegramResponse)
@@ -85,10 +88,11 @@ open class ChatSession: Session {
 		
 		self.chatID = update.chat!.tgID
 		self.prompts = PromptController()
-		self.queue = ChatSessionQueue()
+		self.queue = ChatSessionQueue(chatID: update.chat!.tgID, schedule: bot.schedule, request: bot.sendRequest(_:))
 		self.routes = RouteController()
 		
 		self.permissions = bot.mod.getPermissions(chatID: self.chatID)
+		self.schedule = bot.schedule
 
 		self.sendRequest = bot.sendRequest(_:)
 		self.sendEvent = bot.sendEvent(_:)
@@ -101,7 +105,6 @@ open class ChatSession: Session {
 	
 	open func postInit() {
 		prompts.session = self
-		queue.session = self
 	}
 	
 	

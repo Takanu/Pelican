@@ -2,7 +2,7 @@
 //  Pelican+Update.swift
 //  party
 //
-//  Created by Ido Constantine on 29/06/2017.
+//  Created by Takanu Kyriako on 29/06/2017.
 //
 //
 
@@ -54,6 +54,7 @@ Encapsulates a single update received from a bot.
 */
 public class Update {
 	
+	
 	// RAW DATA
 	/// The type of data being carried by the update.
 	public var type: UpdateType
@@ -75,6 +76,7 @@ public class Update {
 	/// The chat the update came from, if the update is a Message type.  If it isn't, it'll return nil.
 	public var chat: Chat?
 	
+	
 	// LINKED SESSIONS
 	/** Defines any sessions that were linked to this update.  This occurs when more than one SessionBuilder
 	captures the same update, and through the optional `collision` function type on a SessionBuilder, a Builder 
@@ -84,6 +86,7 @@ public class Update {
 	
 	/// Contains basic information about the update depending on the
 	//public var header: [String:String] = [:]
+	
 	
 	
 	init(withData data: UpdateModel, node: Node) {

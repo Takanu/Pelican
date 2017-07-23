@@ -2,7 +2,7 @@
 //  TelegramResponse.swift
 //  PelicanTests
 //
-//  Created by Ido Constantine on 11/07/2017.
+//  Created by Takanu Kyriako on 11/07/2017.
 //
 //
 
