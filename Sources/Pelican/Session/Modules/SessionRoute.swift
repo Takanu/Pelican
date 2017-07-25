@@ -36,7 +36,7 @@ public class RouteController {
 	/**
 	Attempts to find and execute a route for the given user request, should only ever be accessed by ChatSession.
 	*/
-	func routeRequest(update: Update, type: UpdateType, session: Session) -> Bool {
+	func routeRequest(update: Update, type: UpdateType) -> Bool {
 		
 		var handled = false
 		
@@ -137,7 +137,7 @@ public class RouteController {
 		
 		var routeSet = collection[type]!
 		
-		for route in routeSet {
+		for _ in routeSet {
 			
 			if let index = routeSet.index(where: {$0.pattern == filter} ) {
 				routeSet.remove(at: index)

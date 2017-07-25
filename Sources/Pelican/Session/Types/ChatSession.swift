@@ -21,12 +21,15 @@ open class ChatSession: Session {
 	
 	// CORE TYPES
 	public var builderID: Int
+	public var tag: SessionTag
 	
 	/// The chat ID associated with the session.
-	public var chatID: Int
+	var chatID: Int
+	public var getChatID: Int { return chatID }
 	
 	/// The chat associated with the session, if one exists.
-	public var chat: Chat?
+	var chat: Chat?
+	public var getChat: Chat? { return chat }
 	
 	
 	
@@ -38,8 +41,8 @@ open class ChatSession: Session {
 	public var answer: TGAnswer
 	
 	
-	// DELEGATES AND CONTROLLERS
 	
+	// DELEGATES AND CONTROLLERS
 	/// Container for automating markup options and responses.
 	public var prompts: PromptController
 	
@@ -55,10 +58,11 @@ open class ChatSession: Session {
 	/// Stores a link to the schedule, that allows events to be executed at a later date.
 	public var schedule: Schedule
 	
+	/// Handles timeout conditions.
+	public var timeout: TimeoutController
 	
-	// CALLBACKS
-	public var sendRequest: (TelegramRequest) -> (TelegramResponse)
-	public var sendEvent: (SessionEvent) -> ()
+	/// Handles flood conditions.
+	public var flood: FloodController
 	
 	
 	
@@ -70,9 +74,6 @@ open class ChatSession: Session {
 	
 	// Time and Activity
 	public var timeStarted = Date()
-	public var timeLastActive = Date()
-	
-	public var timeoutLength: Int = 0
 	
 	
 	// STORED UPDATES
@@ -85,26 +86,32 @@ open class ChatSession: Session {
 	public required init(bot: Pelican, builder: SessionBuilder, update: Update) {
 		
 		self.builderID = builder.getID
+		self.tag = SessionTag(sessionID: update.chat!.tgID, builderID: builder.getID, request: bot.sendRequest(_:), event: bot.sendEvent(_:))
 		
 		self.chatID = update.chat!.tgID
 		self.prompts = PromptController()
-		self.queue = ChatSessionQueue(chatID: update.chat!.tgID, schedule: bot.schedule, request: bot.sendRequest(_:))
+		self.queue = ChatSessionQueue(chatID: update.chat!.tgID, schedule: bot.schedule, tag: self.tag)
 		self.routes = RouteController()
 		
 		self.permissions = bot.mod.getPermissions(chatID: self.chatID)
 		self.schedule = bot.schedule
-
-		self.sendRequest = bot.sendRequest(_:)
-		self.sendEvent = bot.sendEvent(_:)
+		self.timeout = TimeoutController(tag: self.tag, schedule: self.schedule)
+		self.flood = FloodController()
 		
-		self.send = TGSend(chatID: self.chatID, sendRequest: bot.sendRequest(_:))
-		self.admin = TGAdmin(chatID: self.chatID, sendRequest: bot.sendRequest(_:))
-		self.edit = TGEdit(chatID: self.chatID, sendRequest: bot.sendRequest(_:))
-		self.answer = TGAnswer(sendRequest: bot.sendRequest(_:))
+		self.send = TGSend(chatID: self.chatID, tag: tag)
+		self.admin = TGAdmin(chatID: self.chatID, tag: tag)
+		self.edit = TGEdit(chatID: self.chatID, tag: tag)
+		self.answer = TGAnswer(tag: tag)
 	}
 	
 	open func postInit() {
 		prompts.session = self
+	}
+	
+	open func setupRemoval() {
+		self.queue.clear()
+		
+		// Need something for prompt, do it with the refactor
 	}
 	
 	
@@ -112,14 +119,15 @@ open class ChatSession: Session {
 	public func update(_ update: Update) {
 		
 		// This needs revising, whatever...
-		let handled = routes.routeRequest(update: update, type: update.type, session: self)
+		let handled = routes.routeRequest(update: update, type: update.type)
 		
 		if handled == false && update.type == .callbackQuery {
 			_ = prompts.filterQuery(update.data as! CallbackQuery, session: self)
 		}
 		
-		// Bump the timeout
-		timeLastActive = Date()
+		// Bump the flood and timeout controllers
+		flood.bump(update)
+		timeout.bump(update)
 		
 	}
 }

@@ -9,24 +9,31 @@
 import Foundation
 import Vapor
 
-enum SessionEventType: String {
+public enum SessionEventType: String {
 	case timeout
 	case flood
+	case blacklist
+	case other
+}
+
+public enum SessionEventAction: String {
+	case remove
 	case blacklist
 }
 
 /**
-Defines an event change by the Session that Pelican needs to know about.
+Defines an event change by the Session that Pelican needs to know about, based on an 
+automatic trigger called by one of it's delegates.
 */
 public class SessionEvent {
 	
-	var targetID: Int
-	var targetType: String
-	var event: SessionEventType
+	var tag: SessionTag
+	var type: SessionEventType
+	var action: SessionEventAction
 	
-	init(targetID: Int, targetType: String, event: SessionEventType) {
-		self.targetID = targetID
-		self.targetType = targetType
-		self.event = event
+	init(tag: SessionTag, type: SessionEventType, action: SessionEventAction) {
+		self.tag = tag
+		self.type = type
+		self.action = action
 	}
 }

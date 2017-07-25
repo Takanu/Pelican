@@ -109,12 +109,12 @@ public class ScheduleEvent: Equatable {
 		self.action = action
 		
 		// Calculate the execution time based on the delay provided
-		var shift = creationTime
+		var shift = 0.0
 		for duration in self.delay! {
-			shift = duration.delayDate(shift)
+			shift += duration.rawValue
 		}
 		
-		self.executeTime = shift
+		self.executeTime = creationTime.addingTimeInterval(shift)
 	}
 	
 	

@@ -18,8 +18,10 @@ UserSession is also used to handle InlineQuery and ChosenInlineResult routes, as
 */
 open class UserSession: Session {
 	
+	
 	//  CORE INTERNAL VARIABLES
 	public var builderID: Int
+	public var tag: SessionTag
 	
 	
 	/// The user information associated with this session.
@@ -51,31 +53,25 @@ open class UserSession: Session {
 	public var timeoutLength: Int = 0
 	
 	
-	// CALLBACKS
-	public var sendRequest: (TelegramRequest) -> (TelegramResponse)
-	public var sendEvent: (SessionEvent) -> ()
-	
-	
-	// Flood Controls
-	//var floodLimit: FloodLimit     // External flood tracking system.
-	
-	
 	public required init(bot: Pelican, builder: SessionBuilder, update: Update) {
 		
 		self.builderID = builder.getID
+		self.tag = SessionTag(sessionID: update.chat!.tgID, builderID: builder.getID, request: bot.sendRequest(_:), event: bot.sendEvent(_:))
 		
 		self.info = update.from!
 		self.userID = update.from!.tgID
-		//self.floodLimit = floodLimit
 		self.routes = RouteController()
 		self.permissions = bot.mod.getPermissions(userID: self.userID)
 		self.schedule = bot.schedule
-		
-		self.sendRequest = bot.sendRequest(_:)
-		self.sendEvent = bot.sendEvent(_:)
 	}
 	
+	
 	public func postInit() {
+		
+	}
+	
+	
+	public func setupRemoval() {
 		
 	}
 	
@@ -83,7 +79,7 @@ open class UserSession: Session {
 	public func update(_ update: Update) {
 		
 		// This needs revising, whatever...
-		let handled = routes.routeRequest(update: update, type: update.type, session: self)
+		_ = routes.routeRequest(update: update, type: update.type)
 		
 	}
 	

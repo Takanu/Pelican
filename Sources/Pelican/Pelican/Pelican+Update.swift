@@ -68,7 +68,7 @@ public class Update {
 	
 	// HEADER CONTENT
 	/// Defines the unique identifier for the content (not the ID of the entity that contains the content).
-	public var id: String
+	public var id: Int
 	/// The basic package of content provided in the update by the sending user, to be used by Route filters.
 	public var content: String
 	/// The user who triggered the update.  This only has the potential to unwrap as nil if the message originated from a channel.
@@ -101,7 +101,7 @@ public class Update {
 			self.type = .message
 			
 			let message = data as! Message
-			self.id = String(message.tgID)
+			self.id = message.tgID
 			self.content = message.text ?? ""
 			self.chat = message.chat
 			
@@ -120,7 +120,7 @@ public class Update {
 			self.type = .callbackQuery
 			
 			let query = data as! CallbackQuery
-			self.id = String(query.id)!
+			self.id = Int(query.id)!
 			self.from = query.from
 			self.content = query.data ?? ""
 			
@@ -131,7 +131,7 @@ public class Update {
 			self.type = .inlineQuery
 			
 			let query = data as! InlineQuery
-			self.id = query.id
+			self.id = Int(query.id)!
 			self.content = query.query
 			self.from = query.from
 			
@@ -142,7 +142,7 @@ public class Update {
 			self.type = .chosenInlineResult
 			
 			let result = data as! ChosenInlineResult
-			self.id = result.resultID
+			self.id = Int(result.resultID)!
 			self.content = result.query
 			self.from = result.from
 		}

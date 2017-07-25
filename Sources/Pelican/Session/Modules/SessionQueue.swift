@@ -21,7 +21,7 @@ public class ChatSessionQueue {
 	/// The Pelican-shared Schedule object, for queuing events to be executed at a later date.
 	var schedule: Schedule
 	/// A callback to the Pelican `sendRequest` method, enabling the class to send it's own requests.
-	var sendRequest: (TelegramRequest) -> (TelegramResponse)
+	var tag: SessionTag
 	
 	
 	/** 
@@ -41,11 +41,11 @@ public class ChatSessionQueue {
 	/**
 	Initialises the Queue class with a Pelican-derived Schedule.
 	*/
-	init(chatID: Int, schedule: Schedule, request: @escaping (TelegramRequest) -> (TelegramResponse)) {
+	init(chatID: Int, schedule: Schedule, tag: SessionTag) {
 		
 		self.chatID = chatID
 		self.schedule = schedule
-		self.sendRequest = request
+		self.tag = tag
 	}
 	
 	/** 
@@ -90,7 +90,7 @@ public class ChatSessionQueue {
 		let event = ScheduleEvent(delayUnixTime: execTime) {
 			
 			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: message, replyMarkup: markup	)
-			_ = self.sendRequest(request)
+			_ = self.tag.sendRequest(request)
 		}
 		
 		schedule.add(event)
@@ -114,7 +114,7 @@ public class ChatSessionQueue {
 		let event = ScheduleEvent(delayUnixTime: execTime) {
 			
 			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: message, replyMarkup: markup, parseMode: parseMode, disableWebPreview: webPreview, disableNtf: disableNtf, replyMessageID: replyID)
-			_ = self.sendRequest(request)
+			_ = self.tag.sendRequest(request)
 		}
 		
 		schedule.add(event)
@@ -132,7 +132,7 @@ public class ChatSessionQueue {
 		
 		let event = ScheduleEvent(delayUnixTime: execTime) {
 			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: dialog, replyMarkup: markup	)
-			_ = self.sendRequest(request)
+			_ = self.tag.sendRequest(request)
 		}
 		
 		schedule.add(event)

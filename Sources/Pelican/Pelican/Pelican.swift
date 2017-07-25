@@ -626,6 +626,14 @@ public final class Pelican: Vapor.Provider {
 	*/
 	func sendEvent(_ event: SessionEvent) {
 		
+		switch event.action {
+			
+		case .remove:
+			sessions.forEach( { $0.removeSession(tag: event.tag) } )
+			
+		case .blacklist:
+			sessions.forEach( { $0.removeSession(tag: event.tag) } )
+		}
 	}
 	
 	
@@ -635,10 +643,10 @@ public final class Pelican: Vapor.Provider {
 	public func addBuilder(_ builder: SessionBuilder) {
 		
 		// Create a generator for the Builder ID and cycle through until we can make sure it's unique
-		var generator = Xoroshiro(seed: (0,128))
+		var generator = Xoroshiro()
 		
 		var id = 0
-		while id != 0 && sessions.contains(where: {$0.getID == id}	) == false {
+		while id == 0 || sessions.contains(where: {$0.getID == id}) == true {
 			id = Int(generator.random32())
 		}
 		
@@ -646,199 +654,4 @@ public final class Pelican: Vapor.Provider {
 		builder.setID(id)
 		sessions.append(builder)
 	}
-	
-	
-	
-	/*
-	
-	/**
-	Checks Pelican's User and Chat session lists to see if any sessions have timed out, and removes the ones that have.
-	- parameter amount: The amount of sessions in total that the function will check.  Set to 0 to check all stored sessions.
-	- parameter resetList: Pelican remembers the sessions you have yet to check if the `amount` parameter is not 0.  Set this to false if you wish Pelican to continue
-	checking from where it left off on the list, or false if you want it to reset it's checks.
-	- note: If you haven't set `enableTimeoutChecks` to false, this will automatically be performed by Pelican based on the check frequency you have set.
-	*/
-	public func checkTimeouts(amount: Int, resetList: Bool) {
-		
-		if chatSessionActivity.count == 0 && userSessionActivity.count == 0 { return }
-		
-		if amount == 0 {
-			
-			for session in chatSessionActivity.values {
-				if session.hasTimeout == true {
-					
-					removeChatSession(chatID: session.chatID)
-				}
-			}
-			
-			for session in userSessionActivity.values {
-				if session.hasTimeout == true {
-					
-					removeUserSession(userID: session.userID)
-				}
-			}
-		}
-			
-		
-		
-		else {
-			
-			// If we have been requested to reset the leftover timeout checks, do it!
-			if resetList == true {
-				chatSessionActivityLeft = chatSessionActivity.values.array
-				userSessionActivityLeft = userSessionActivity.values.array
-			}
-			
-			// Build the ratios between chats and users, and use that to build a total for each
-			let total = chatSessionActivity.values.count + userSessionActivity.values.count
-			let chatRatio = chatSessionActivity.values.count / total
-			let userRatio = userSessionActivity.values.count / total
-			
-			var chatCheckCount = chatRatio * amount
-			var userCheckCount = userRatio * amount
-			
-			if chatCheckCount > chatSessionActivity.count { chatCheckCount = chatSessionActivity.count }
-			if userCheckCount > userSessionActivity.count { userCheckCount = userSessionActivity.count }
-			
-			
-			for _ in 0..<userCheckCount {
-				
-				// If the leftover array equals 0, populate them.
-				if chatSessionActivityLeft.count == 0 {
-					chatSessionActivityLeft = chatSessionActivity.values.array
-				}
-				
-				let session = chatSessionActivityLeft.removeFirst()
-				if session.hasTimeout == true {
-					
-					removeChatSession(chatID: session.chatID)
-				}
-			}
-			
-			for _ in 0..<chatCheckCount {
-				
-				// If the leftover array equals 0, populate them.
-				if userSessionActivityLeft.count == 0 {
-					userSessionActivityLeft = userSessionActivity.values.array
-				}
-				
-				let session = userSessionActivityLeft.removeFirst()
-				if session.hasTimeout == true {
-					
-					removeUserSession(userID: session.userID)
-				}
-			}
-		}
-		
-	}
-	
-	
-	/**
-	Attempts to create a session based on given criteria.  The given criteria determines whether the session is used to handle updates
-	*/
-	public func createChatSession(chatID: Int, setup: (ChatSession) -> ()) -> ChatSession? {
-		
-		// If a chat session already exists, return.
-		if chatSessions[chatID] != nil { return nil }
-		
-		// If the chat ID is in the Moderator blacklist, return.
-		if mod.checkBlacklist(chatID: chatID) == true { return nil }
-		
-		print(">>>>> ADDING NEW SESSION <<<<<")
-		
-		
-		// If we've reached the maximum number of allowed sessions, send them a message if available.
-		if chatSessions.count >= maxChatSessions && maxChatSessions != 0 {
-			print("ChatSession count reached.  Deferring.")
-			//if maxChatSessionsAction != nil { maxChatSessionsAction!(self, chat) }
-			return nil
-		}
-		
-		
-		// If we're still here, add them.
-		if sessionSetupAction == nil { print(TGBotError.EntryMissing.rawValue) ; return nil }
-		
-		let permissions = mod.getPermissions(chatID: chatID)
-		let session = ChatSession(chatID:chatID, data: customData, floodLimit: floodLimit, permissions: permissions, request: { _ in }, event: { _ in })
-		session.postInit()
-		
-		chatSessions[chatID] = session
-		
-		print("ChatSession added.")
-		print("Current Active ChatSessions: ")
-		print(chatSessions)
-		
-		return session
-	}
-	
-	/**
-	Attempts to create a user session, as long as one currently doesn't exist.
-	*/
-	public func createUserSession(user: User, setup: ((UserSession) -> ())?) -> UserSession? {
-		
-		// Before we create a session, check the user isn't in the Moderator blacklist.
-		if mod.checkBlacklist(userID: user.tgID) == true { return nil }
-		
-		let permissions = mod.getPermissions(chatID: user.tgID)
-		let session = UserSession(user: user, floodLimit: floodLimit, permissions: permissions, request: { _ in }, event: { _ in })
-		return session
-	}
-  
-  
-  /**
-	Adds a session to the list of sessions that have active events/
-	*/
-  internal func addChatSessionEvent(session: ChatSession) {
-    if chatSessionEvents[session.chatID] == nil {
-      //print("NEW SESSION EVENT ADDED")
-      chatSessionEvents[session.chatID] = session
-      //print(sessionsEvents)
-    }
-  }
-  
-  
-  /** 
-	Checks all the currently active session events.  The call increments their timers and executes any actions that
-	need executing.
-	*/
-  internal func checkChatSessionQueues() {
-    for session in chatSessionEvents {
-      
-      let result = session.value.queue.incrementTimer()
-      if result == true {
-        //print("SESSION EVENTS COMPLETE, REMOVING...")
-        chatSessionEvents.removeValue(forKey: session.key)
-        //print(sessionsEvents)
-      }
-    }
-  }
-	
-	
-	/**
-	Removes a specified session from being run on Pelican.
-	This will not call the session endChatSessionAction, this function assumes it is being called from the session itself
-	if it needs to be called before removal.
-	*/
-	public func removeChatSession(chatID: Int) {
-		//print("REMOVING SESSION - ", (session.chat.title ?? session.chat.firstName!))
-		chatSessions.removeValue(forKey: chatID)
-		chatSessionEvents.removeValue(forKey: chatID)
-		
-		for (index, _) in chatSessionActivity.enumerated() {
-			if index == chatID {
-				chatSessionActivity.removeValue(forKey: chatID)
-			}
-		}
-	}
-	
-	
-	/**
-	Removes a specified user session from Pelican.
-	This doesn't stop the session from being re-created in the future (unless it was also added to the Moderator Blacklist).
-	*/
-	public func removeUserSession(userID: Int) {
-		
-		userSessions.removeValue(forKey: userID)
-	}
-	*/
 }

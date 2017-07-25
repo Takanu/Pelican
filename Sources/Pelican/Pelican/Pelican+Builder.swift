@@ -36,7 +36,7 @@ public class SessionBuilder {
 	var id: Int = 0
 	public var getID: Int { return id }
 	/// A function that checks an update to see whether or not it matches given criteria in that function, returning a non-nil value if true.
-	var spawner: (Update) -> String?
+	var spawner: (Update) -> Int?
 	/// The session type that's created using the builder.
 	var session: Session.Type
 	/** An optional function type that can be used to initialise a Session type in a custom way, such as if it has any additional initialisation paramaters. 
@@ -55,7 +55,7 @@ public class SessionBuilder {
 	var maxSessions: Int = 0
 	
 	/// The sessions that have been spawned by the builder and are currently active.
-	var sessions: [String:Session] = [:]
+	var sessions: [Int:Session] = [:]
 	
 	
 	/**
@@ -64,7 +64,7 @@ public class SessionBuilder {
 	- parameter setup: An optional function type that can be used to setup Sessions when created to be given anything else that isn't available during
 	initialisation, such as specific Flood Limits and Timeouts.
 	*/
-	public init(spawner: @escaping (Update) -> String?, session: Session.Type, setup: ((Pelican, SessionBuilder, Update) -> (Session))?) {
+	public init(spawner: @escaping (Update) -> Int?, session: Session.Type, setup: ((Pelican, SessionBuilder, Update) -> (Session))?) {
 		self.spawner = spawner
 		self.session = session
 		self.setup = setup
@@ -108,8 +108,10 @@ public class SessionBuilder {
 				
 			}
 				
-				// If not, build one
+			// If not, build one
 			else {
+				
+				print("BUILDING SESSION - \(id)")
 				
 				// If the setup function exists, use it
 				if setup != nil {
@@ -149,6 +151,21 @@ public class SessionBuilder {
 		return false
 	}
 	
+	
+	/**
+	Attempts to remove a Session, given the SessionTag that identifies it.
+	*/
+	func removeSession(tag: SessionTag) {
+		
+		if tag.getBuilderID != self.id { return }
+		
+		if let session = sessions[tag.getSessionID] {
+			session.setupRemoval()
+			sessions.removeValue(forKey: tag.getSessionID)
+			print("SESSION REMOVED - \(tag.getSessionID)")
+		}
+	}
+	
 }
 
 
@@ -160,26 +177,26 @@ A function that's used as a Spawner must always return a function of type `(Upda
 */
 public class Spawn {
 	
-	public static func perChatID(types: [UpdateType]?) -> ((Update) -> String?) {
+	public static func perChatID(types: [UpdateType]?) -> ((Update) -> Int?) {
 		
 		return { update in
 			
 			if update.chat == nil { return nil }
-			if types == nil { return update.id }
-			else if types!.contains(update.type) == true { return update.id }
+			if types == nil { return update.chat!.tgID }
+			else if types!.contains(update.type) == true { return update.chat!.tgID }
 			return nil
 		}
 		
 	}
 	
-	public static func perChatID(include: [String], types: [UpdateType]) -> ((Update) -> String?) {
+	public static func perChatID(include: [Int], types: [UpdateType]) -> ((Update) -> Int?) {
 		
 		return { update in
 			
 			if update.chat == nil { return nil }
 			if include.contains(update.id) == true || include.count == 0 {
 				if types.contains(update.type) == true || types.count == 0 {
-					return update.id
+					return update.chat!.tgID
 				}
 			}
 			
@@ -187,14 +204,14 @@ public class Spawn {
 		}
 	}
 	
-	public static func perChatID(exclude: [String], types: [UpdateType]) -> ((Update) -> String?) {
+	public static func perChatID(exclude: [Int], types: [UpdateType]) -> ((Update) -> Int?) {
 		
 		return { update in
 			
 			if update.chat == nil { return nil }
 			if exclude.contains(update.id) == false || exclude.count == 0 {
 				if types.contains(update.type) == true || types.count == 0 {
-					return update.id
+					return update.chat!.tgID
 				}
 			}
 			
@@ -203,33 +220,33 @@ public class Spawn {
 	}
 	
 	
-	public static func perChatID(includePermissions: [String], types: [UpdateType]?) -> ((Update) -> String?) {
+	public static func perChatID(includePermissions: [String], types: [UpdateType]?) -> ((Update) -> Int?) {
 		
 		return { _ in return nil }
 	}
 	
-	public static func perUserID(types: [UpdateType]?) -> ((Update) -> String?) {
+	public static func perUserID(types: [UpdateType]?) -> ((Update) -> Int?) {
 		
 		return { update in
 			
 			if update.from == nil { return nil }
-			if types == nil { return String(update.from!.tgID) }
-			else if types!.contains(update.type) == true { return String(update.from!.tgID) }
+			if types == nil { return update.chat!.tgID }
+			else if types!.contains(update.type) == true { return update.chat!.tgID }
 			return nil
 		}
 	}
 	
-	public static func perUserID(include: [String], types: [UpdateType]?) -> ((Update) -> String?) {
+	public static func perUserID(include: [String], types: [UpdateType]?) -> ((Update) -> Int?) {
 		
 		return { _ in return nil }
 	}
 	
-	public static func perUserID(exclude: [String], types: [UpdateType]?) -> ((Update) -> String?) {
+	public static func perUserID(exclude: [String], types: [UpdateType]?) -> ((Update) -> Int?) {
 		
 		return { _ in return nil }
 	}
 	
-	public static func perUserID(includePermissions: [String], types: [UpdateType]?) -> ((Update) -> String?) {
+	public static func perUserID(includePermissions: [String], types: [UpdateType]?) -> ((Update) -> Int?) {
 		
 		return { _ in return nil }
 	}

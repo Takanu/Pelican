@@ -15,11 +15,11 @@ A delegate for a session, to send requests to Telegram that correspond with send
 public class TGSend {
 	
 	var chatID: Int
-	var sendRequest: (TelegramRequest) -> (TelegramResponse)
+	var tag: SessionTag
 	
-	init(chatID: Int, sendRequest: @escaping (TelegramRequest) -> (TelegramResponse)) {
+	init(chatID: Int, tag: SessionTag) {
 		self.chatID = chatID
-		self.sendRequest = sendRequest
+		self.tag = tag
 	}
 	
 	/**
@@ -28,7 +28,7 @@ public class TGSend {
 	public func message(_ message: String, markup: MarkupType?, parseMode: MessageParseMode = .markdown, replyID: Int = 0, webPreview: Bool = false, disableNtf: Bool = false) {
 		
 		let request = TelegramRequest.sendMessage(chatID: chatID, text: message, replyMarkup: markup, parseMode: parseMode, disableWebPreview: webPreview, disableNtf: disableNtf, replyMessageID: replyID)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -37,7 +37,7 @@ public class TGSend {
 	public func file(_ link: FileLink, caption: String, markup: MarkupType?, replyID: Int = 0, disableNtf: Bool = false, callback: ReceiveUpload? = nil) {
 		
 		let request = TelegramRequest.uploadFile(link: link, callback: callback, chatID: chatID, markup: markup, caption: caption, disableNtf: disableNtf, replyMessageID: replyID)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 }
 
@@ -48,11 +48,11 @@ A delegate for a session, to send requests to Telegram that correspond with edit
 public class TGEdit {
 	
 	var chatID: Int
-	var sendRequest: (TelegramRequest) -> (TelegramResponse)
+	var tag: SessionTag
 	
-	init(chatID: Int, sendRequest: @escaping (TelegramRequest) -> (TelegramResponse)) {
+	init(chatID: Int, tag: SessionTag) {
 		self.chatID = chatID
-		self.sendRequest = sendRequest
+		self.tag = tag
 	}
 	
 	/**
@@ -61,7 +61,7 @@ public class TGEdit {
 	public func message(messageID: Int?, inlineMessageID: Int?, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .none, disableWebPreview: Bool = false) {
 		
 		let request = TelegramRequest.editMessageText(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, text: text, replyMarkup: replyMarkup, parseMode: parseMode, disableWebPreview: disableWebPreview)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -70,7 +70,7 @@ public class TGEdit {
 	public func caption(messageID: Int = 0, caption: String, replyMarkup: MarkupType?) {
 		
 		let request = TelegramRequest.editMessageCaption(chatID: chatID, messageID: messageID, caption: caption, replyMarkup: replyMarkup)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -79,7 +79,7 @@ public class TGEdit {
 	public func replyMarkup(messageID: Int = 0, replyMarkup: MarkupType?, replyMessageID: Int = 0) {
 		
 		let request = TelegramRequest.editMessageReplyMarkup(chatID: chatID, messageID: messageID, replyMarkup: replyMarkup, replyMessageID: replyMessageID)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -93,7 +93,7 @@ public class TGEdit {
 	public func delete(messageID: Int) {
 		
 		let request = TelegramRequest.deleteMessage(chatID: chatID, messageID: messageID)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 }
 
@@ -104,11 +104,11 @@ A delegate for a session, to send requests to Telegram that correspond with admi
 public class TGAdmin {
 	
 	var chatID: Int
-	var sendRequest: (TelegramRequest) -> (TelegramResponse)
+	var tag: SessionTag
 	
-	init(chatID: Int, sendRequest: @escaping (TelegramRequest) -> (TelegramResponse)) {
+	init(chatID: Int, tag: SessionTag) {
 		self.chatID = chatID
-		self.sendRequest = sendRequest
+		self.tag = tag
 	}
 	
 	/**
@@ -117,7 +117,7 @@ public class TGAdmin {
 	public func kick(_ userID: Int) {
 		
 		let request = TelegramRequest.kickChatMember(chatID: chatID, userID: userID)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -126,7 +126,7 @@ public class TGAdmin {
 	public func unban(_ userID: Int) {
 		
 		let request = TelegramRequest.unbanChatMember(chatID: chatID, userID: userID)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -135,7 +135,7 @@ public class TGAdmin {
 	public func restrict(_ userID: Int, restrictUntil: Int?, restrictions: (msg: Bool, media: Bool, stickers: Bool, webPreview: Bool)?) {
 		
 		let request = TelegramRequest.restrictChatMember(chatID: chatID, userID: userID, restrictUntil: restrictUntil, restrictions: restrictions)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -144,7 +144,7 @@ public class TGAdmin {
 	public func promote(_ userID: Int, rights: (info: Bool, msg: Bool, edit: Bool, delete: Bool, invite: Bool, restrict: Bool, pin: Bool, promote: Bool)?) {
 		
 		let request = TelegramRequest.promoteChatMember(chatID: chatID, userID: userID, rights: rights)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -153,7 +153,7 @@ public class TGAdmin {
 	public func getInviteLink() {
 		
 		let request = TelegramRequest.exportChatInviteLink(chatID: chatID)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -162,7 +162,7 @@ public class TGAdmin {
 	public func setChatPhoto(file: FileLink) {
 		
 		let request = TelegramRequest.setChatPhoto(chatID: chatID, file: file)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -171,7 +171,7 @@ public class TGAdmin {
 	public func deleteChatPhoto() {
 		
 		let request = TelegramRequest.deleteChatPhoto(chatID: chatID)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -180,7 +180,7 @@ public class TGAdmin {
 	public func setChatTitle(_ title: String) {
 		
 		let request = TelegramRequest.setChatTitle(chatID: chatID, title: title)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -189,7 +189,7 @@ public class TGAdmin {
 	public func setChatDescription(_ description: String) {
 		
 		let request = TelegramRequest.setChatDescription(chatID: chatID, description: description)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -198,7 +198,7 @@ public class TGAdmin {
 	public func pin(messageID: Int, disableNtf: Bool = false) {
 		
 		let request = TelegramRequest.pinChatMessage(chatID: chatID, messageID: messageID, disableNtf: disableNtf)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -207,7 +207,7 @@ public class TGAdmin {
 	public func unpin() {
 		
 		let request = TelegramRequest.unpinChatMessage(chatID: chatID)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 }
@@ -218,10 +218,10 @@ A delegate for a session, to send requests to Telegram that correspond with send
 */
 public class TGAnswer {
 	
-	var sendRequest: (TelegramRequest) -> (TelegramResponse)
+	var tag: SessionTag
 	
-	init(sendRequest: @escaping (TelegramRequest) -> (TelegramResponse)) {
-		self.sendRequest = sendRequest
+	init(tag: SessionTag) {
+		self.tag = tag
 	}
 	
 	/**
@@ -230,7 +230,7 @@ public class TGAnswer {
 	public func callbackQuery(queryID: String, text: String?, showAlert: Bool, url: String = "", cacheTime: Int = 0) {
 		
 		let request = TelegramRequest.answerCallbackQuery(queryID: queryID, text: text, showAlert: showAlert, url: url, cacheTime: cacheTime)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 	
 	/**
@@ -239,6 +239,6 @@ public class TGAnswer {
 	public func inlineQuery(queryID: Int, results: [InlineResult], cacheTime: Int = 0, isPersonal: Bool = false, nextOffset: String?, switchPM: String?, switchPMParam: String?) {
 		
 		let request = TelegramRequest.answerInlineQuery(queryID: queryID, results: results, cacheTime: cacheTime, isPersonal: isPersonal, nextOffset: nextOffset, switchPM: switchPM, switchPMParam: switchPMParam)
-		_ = sendRequest(request)
+		_ = tag.sendRequest(request)
 	}
 }
