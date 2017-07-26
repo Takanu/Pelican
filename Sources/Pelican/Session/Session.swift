@@ -5,7 +5,18 @@ import FluentProvider
 
 
 /**
-A set of identifying information belonging to a Session, given to delegates to both perform basic callbacks to Pelican
+Defines what kind of identifier a SessionTag is holding, which is important for interactions between a Session and other models
+like the Moderator, whose job is to manage titles and blacklists only for Chat and User ID types.
+*/
+public enum SessionIDType {
+	case chat
+	case user
+	case other
+}
+
+
+/**
+A set of identifying information belonging to a Session, given to itself and it's delegates to both perform basic callbacks to Pelican
 for tasks such as Telegram API calls, as well as enabling delegates to identify and modify it's owning session through
 Pelican in basic ways (such as removing the Session from active use if a Timeout condition is achieved).
 
@@ -13,24 +24,39 @@ Pelican in basic ways (such as removing the Session from active use if a Timeout
 */
 public struct SessionTag: Equatable {
 	
+	// DATA
 	/// The relative identifying ID for a session.  Could be a user ID, chat ID or other types of session identification.
 	var sessionID: Int
+	/// The type of Session the Tag and ID refer to.
+	var sessionType: Session.Type
+	/// The type of ID the session is represented by, used for more specific tasks such as Moderation.
+	var sessionIDType: SessionIDType
+	/// The identifier for the Builder ID, assigned by Pelican at it's creation.
 	var builderID: Int
 	
-	var getSessionID: Int { return sessionID }
-	var getBuilderID: Int { return builderID }
 	
+	// GETTERS
+	public var getSessionID: Int { return sessionID }
+	public var getSessionType: Session.Type { return sessionType }
+	public var getSessionIDType: SessionIDType { return sessionIDType }
+	public var getBuilderID: Int { return builderID }
+	
+	
+	// CALLBACKS
 	var sendRequestCallback: (TelegramRequest) -> (TelegramResponse)
 	var sendEventCallback: (SessionEvent) -> ()
 	
 	
-	init(sessionID: Int, builderID: Int, request: @escaping (TelegramRequest) -> (TelegramResponse), event: @escaping (SessionEvent) -> ()) {
+	init(bot: Pelican, builder: SessionBuilder, id: Int) {
 		
-		self.sessionID = sessionID
-		self.builderID = builderID
+		self.sessionID = id
+		self.sessionType = builder.session
+		self.sessionIDType = builder.idType
+		self.builderID = builder.getID
 		
-		self.sendRequestCallback = request
-		self.sendEventCallback = event
+		
+		self.sendRequestCallback = bot.sendRequest(_:)
+		self.sendEventCallback = bot.sendEvent(_:)
 	}
 	
 	/**
@@ -66,21 +92,15 @@ TBW
 */
 public protocol Session {
 	
+	
 	// CORE DATA
-	/// The ID of the builder that created this session, used by Pelican when events are generated from this session.
-	var builderID: Int { get }
+	/// The "tag" of a session, holding key identifying details that allow it to be identified by Pelican, and is also passed to delegates for both identification and callback events.
+	var tag: SessionTag { get }
 	
 	
 	// DELEGATES AND CONTROLLERS
 	/// Handles and matches user requests to available bot functions based on user-defined patterns and behaviours.
 	var routes: RouteController { get }
-	/// Stores what Moderator-controlled permissions the Session has.
-	var permissions: Permissions { get }
-	
-	
-	// CALLBACKS
-	/// The "tag" of a session, holding key details that allow it to be identified by Pelican.  Passed to delegates for events.
-	var tag: SessionTag { get }
 	
 	
 	// TIME AND ACTIVITY
@@ -89,16 +109,14 @@ public protocol Session {
 	
 	
 	/** A standard initialiser for a Session, which includes all the required information to setup any delegates it might have. */
-	init(bot: Pelican, builder: SessionBuilder, update: Update)
-	
+	init(bot: Pelican, tag: SessionTag, update: Update)
 	
 	/** Performs any post-initialiser setup, like setting initial routes. */
 	func postInit()
 	
 	/** Performs any functions required to prepare the Session for removal from the Builder, which can occur when a Session or one
 	of it's delegates requests Pelican to remove it. */
-	func setupRemoval()
-	
+	func close()
 	
 	/** Receives updates from Pelican to be used to find matching Routes and Prompts (in ChatSessions only).  Returns SessionRequests that
 	Pelican uses to make requests to Telegram with. */

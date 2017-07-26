@@ -202,5 +202,15 @@ public class TimeoutController {
 		
 		_ = schedule.add(lastEvent!)
 	}
+	
+	/**
+	Should be used by the owning Session to clean up requested events before the Session itself closes.
+	*/
+	public func close() {
+		
+		if lastEvent != nil {
+			schedule.remove(lastEvent!)
+		}
+	}
 }
 

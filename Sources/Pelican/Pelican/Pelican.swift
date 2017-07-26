@@ -332,7 +332,7 @@ public final class Pelican: Vapor.Provider {
 	*/
 	public func getUpdateSets() -> ([Update])? {
 		
-		print("UPDATE START")
+		//print("UPDATE START")
 		
     let query = makeUpdateQuery()
     
@@ -371,8 +371,13 @@ public final class Pelican: Vapor.Provider {
             offset = update_id + 1
             continue
           }
-          
-          updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					
+					// Check that the update should be used before adding it.
+					if mod.checkBlacklist(chatID: message.chat.tgID) == false {
+						if mod.checkBlacklist(userID: message.from!.tgID) == false {
+							updates.append(Update(withData: message as UpdateModel, node: messageNode))
+						}
+					}
         }
       }
 			
@@ -453,7 +458,10 @@ public final class Pelican: Vapor.Provider {
 						continue
 					}
 					
-          updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					// Check that the update should be used before adding it.
+					if mod.checkBlacklist(userID: message.from.tgID) == false {
+						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					}
         }
       }
       
@@ -474,7 +482,10 @@ public final class Pelican: Vapor.Provider {
 						continue
 					}
 					
-          updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					// Check that the update should be used before adding it.
+					if mod.checkBlacklist(userID: message.from.tgID) == false {
+						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					}
         }
       }
       
@@ -495,7 +506,10 @@ public final class Pelican: Vapor.Provider {
 						continue
 					}
 					
-          updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					// Check that the update should be used before adding it.
+					if mod.checkBlacklist(userID: message.from.tgID) == false {
+						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					}
         }
       }
       
@@ -513,7 +527,7 @@ public final class Pelican: Vapor.Provider {
 	*/
   internal func filterUpdates() {
 		
-    print("START FILTER")
+    //print("START FILTER")
 		
 		// Get updates from Telegram
     guard let updates = getUpdateSets() else {
@@ -583,7 +597,7 @@ public final class Pelican: Vapor.Provider {
 			}
 		}
 		
-		print(updates)
+		//print(updates)
 		
 		
 		// Check the schedule.
@@ -592,7 +606,7 @@ public final class Pelican: Vapor.Provider {
 		
 		// Update the last active time.
 		timeLastUpdate = Date()
-		print("UPDATE END")
+		//print("UPDATE END")
 		
   }
 	
@@ -628,12 +642,29 @@ public final class Pelican: Vapor.Provider {
 		
 		switch event.action {
 			
+		// In this event, the session just needs removing without any other tasks.
 		case .remove:
 			sessions.forEach( { $0.removeSession(tag: event.tag) } )
 			
+		
+		// In a blacklist event, first make sure the Session ID type matches.  If not, return.
 		case .blacklist:
+			
+			switch event.tag.getSessionIDType {
+				
+			case .chat:
+				mod.addToBlacklist(chatIDs: event.tag.getSessionID)
+			case .user:
+				mod.addToBlacklist(userIDs: event.tag.getSessionID)
+			default:
+				return
+			}
+			
 			sessions.forEach( { $0.removeSession(tag: event.tag) } )
+			
 		}
+		
+		
 	}
 	
 	

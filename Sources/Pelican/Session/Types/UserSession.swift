@@ -20,7 +20,6 @@ open class UserSession: Session {
 	
 	
 	//  CORE INTERNAL VARIABLES
-	public var builderID: Int
 	public var tag: SessionTag
 	
 	
@@ -41,7 +40,7 @@ open class UserSession: Session {
 	public var routes: RouteController
 	
 	/// Stores what Moderator-controlled permissions the User Session has.
-	public var permissions: Permissions
+	public var mod: SessionModerator
 	
 	/// Stores a link to the schedule, that allows events to be executed at a later date.
 	public var schedule: Schedule
@@ -53,15 +52,14 @@ open class UserSession: Session {
 	public var timeoutLength: Int = 0
 	
 	
-	public required init(bot: Pelican, builder: SessionBuilder, update: Update) {
+	public required init(bot: Pelican, tag: SessionTag, update: Update) {
 		
-		self.builderID = builder.getID
-		self.tag = SessionTag(sessionID: update.chat!.tgID, builderID: builder.getID, request: bot.sendRequest(_:), event: bot.sendEvent(_:))
+		self.tag = tag
 		
 		self.info = update.from!
 		self.userID = update.from!.tgID
 		self.routes = RouteController()
-		self.permissions = bot.mod.getPermissions(userID: self.userID)
+		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
 		self.schedule = bot.schedule
 	}
 	
@@ -71,7 +69,7 @@ open class UserSession: Session {
 	}
 	
 	
-	public func setupRemoval() {
+	public func close() {
 		
 	}
 	
@@ -82,35 +80,4 @@ open class UserSession: Session {
 		_ = routes.routeRequest(update: update, type: update.type)
 		
 	}
-	
-	/*
-	/// Bumps the flood limiter, and potentially blacklists or warns the user.
-	func bumpFlood() {
-		let limitHit = floodLimit.bump(globalTime: bot.globalTimer)
-		if limitHit {
-			
-			// If we've reached the maximum maximum limit, add this chat ID to the blacklist
-			if floodLimit.reachedLimit {
-				//_ = bot.mod.add(toList: "blacklist", users: self)
-				//bot.blacklistChatSession(session: self)
-				return
-			}
-			
-			// Otherwise if set, send the user a warning
-			if bot.floodLimitWarning != nil {
-				bot.floodLimitWarning!(self)
-			}
-		}
-	}
-
-	
-	/**
-	Responds to an inline query with an array of results.
-	*/
-	public func sendInlineResults(_ inlineResults: [InlineResult], queryID: String, cache: Int = 300, isPersonal: Bool = false, nextOffset: Int = 0, switchPM: String = "", switchPMParam: String = "") {
-		
-		let request = TelegramRequest.answerInlineQuery(inlineQueryID: queryID, results: inlineResults, cacheTime: cache, isPersonal: isPersonal, nextOffset: nextOffset, switchPM: switchPM, switchPMParam: switchPMParam)
-		sendRequest(request)
-	}
-	*/
 }

@@ -20,7 +20,6 @@ open class ChatSession: Session {
 	public var storage = Storage()
 	
 	// CORE TYPES
-	public var builderID: Int
 	public var tag: SessionTag
 	
 	/// The chat ID associated with the session.
@@ -52,8 +51,8 @@ open class ChatSession: Session {
 	/// Handles and matches user requests to available bot functions.
 	public var routes: RouteController
 	
-	/// Stores what Moderator-controlled permissions the Chat Session has.
-	public var permissions: Permissions
+	/// Stores what Moderator-controlled titles the Chat Session has.
+	public var mod: SessionModerator
 	
 	/// Stores a link to the schedule, that allows events to be executed at a later date.
 	public var schedule: Schedule
@@ -67,33 +66,25 @@ open class ChatSession: Session {
 	
 	
 	// MAINTENANCE
-	
 	/// A command to be used when the session ends.
 	public var sessionEndAction: ((ChatSession) -> ())?
-	
 	
 	// Time and Activity
 	public var timeStarted = Date()
 	
 	
-	// STORED UPDATES
-	public var currentMessage: Message?
-	public var lastSentMessage: Message?
-	public var wordsPerMinute: Int = 190      // Used as an implicit timer for a set of dialog actions.
-	
 	
 	// Setup the session by passing a function that modifies itself with the required commands.
-	public required init(bot: Pelican, builder: SessionBuilder, update: Update) {
+	public required init(bot: Pelican, tag: SessionTag, update: Update) {
 		
-		self.builderID = builder.getID
-		self.tag = SessionTag(sessionID: update.chat!.tgID, builderID: builder.getID, request: bot.sendRequest(_:), event: bot.sendEvent(_:))
+		self.tag = tag
 		
 		self.chatID = update.chat!.tgID
 		self.prompts = PromptController()
 		self.queue = ChatSessionQueue(chatID: update.chat!.tgID, schedule: bot.schedule, tag: self.tag)
 		self.routes = RouteController()
 		
-		self.permissions = bot.mod.getPermissions(chatID: self.chatID)
+		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
 		self.schedule = bot.schedule
 		self.timeout = TimeoutController(tag: self.tag, schedule: self.schedule)
 		self.flood = FloodController()
@@ -105,18 +96,23 @@ open class ChatSession: Session {
 	}
 	
 	open func postInit() {
+		
 		prompts.session = self
 	}
 	
-	open func setupRemoval() {
-		self.queue.clear()
+	open func close() {
 		
+		self.queue.clear()
+		self.timeout.close()
 		// Need something for prompt, do it with the refactor
 	}
 	
 	
 	// Receives a message from the TelegramBot to check whether in the current state anything can be done with it
 	public func update(_ update: Update) {
+		
+		// Bump the timeout controller first so if flood or another process closes the Session, a new timeout event will not be added.
+		timeout.bump(update)
 		
 		// This needs revising, whatever...
 		let handled = routes.routeRequest(update: update, type: update.type)
@@ -125,9 +121,8 @@ open class ChatSession: Session {
 			_ = prompts.filterQuery(update.data as! CallbackQuery, session: self)
 		}
 		
-		// Bump the flood and timeout controllers
+		// Bump the flood controller after
 		flood.bump(update)
-		timeout.bump(update)
 		
 	}
 }
