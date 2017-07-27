@@ -32,7 +32,7 @@ open class ChatSession: Session {
 	
 	
 	
-	/// API REQUESTS
+	// API REQUESTS
 	// Shortcuts for API requests.
 	public var send: TGSend
 	public var admin: TGAdmin
@@ -80,7 +80,7 @@ open class ChatSession: Session {
 		self.tag = tag
 		
 		self.chatID = update.chat!.tgID
-		self.prompts = PromptController()
+		self.prompts = PromptController(tag: tag, schedule: bot.schedule)
 		self.queue = ChatSessionQueue(chatID: update.chat!.tgID, schedule: bot.schedule, tag: self.tag)
 		self.routes = RouteController()
 		
@@ -97,7 +97,6 @@ open class ChatSession: Session {
 	
 	open func postInit() {
 		
-		prompts.session = self
 	}
 	
 	open func close() {
@@ -118,7 +117,7 @@ open class ChatSession: Session {
 		let handled = routes.routeRequest(update: update, type: update.type)
 		
 		if handled == false && update.type == .callbackQuery {
-			_ = prompts.filterQuery(update.data as! CallbackQuery, session: self)
+			_ = prompts.filterQuery(update.data as! CallbackQuery)
 		}
 		
 		// Bump the flood controller after

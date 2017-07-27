@@ -15,13 +15,16 @@ This class includes many helper and convenience functions to make
 */
 public class ChatSessionQueue {
 	
-	/// CALLBACKS
+	/// DATA
 	/// The chat ID of the session this queue belongs to.
 	var chatID: Int
-	/// The Pelican-shared Schedule object, for queuing events to be executed at a later date.
-	var schedule: Schedule
 	/// A callback to the Pelican `sendRequest` method, enabling the class to send it's own requests.
 	var tag: SessionTag
+	
+	// CALLBACKS
+	/// A callback to Schedule, to add an event to the queue
+	var addEvent: (ScheduleEvent) -> ()
+	var removeEvent: (ScheduleEvent) -> ()
 	
 	
 	/** 
@@ -44,8 +47,10 @@ public class ChatSessionQueue {
 	init(chatID: Int, schedule: Schedule, tag: SessionTag) {
 		
 		self.chatID = chatID
-		self.schedule = schedule
 		self.tag = tag
+		
+		self.addEvent = schedule.add(_:)
+		self.removeEvent = schedule.remove(_:)
 	}
 	
 	/** 
@@ -65,7 +70,7 @@ public class ChatSessionQueue {
 		
 		// Add it directly to the end of the stack
 		let event = ScheduleEvent(delayUnixTime: execTime, action: action)
-		schedule.add(event)
+		addEvent(event)
 		eventHistory.append(event)
 		
 		return event
@@ -93,7 +98,7 @@ public class ChatSessionQueue {
 			_ = self.tag.sendRequest(request)
 		}
 		
-		schedule.add(event)
+		addEvent(event)
 		eventHistory.append(event)
 	}
 	
@@ -117,7 +122,7 @@ public class ChatSessionQueue {
 			_ = self.tag.sendRequest(request)
 		}
 		
-		schedule.add(event)
+		addEvent(event)
 		eventHistory.append(event)
 	}
 	
@@ -135,7 +140,7 @@ public class ChatSessionQueue {
 			_ = self.tag.sendRequest(request)
 		}
 		
-		schedule.add(event)
+		addEvent(event)
 		eventHistory.append(event)
 	}
 	
@@ -176,7 +181,7 @@ public class ChatSessionQueue {
 	*/
 	public func remove(_ event: ScheduleEvent) {
 		
-		schedule.remove(event)
+		removeEvent(event)
 	}
 	
 	/** Clears all actions in the queue. */
@@ -185,7 +190,7 @@ public class ChatSessionQueue {
 		lastEventViewTime = 0
 		
 		for event in eventHistory {
-			_ = schedule.remove(event)
+			_ = removeEvent(event)
 		}
 	}
 }

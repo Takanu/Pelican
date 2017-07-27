@@ -33,7 +33,7 @@ extension TelegramRequest {
 		if inlineMessageID != nil { request.query["inline_message_id"] = inlineMessageID }
 		
 		// Check whether any other query needs to be added
-		if messageID != 0 { request.query["message_id"] = messageID }
+		request.query["text"] = text
 		if replyMarkup != nil { request.query["reply_markup"] = replyMarkup!.getQuery() }
 		if parseMode != .none { request.query["parse_mode"] = parseMode.rawValue }
 		
@@ -80,7 +80,7 @@ extension TelegramRequest {
 	Use this method to edit only the reply markup of messages sent by the bot or via the bot (for inline bots). On success, 
 	if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
 	*/
-	public static func editMessageReplyMarkup(chatID: Int, messageID: Int = 0, replyMarkup: MarkupType?, replyMessageID: Int = 0) -> TelegramRequest {
+	public static func editMessageReplyMarkup(chatID: Int, messageID: Int = 0, inlineMessageID: Int = 0, replyMarkup: MarkupType?) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -90,8 +90,8 @@ extension TelegramRequest {
 		
 		// Check whether any other query needs to be added
 		if messageID != 0 { request.query["message_id"] = messageID }
+		if inlineMessageID != 0 { request.query["inline_message_id"] = inlineMessageID }
 		if replyMarkup != nil { request.query["reply_markup"] = replyMarkup!.getQuery() }
-		if replyMessageID != 0 { request.query["reply_to_message_id"] = replyMessageID }
 		
 		// Set the query
 		request.methodName = "editMessageReplyMarkup"

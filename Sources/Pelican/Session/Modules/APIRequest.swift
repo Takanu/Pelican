@@ -76,9 +76,9 @@ public class TGEdit {
 	/**
 	Edits the inline markup options assigned to any type of message/
 	*/
-	public func replyMarkup(messageID: Int = 0, replyMarkup: MarkupType?, replyMessageID: Int = 0) {
+	public func replyMarkup(messageID: Int = 0, inlineMessageID: Int = 0, replyMarkup: MarkupType?) {
 		
-		let request = TelegramRequest.editMessageReplyMarkup(chatID: chatID, messageID: messageID, replyMarkup: replyMarkup, replyMessageID: replyMessageID)
+		let request = TelegramRequest.editMessageReplyMarkup(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, replyMarkup: replyMarkup)
 		_ = tag.sendRequest(request)
 	}
 	

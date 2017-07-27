@@ -34,7 +34,7 @@ extension TelegramRequest {
 			"callback_query_id": queryID
 		]
 		
-		if text != nil { request.query["chat_id"] = text! }
+		if text != nil { request.query["text"] = text! }
 		if showAlert == true { request.query["show_alert"] = showAlert }
 		if url != nil { request.query["url"] = url! }
 		if cacheTime != 0 { request.query["cache_time"] = cacheTime }

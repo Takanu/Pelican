@@ -122,6 +122,7 @@ public class Update {
 			let query = data as! CallbackQuery
 			self.id = Int(query.id)!
 			self.from = query.from
+			self.chat = query.message?.chat
 			self.content = query.data ?? ""
 			
 		}

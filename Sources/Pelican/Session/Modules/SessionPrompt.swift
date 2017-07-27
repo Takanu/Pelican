@@ -8,20 +8,36 @@
 
 import Foundation
 import Vapor
+import FluentProvider
 
 /** Defines a convenient way to create inline options for users and to provide quick ways of managing and
  customising their behaviours.
  */
 public class PromptController {
+	
+	// DATA
+	var tag: SessionTag
   var prompts: [Prompt] = []
-  var session: ChatSession?
+	
   public var enabled: Bool = true
   public var count: Int { return prompts.count }
-  
+	
+	
+	// CALLBACKS
+	var addEvent: (ScheduleEvent) -> ()
+	var removeEvent: (ScheduleEvent) -> ()
+	
+	init(tag: SessionTag, schedule: Schedule) {
+		
+		self.tag = tag
+		self.addEvent = schedule.add(_:)
+		self.removeEvent = schedule.remove(_:)
+	}
+	
   public func add(_ prompt: Prompt) {
     // Check to make sure it doesn't already exist, if it does pull it
     for (index, ownedPrompt) in prompts.enumerated() {
-      if ownedPrompt.compare(prompt: prompt) == true {
+      if ownedPrompt == prompt {
         prompts.remove(at: index)
       }
     }
@@ -40,8 +56,8 @@ public class PromptController {
 	- parameter upload: A specific file to be sent as the contents of the message belonging to this prompt.
 	- parameter update: (Optional) The closure that is executed every time the prompt receives a callback query.
 	*/
-	public func createPrompt(name: String, inline: MarkupInline, text: String, file: FileLink?, update: ((ChatSession, Prompt) -> ())? ) -> Prompt {
-		let prompt = Prompt(name: name, inline: inline, text: text, file: file, update: update)
+	public func createPrompt(name: String, inline: MarkupInline, text: String, file: FileLink?, update: ((Prompt) -> ())? ) -> Prompt {
+		let prompt = Prompt(controller: self, name: name, inline: inline, text: text, file: file, update: update)
 		prompt.controller = self
 		self.add(prompt)
 		return prompt
@@ -75,14 +91,14 @@ public class PromptController {
   
   /** Filters a query for a prompt to receive and handle.
    */
-  func filterQuery(_ query: CallbackQuery, session: ChatSession) -> Bool {
+  func filterQuery(_ query: CallbackQuery) -> Bool {
     if enabled == false { return false }
     
     for prompt in prompts {
       if prompt.message != nil {
         if prompt.message!.tgID == query.message?.tgID {
 					
-          let handled = prompt.query(query: query, session: session)
+          let handled = prompt.query(query: query)
 					if handled == true {
 						return true
 					}
@@ -98,7 +114,8 @@ public class PromptController {
   public func remove(_ prompt: Prompt) {
     // Check to make sure it doesn't already exist, if it does pull it
     for (index, ownedPrompt) in prompts.enumerated() {
-      if ownedPrompt.compare(prompt: prompt) == true {
+      if ownedPrompt == prompt {
+				//prompt.close()
         prompts.remove(at: index)
         return
       }
@@ -108,6 +125,7 @@ public class PromptController {
   /** Removes all prompts from the system.
    */
   public func removeAll() {
+		prompts.forEach( {$0.close(finalText: $0.text, finalMarkup: $0.inline) } )
     prompts.removeAll()
   }
 }
@@ -119,8 +137,11 @@ public class PromptController {
 Defines a single prompt that encapsulates an inline markup message and the behaviour behind it, including
 how it reacts to user interaction, how it updates itself and how it stops processing user input.
  */
-public class Prompt: ReceiveUpload {
+public class Prompt: ReceiveUpload, Equatable {
+	
+	// CORE DATA
   public var name: String = ""              // Optional name to use as a comparison between prompts.
+	var tag: SessionTag
   
   var text: String = ""
   var file: FileLink?
@@ -128,10 +149,17 @@ public class Prompt: ReceiveUpload {
 	var event: ScheduleEvent?
   var message: Message?
   var controller: PromptController?   // Links back to the controller for removal when complete, if required.
-	var timer: Int = 0
+	var timer: Duration = 0.seconds
 	
+	// CALLBACKS
+	var addEvent: (ScheduleEvent) -> ()
+	var removeEvent: (ScheduleEvent) -> ()
+	var queuedEvents: [ScheduleEvent] = []
+	
+	
+	// CORE DATA GETTERS
 	/// Returns the timer currently set to the prompt.  If 0, no timer has been set.
-	public var getTimer: Int { return timer }
+	public var getTimer: Duration { return timer }
 	/// Returns the body of text that defines the message the Prompt is attached to.
 	public var getText: String { return text }
 	/// Returns the optional file link that can be assigned to give the message media contents.
@@ -141,7 +169,7 @@ public class Prompt: ReceiveUpload {
 	/// Returns the Message that the Prompt has created and is responding to, if sent.
 	public var getMessage: Message? { return message }
 	
-	
+	// SETTINGS
 	/// What alert the user receives when they press an inline button and it worked.
   public var alertSuccess: String = ""
 	/// What alert the user receives if it didn't work.
@@ -161,19 +189,22 @@ public class Prompt: ReceiveUpload {
 	public var resetResultsOnSend: Bool = true
 	
 	
+	// ACTIONS
 	/// Executed when an update is received by the prompt that was successful.
-  public var update: ((ChatSession, Prompt) -> ())?
-	/// Executed when the Prompt has finished operating in it's current cycle.
-  public var finish: ((ChatSession, Prompt) -> ())?
-  
-  // Results and next steps
+  public var update: ((Prompt) -> ())?
+	/** Executed when the Prompt has finished operating in it's current cycle.  If you use this, you should at the end call
+	`close(finalText:finalMarkup:)` when finished, in order to fully close the prompt */
+  public var customClose: ((Prompt) -> ())?
+	
+	
+  // RESULTS AND RESULT STATE
   var usersPressed: [User] = []             // Who ended up pressing a button.
   var results: [String:[User]] = [:]        // What each user pressed.
 	public var lastResult: PromptResult?							// A result containing who pressed the last callback button.
   var completed: Bool = false               // Whether the prompt has met it's completion requirements.
 	var finished: Bool = false								/// Whether this prompt is in a finished state.
 	
-	
+	// RESULT GETTERS
 	/// Returns a list of users that interacted with the prompt, ordered from who interacted with it first to last.
   public var getUsersPressed: [User] { return usersPressed }
 	/// Returns a list of users that didn't press any button
@@ -182,61 +213,29 @@ public class Prompt: ReceiveUpload {
 	}
 	/// Defines whether or not the prompt is in a finished state.
 	public var hasFinished: Bool { return finished }
-  
+	
+	
+	
 	/** 
 	For internal use only, Prompts have to be attached to the PromptController in order to function.
 	*/
-	init(name: String, inline: MarkupInline, text: String, file: FileLink?, update: ((ChatSession, Prompt) -> ())? ) {
+	init(controller: PromptController, name: String, inline: MarkupInline, text: String, file: FileLink?, update: ((Prompt) -> ())? ) {
+		
+		self.tag = controller.tag
 		self.name = name
     self.inline = inline
     self.text = text
     self.file = file
     self.update = update
-  }
-  
-  /** Compares two prompts to figure out if they're the same.
-   */
-  public func compare(prompt: Prompt) -> Bool {
-    
-    if name != prompt.name {
-      return false
-    }
-    
-    if text != prompt.text {
-      return false
-    }
 		
-		if file != nil && prompt.file != nil {
-			if file!.id != prompt.file!.id {
-				return false
-			}
-		}
-		
-    if inline.keyboard.count != prompt.inline.keyboard.count {
-      return false
-    }
-    
-    var rowIndex = 0
-    for row in inline.keyboard {
-      let secondRow = prompt.inline.keyboard[rowIndex]
-      
-      var buttonIndex = 0
-      for button in row {
-        let secondButton = secondRow[buttonIndex]
-        if button.compare(key: secondButton) == false {
-          return false
-        }
-        buttonIndex += 1
-      }
-      rowIndex += 1
-    }
-    
-    return true
+		self.addEvent = controller.addEvent
+		self.removeEvent = controller.removeEvent
   }
+	
 	
 	/** Safely sets the timer, so long as the prompt does not have an instence of itself hanging around.
 	*/
-	public func setTimer(_ timer: Int) -> Bool {
+	public func setTimer(_ timer: Duration) -> Bool {
 		if message != nil { return false }
 		
 		self.timer = timer
@@ -250,7 +249,7 @@ public class Prompt: ReceiveUpload {
 	the previously sent instance of this prompt will stop functioning (this behaviour will
 	likely change in the future).
    */
-  public func send(session: ChatSession) {
+  public func send() {
 		
 		/// If it's being reused, reset the results.
 		if resetResultsOnSend == true {
@@ -267,19 +266,28 @@ public class Prompt: ReceiveUpload {
     // If we have an upload link, use that to send our prompt
     // Otherwise just send it normally
     if self.file != nil {
-      session.send.file(file!, caption: text, markup: inline, replyID: 0, disableNtf: false, callback: self)
+			
+			let request = TelegramRequest.uploadFile(link: file!, callback: self, chatID: tag.getSessionID, markup: inline, caption: text, disableNtf: false, replyMessageID: 0)
+			_ = tag.sendRequest(request)
     }
     
     else {
-      //self.message = session.sendMessage(text, markup: inline)
+      let request = TelegramRequest.sendMessage(chatID: tag.getSessionID, text: text, replyMarkup: inline)
+			let response = tag.sendRequest(request)
+			self.message = try! Message(row: Row(response.data!))
     }
 		
 		// If we have a timer, make it tick.
-		if timer > 0 {
-			event = session.queue.action(delay: self.timer.seconds, viewTime: 0.seconds) {
-				
-				self.finish!(session, self)
+		if timer.rawValue > 0 {
+			
+			event = ScheduleEvent(delay: [timer]) {
+				if self.customClose != nil {
+					self.customClose!(self)
+				}
 			}
+			
+			addEvent(event!)
+			queuedEvents.append(event!)
 		}
   }
 	
@@ -289,7 +297,7 @@ public class Prompt: ReceiveUpload {
 	Receives a callback query to see if the prompt can use it as an input.
 	- returns: Whether or not the callback query was successfully handled by the prompt.
    */
-  func query(query: CallbackQuery, session: ChatSession) -> Bool {
+  func query(query: CallbackQuery) -> Bool {
     
     // Return early if some basic conditions are not met
     if query.data == nil { return false }
@@ -309,7 +317,9 @@ public class Prompt: ReceiveUpload {
     let success = pressButton(user, query: data)
     if success == true {
       if alertSuccess != "" {
-        session.answer.callbackQuery(queryID: query.id, text: alertSuccess, showAlert: true)
+				
+				let request = TelegramRequest.answerCallbackQuery(queryID: query.id, text: alertSuccess, showAlert: true, url: nil)
+				_ = tag.sendRequest(request)
       }
 			
 			// Call the update closure and enclose the result
@@ -317,19 +327,33 @@ public class Prompt: ReceiveUpload {
 			self.lastResult = PromptResult(users: [query.from], key: key!)
 			
 			if update != nil {
-				update!(session, self)
+				update!(self)
 			}
     }
       
 		// Answer with an alert failure if you well... failed to contribute.
     else if success == false && alertFailure != "" {
-      session.answer.callbackQuery(queryID: query.id, text: alertFailure, showAlert: true)
+			let request = TelegramRequest.answerCallbackQuery(queryID: query.id, text: alertFailure, showAlert: true, url: nil)
+			_ = tag.sendRequest(request)
     }
     
     
     // If we reached the activation goal, call the action finish and remove the timer if one existed.
     if completed == true {
-			finish(session: session)
+			
+			if customClose != nil {
+				customClose!(self)
+			}
+				
+			else {
+				if removeInlineOnFinish == true {
+					close(finalText: text, finalMarkup: nil)
+				}
+				
+				else {
+					close(finalText: text, finalMarkup: inline)
+				}
+			}
     }
 		
 		return true
@@ -383,7 +407,7 @@ public class Prompt: ReceiveUpload {
 	a file).  If nil, the text will be removed.
 	- parameter resetResults: If true, all currently stored results will be lost.
 	*/
-	public func updateMessage(newInline: MarkupInline, newText: String, session: ChatSession, resetResults: Bool = false) {
+	public func updateMessage(newInline: MarkupInline, newText: String, resetResults: Bool = false) {
 		
 		if resetResults == true {
 			self.inline = newInline
@@ -395,11 +419,11 @@ public class Prompt: ReceiveUpload {
 		self.text = newText
 		
 		if self.file != nil {
-			session.edit.caption(messageID: message!.tgID, caption: text, replyMarkup: inline)
+			_ = tag.sendRequest(TelegramRequest.editMessageCaption(chatID: message!.chat.tgID, messageID: message!.tgID, caption: text, replyMarkup: inline))
 		}
 			
 		else {
-			session.edit.caption(messageID: message!.tgID, caption: text, replyMarkup: inline)
+			_ = tag.sendRequest(TelegramRequest.editMessageText(chatID: message!.chat.tgID, messageID: message!.tgID, inlineMessageID: nil, text: text, replyMarkup: inline))
 		}
 	}
 	
@@ -409,15 +433,15 @@ public class Prompt: ReceiveUpload {
 	- parameter newText: The new text to be used for the message body (or caption if the message contains
 	a file).  If empty, the text will be removed.
 	*/
-	public func updateText(newText: String, session: ChatSession) {
+	public func updateText(newText: String) {
 		self.text = newText
 		
 		if self.file != nil {
-			session.edit.caption(messageID: message!.tgID, caption: text, replyMarkup: inline)
+			_ = tag.sendRequest(TelegramRequest.editMessageCaption(chatID: message!.chat.tgID, messageID: message!.tgID, caption: text, replyMarkup: inline))
 		}
 			
 		else {
-			session.edit.message(messageID: message!.tgID, inlineMessageID: nil, text: text, replyMarkup: inline)
+			_ = tag.sendRequest(TelegramRequest.editMessageText(chatID: message!.chat.tgID, messageID: message!.tgID, inlineMessageID: nil, text: text, replyMarkup: inline))
 		}
 	}
 	
@@ -426,7 +450,7 @@ public class Prompt: ReceiveUpload {
 	- parameter newInline: The new inline keyboard to be used under the message the Prompt belongs to.
 	- parameter resetResults: If true, all currently stored results will be lost.
 	*/
-	public func updateInline(newInline: MarkupInline, session: ChatSession, resetResults: Bool = false) {
+	public func updateInline(newInline: MarkupInline, resetResults: Bool = false) {
 		if resetResults == true {
 			self.inline = newInline
 			for data in inline.getCallbackData()! {
@@ -435,11 +459,11 @@ public class Prompt: ReceiveUpload {
 		}
 		
 		if self.file != nil {
-			session.edit.caption(messageID: message!.tgID, caption: text, replyMarkup: inline)
+			_ = tag.sendRequest(TelegramRequest.editMessageCaption(chatID: message!.chat.tgID, messageID: message!.tgID, caption: text, replyMarkup: inline))
 		}
 			
 		else {
-			session.edit.message(messageID: message!.tgID, inlineMessageID: nil, text: text, replyMarkup: inline)
+			_ = tag.sendRequest(TelegramRequest.editMessageReplyMarkup(chatID: message!.chat.tgID, messageID: message!.tgID, replyMarkup: inline))
 		}
 	}
 	
@@ -448,13 +472,11 @@ public class Prompt: ReceiveUpload {
 	calling the finish() closure if it exists.  Results will remain until the prompt
 	is sent again.
    */
-  public func finish(session: ChatSession) {
+	public func close(finalText: String, finalMarkup: MarkupInline?) {
 		
 		// If it completed itself and the timer existed, ensure the action is removed to prevent a second trigger.
 		if completed == true {
-			if timer > 0 {
-				_ = session.queue.remove(event!)
-			}
+			queuedEvents.forEach( { self.removeEvent($0) } )
 		}
 		
 		// Removes the Prompt from the PromptController to prevent it from being processed.
@@ -463,23 +485,23 @@ public class Prompt: ReceiveUpload {
 		// Perform any final clean-up operations without touching the results data
 		finished = true
 		
-		
-    // If we have a finish closure, run that to perform any final editing operations.
-    if finish != nil {
-      finish!(session, self)
-    }
-		
 		// Otherwise if we want to remove the inline keyboard automatically when done, do it!
-		else if removeInlineOnFinish == true {
-			if self.file != nil {
-				session.edit.caption(messageID: message!.tgID, caption: text, replyMarkup: nil)
-			}
-				
-			else {
-				session.edit.caption(messageID: message!.tgID, caption: text, replyMarkup: nil)
+		if finalText == text {
+			if finalMarkup != nil {
+				if finalMarkup! == inline {
+					return
+				}
 			}
 		}
-  }
+		
+		if self.file != nil {
+			_ = tag.sendRequest(TelegramRequest.editMessageCaption(chatID: message!.chat.tgID, messageID: message!.tgID, caption: finalText, replyMarkup: finalMarkup))
+		}
+				
+		else {
+			_ = tag.sendRequest(TelegramRequest.editMessageText(chatID: message!.chat.tgID, messageID: message!.tgID, inlineMessageID: nil, text: finalText, replyMarkup: finalMarkup))
+		}
+	}
 	
 	
   
@@ -548,16 +570,50 @@ public class Prompt: ReceiveUpload {
    */
   public func receiveMessage(message: Message) {
     self.message = message
-		
-		// If we have a timer, make it tick now the message is confirmed as sent.
-		if timer > 0 {
-			//self.controller!.session!.queue.
-			//self.controller!.session!.queue.add(byDelay: self.timer, viewTime: 0, name: "prompt_\(name)_timer", action: self.finish)
-		}
   }
+	
+	/** Compares two prompts to figure out if they're the same.
+	*/
+	static public func ==(lhs: Prompt, rhs: Prompt) -> Bool {
+		
+		if lhs.name != rhs.name {
+			return false
+		}
+		
+		if lhs.text != lhs.text {
+			return false
+		}
+		
+		if lhs.file != nil && rhs.file != nil {
+			if lhs.file!.id != rhs.file!.id {
+				return false
+			}
+		}
+		
+		if lhs.inline.keyboard.count != rhs.inline.keyboard.count {
+			return false
+		}
+		
+		var rowIndex = 0
+		for row in lhs.inline.keyboard {
+			let secondRow = rhs.inline.keyboard[rowIndex]
+			
+			var buttonIndex = 0
+			for button in row {
+				let secondButton = secondRow[buttonIndex]
+				if button == secondButton {
+					return false
+				}
+				buttonIndex += 1
+			}
+			rowIndex += 1
+		}
+		
+		return true
+	}
 }
 
-/** Defines a single prompt result.  Can be used to define who last pressed a button 
+/** Defines a single prompt result.  Can be used to define who last pressed a button
 as well as what button was the "winner".
 */
 public struct PromptResult {

@@ -65,6 +65,16 @@ public class SessionModerator {
 	}
 	
 	/**
+	Checks to see whether the Session has a given title.
+	- returns: True if it does, false if not.
+	*/
+	public func checkTitle(_ title: String) -> Bool {
+		
+		if titles.contains(title) { return true }
+		return false
+	}
+	
+	/**
 	Removes all titles associated with this session ID.
 	*/
 	public func clearTitles() {

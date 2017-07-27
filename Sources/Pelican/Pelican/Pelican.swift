@@ -545,7 +545,6 @@ public final class Pelican: Vapor.Provider {
 			
 			
 			// Collect a list of builders that will accept the update.
-			
 			var captures: [SessionBuilder] = []
 			
 			for builder in sessions {
@@ -559,7 +558,6 @@ public final class Pelican: Vapor.Provider {
 			// If the list is longer than 1, decide based on the optional
 			// collision function type what should happen to Session that qualifies
 			// for the update.
-			
 			var executables: [SessionBuilder] = []
 			
 			if captures.count > 1 {
@@ -580,8 +578,6 @@ public final class Pelican: Vapor.Provider {
 						else if response == .execute {
 							executables.append(capture)
 						}
-						
-						
 					}
 				}
 			}
@@ -630,6 +626,8 @@ public final class Pelican: Vapor.Provider {
 		
 		// Attempt to send it and get a TelegramResponse from it.
 		let tgResponse = TelegramResponse(response: try! drop.client.respond(to: vaporRequest))
+		
+		print(tgResponse.data)
 		
 		return tgResponse
 		
