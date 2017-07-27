@@ -19,22 +19,48 @@ private class UpdateQueue {
                                     target: nil)
   
   private let interval: TimeInterval
+	private var lastExecuteTime: TimeInterval
   private let execute: () -> Void
   private var operation: DispatchWorkItem?
   
   init(interval: TimeInterval, execute: @escaping () -> Void) {
     self.interval = interval
+		self.lastExecuteTime = TimeInterval.init(0)
     self.execute = execute
+		
+		
   }
-  
+	
   func start() {
-    let operation = DispatchWorkItem(qos: .userInteractive, flags: .enforceQoS) { [weak self] in
-      
-      defer { self?.start() }
-      self?.execute()
-    }
-    self.operation = operation
-    queue.asyncAfter(deadline: .now() + interval, execute: operation)
+		
+		self.operation = DispatchWorkItem(qos: .userInteractive, flags: .enforceQoS) { [weak self] in
+			
+			// Record the starting time and execute the loop
+			let startTime = Date()
+			self?.execute()
+			
+			defer {
+				
+				// Build a time interval for the loop
+				self?.lastExecuteTime = abs(startTime.timeIntervalSinceNow)
+				self?.start()
+			}
+			
+		}
+		
+		// Account for loop time in the asynchronous delay.
+		let delayTime = interval - lastExecuteTime
+		
+		// If the delay time left is below 0, execute the loop immediately.
+		if delayTime <= 0 {
+		 	queue.async(execute: self.operation!)
+		}
+		
+		// Otherwise use the built delay time.
+		else {
+			queue.asyncAfter(wallDeadline: .now() + delayTime, execute: self.operation!)
+		}
+		
   }
   
   func stop() {
@@ -172,46 +198,11 @@ public final class Pelican: Vapor.Provider {
   public var getTime: Int { return globalTimer }
 	
 	
-	
   // SESSIONS
-	/// The currently active sessions, ordered by their chat ID.
-	private var chatSessions: [Int:ChatSession] = [:]
-  private var chatSessionEvents: [Int:ChatSession] = [:]			// Used for keeping track of sessions that have events.
-	private var userSessions: [Int:UserSession] = [:]						// Keeps track of the individual users currently interacting with the bot.
-	
-	public var getChatSessions: [Int:ChatSession]	{ return chatSessions }
-	public var getUserSessions: [Int:UserSession] { return userSessions }
-	
-  public var maxChatSessions: Int = 0                            // The maximum number of sessions the bot will support before it stops people from using it.  Leave at 0 for no limit.
-  public var maxChatSessionsAction: ((Pelican, Chat) -> ())? // Define an action if desired to perform when someone tries this way
-  public var defaultMaxChatSessionTime: Int = 0                  // The maximum amount of time in seconds that a session should last for.
-	
-	public var unfilteredChatUpdates: ((ChatUpdate) -> ())? // What happens with the updates that didn't find a place to be filtered.
-	public var unfilteredUserUpdates: ((UserUpdate) -> ())? // What happens with the updates that didn't find a place to be filtered.
-  public var sessionSetupAction: ((ChatSession) -> ())?  // What happens when the session begins,
-  public var sessionEndAction: ((ChatSession) -> ())?  // What should be run when the session ends.  Could be nothing!
-	
-	
-	// SESSION TIMEOUTS
-	/// A list of sessions to be checked by Pelican to ensure they do not reach the timeout threshold set by the session.
-	var chatSessionActivity: [Int:ChatSession] = [:]
-	/// A list of sessions to be checked by Pelican to ensure they do not reach the timeout threshold set by the session.
-	var userSessionActivity: [Int:UserSession] = [:]
-	/// A list of the chat sessions Pelican has yet to check for timeout since it's last check.
-	var chatSessionActivityLeft: [ChatSession] = []
-	/// A list of the user sessions Pelican has yet to check for timeout since it's last check.
-	var userSessionActivityLeft: [UserSession] = []
-	/// Enables the automatic checking of Pelican sessions for timeouts.  If set to false, this can be done manually using `checkTimeouts()`.
-	public var enableTimeoutChecks: Bool = true
-	/// Defines how many sessions Pelican will check for timeouts each second, if any sessions have a timeout value.  This number is split between User and Chat sessions with an active timeout value.
-	public var timeoutCheckFrequency: Int = 100
-	/// Defines the maximum number of sessions Pelican will check for timeouts, regardless of `timeoutCheckFrequency`.  This number is split between User and Chat sessions with an active timeout value.
-	public var timeoutCheckMaximum: Int = 250
-	
-	
-  // Flood Limit
-  public var floodLimit: FloodLimit = FloodLimit(limit: 250, range: 300, breachLimit: 2, breachReset: 500)  // Settings that define flood limit restrictions for each session
-  public var floodLimitWarning: ((UserSession) -> ())? // An optional warning to send to people the first time they hit the flood warning.
+	/// The sets of sessions that are currently active, encapsulated within their respective builders.
+	private var sessions: [SessionBuilder] = []
+	/// The schedule system for sessions to use to delay the execution of actions.
+	public var schedule = Schedule()
 	
 	
   // Blacklist
@@ -265,15 +256,10 @@ public final class Pelican: Vapor.Provider {
 	
   public func afterInit(_ drop: Droplet) {
     self.drop = drop
-		self.mod.bot = self
   }
 	
 	
   public func beforeRun(_ drop: Droplet) {
-    if self.sessionSetupAction == nil {
-      drop.console.warning(TGBotError.EntryMissing.rawValue, newLine: true)
-    }
-    
     if ignoreInitialUpdates == true {
       _ = self.getUpdateSets()
     }
@@ -344,7 +330,10 @@ public final class Pelican: Vapor.Provider {
 	assigned to Pelican.
 	- returns: A `TelegramUpdateSet` if successful, or nil if otherwise.
 	*/
-	public func getUpdateSets() -> ((chat: [ChatUpdate], user: [UserUpdate]))? {
+	public func getUpdateSets() -> ([Update])? {
+		
+		//print("UPDATE START")
+		
     let query = makeUpdateQuery()
     
     guard let response = try? drop.client.get(apiURL + "/getUpdates", query: query) else {
@@ -358,8 +347,7 @@ public final class Pelican: Vapor.Provider {
     let messageCount = result.count
     
     // Make the collection types
-		var chatUpdates: [ChatUpdate] = []
-		var userUpdates: [UserUpdate] = []
+		var updates: [Update] = []
 		
 		
     // Iterate through the collected messages
@@ -383,11 +371,17 @@ public final class Pelican: Vapor.Provider {
             offset = update_id + 1
             continue
           }
-          
-          chatUpdates.append(ChatUpdate(withData: message as ChatUpdateModel))
+					
+					// Check that the update should be used before adding it.
+					if mod.checkBlacklist(chatID: message.chat.tgID) == false {
+						if mod.checkBlacklist(userID: message.from!.tgID) == false {
+							updates.append(Update(withData: message as UpdateModel, node: messageNode))
+						}
+					}
         }
       }
-      
+			
+			/*
       // This is if a message was edited
       if allowedUpdates.contains(UpdateType.editedMessage) {
         if (response.data["result", i, "edited_message"]) != nil {
@@ -403,7 +397,7 @@ public final class Pelican: Vapor.Provider {
 						continue
 					}
 					
-          chatUpdates.append(ChatUpdate(withData: message as ChatUpdateModel))
+					updates.append(Update(withData: message as UpdateModel, node: messageNode))
         }
       }
       
@@ -422,7 +416,7 @@ public final class Pelican: Vapor.Provider {
 						continue
 					}
 					
-          chatUpdates.append(ChatUpdate(withData: message as ChatUpdateModel))
+          updates.append(Update(withData: message as UpdateModel, node: messageNode))
         }
       }
       
@@ -441,9 +435,10 @@ public final class Pelican: Vapor.Provider {
 						continue
 					}
 					
-          chatUpdates.append(ChatUpdate(withData: message as ChatUpdateModel))
+          updates.append(Update(withData: message as UpdateModel, node: messageNode))
         }
       }
+			*/
       
       // COME BACK TO THESE LATER
       // This type is for when someone tries to search something in the message box for this bot
@@ -463,7 +458,10 @@ public final class Pelican: Vapor.Provider {
 						continue
 					}
 					
-          userUpdates.append(UserUpdate(withData: message as UserUpdateModel))
+					// Check that the update should be used before adding it.
+					if mod.checkBlacklist(userID: message.from.tgID) == false {
+						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					}
         }
       }
       
@@ -484,7 +482,10 @@ public final class Pelican: Vapor.Provider {
 						continue
 					}
 					
-          userUpdates.append(UserUpdate(withData: message as UserUpdateModel))
+					// Check that the update should be used before adding it.
+					if mod.checkBlacklist(userID: message.from.tgID) == false {
+						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					}
         }
       }
       
@@ -505,14 +506,17 @@ public final class Pelican: Vapor.Provider {
 						continue
 					}
 					
-          chatUpdates.append(ChatUpdate(withData: message as ChatUpdateModel))
+					// Check that the update should be used before adding it.
+					if mod.checkBlacklist(userID: message.from.tgID) == false {
+						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					}
         }
       }
       
       offset = update_id + 1
     }
     
-    return (chatUpdates, userUpdates)
+    return updates
   }
 	
 	
@@ -522,278 +526,161 @@ public final class Pelican: Vapor.Provider {
 	### EDIT/REMOVE IN UPCOMING REFACTOR
 	*/
   internal func filterUpdates() {
-    //print("START")
+		
+    //print("START FILTER")
+		
+		// Get updates from Telegram
     guard let updates = getUpdateSets() else {
       return
     }
-    
+		
+		
     // Check the global timer for any scheduled events
     globalTimer += pollInterval
-    checkChatSessionQueues()
+    //checkChatSessionQueues()
 		
 		
-		// Filter the update to a session if one exists for the chat.
-		for update in updates.chat {
-			
-			// If it's in the Moderator blacklist, drop immediately
-				
-			if chatSessions[update.chatID] != nil {
-				
-				let session = chatSessions[update.chatID]!
-				session.filterUpdate(update)
-				continue
-			}
-			
-			// If we didn't find a session, call the unfiltered function to decide if one should be made
-			if unfilteredChatUpdates != nil {
-				unfilteredChatUpdates!(update)
-			}
+		// Filter the update to the current builders.
+		for update in updates {
 			
 			
-			// If the update had a user, make sure the UserSession duties are carried out
-			if update.from != nil {
+			// Collect a list of builders that will accept the update.
+			var captures: [SessionBuilder] = []
+			
+			for builder in sessions {
 				
-				if userSessions[update.from!.tgID] == nil {
-					
-					//let session = createUserSession(user: update.from!, setup: nil)
-					//session.bumpFlood()
-				}
-				
-				else {
-					
-					//let session = userSessions[update.from!.tgID]
-					//session.bumpFlood()
+				if builder.checkUpdate(update) == true {
+					captures.append(builder)
 				}
 			}
-		}
-		
-		
-		// Filter user updates to existing user sessions, or attempt to create one if none exists.
-		for update in updates.user {
 			
-			if userSessions[update.from.tgID] != nil {
+			
+			// If the list is longer than 1, decide based on the optional
+			// collision function type what should happen to Session that qualifies
+			// for the update.
+			var executables: [SessionBuilder] = []
+			
+			if captures.count > 1 {
 				
-				let session = userSessions[update.from.tgID]
-				session?.filterUpdate(update: update)
+				for capture in captures {
+					
+					if capture.collision == nil { executables.append(capture) }
+					
+					else {
+						
+						let response = capture.collision!(self, update)
+						
+						if response == .include {
+							let session = capture.getSession(bot: self, update: update)!
+							update.linkedSessions.append(session)
+						}
+						
+						else if response == .execute {
+							executables.append(capture)
+						}
+					}
+				}
 			}
 			
-			if unfilteredUserUpdates != nil {
-				unfilteredUserUpdates!(update)
-			}
-			
-			
-			// If the update had a user, make sure the UserSession duties are carried out
-			if userSessions[update.from.tgID] == nil {
-				
-				//let session = createUserSession(user: update.from!, setup: nil)
-				//session.bumpFlood()
-			}
-				
 			else {
-				
-				//let session = userSessions[update.from!.tgID]
-				//session.bumpFlood()
+					executables = captures
+			}
+			
+			
+			// Execute what executables are left
+			for builder in executables {
+				_ = builder.execute(bot: self, update: update)
 			}
 		}
 		
+		//print(updates)
 		
-		// Check for timeouts.  If true, calculate a check amount and execute the function.
-		if enableTimeoutChecks == true {
-			
-			let calendar = Calendar.init(identifier: .gregorian)
-			let comparison = calendar.compare(timeLastUpdate, to: Date(), toGranularity: .second)
-			
-			var checkAmount = timeoutCheckFrequency * comparison.rawValue
-			if checkAmount > timeoutCheckMaximum { checkAmount = timeoutCheckMaximum }
-			
-			checkTimeouts(amount: checkAmount, resetList: false)
-		}
+		
+		// Check the schedule.
+		schedule.run()
+		
 		
 		// Update the last active time.
 		timeLastUpdate = Date()
+		//print("UPDATE END")
 		
   }
 	
 	/**
-	Checks Pelican's User and Chat session lists to see if any sessions have timed out, and removes the ones that have.
-	- parameter amount: The amount of sessions in total that the function will check.  Set to 0 to check all stored sessions.
-	- parameter resetList: Pelican remembers the sessions you have yet to check if the `amount` parameter is not 0.  Set this to false if you wish Pelican to continue
-	checking from where it left off on the list, or false if you want it to reset it's checks.
-	- note: If you haven't set `enableTimeoutChecks` to false, this will automatically be performed by Pelican based on the check frequency you have set.
+	Sends the given requests to Telegram.
+	- note: At some point this will also collect and use content sent back from Telegram in a way that makes sense,
+	but I haven't thought that far yet.
 	*/
-	public func checkTimeouts(amount: Int, resetList: Bool) {
+	func sendRequest(_ request: TelegramRequest) -> TelegramResponse {
 		
-		if amount == 0 {
-			
-			for session in chatSessionActivity.values {
-				if session.hasTimeout == true {
-					
-					removeChatSession(chatID: session.chatID)
-				}
-			}
-			
-			for session in userSessionActivity.values {
-				if session.hasTimeout == true {
-					
-					removeUserSession(userID: session.userID)
-				}
-			}
+		// Build a new request with the correct URI and fetch the other data from the Session Request
+		let vaporRequest = Request(method: .post, uri: apiURL + "/" + request.methodName)
+		
+		if request.query.values.count != 0 {
+			vaporRequest.query = try! request.query.makeNode(in: nil)
 		}
-			
 		
-		
-		else {
-			
-			// If we have been requested to reset the leftover timeout checks, do it!
-			if resetList == true {
-				chatSessionActivityLeft = chatSessionActivity.values.array
-				userSessionActivityLeft = userSessionActivity.values.array
-			}
-			
-			// Build the ratios between chats and users, and use that to build a total for each
-			let total = chatSessionActivity.values.count + userSessionActivity.values.count
-			let chatRatio = chatSessionActivity.values.count / total
-			let userRatio = userSessionActivity.values.count / total
-			
-			var chatCheckCount = chatRatio * amount
-			var userCheckCount = userRatio * amount
-			
-			if chatCheckCount > chatSessionActivity.count { chatCheckCount = chatSessionActivity.count }
-			if userCheckCount > userSessionActivity.count { userCheckCount = userSessionActivity.count }
-			
-			
-			for _ in 0..<userCheckCount {
-				
-				// If the leftover array equals 0, populate them.
-				if chatSessionActivityLeft.count == 0 {
-					chatSessionActivityLeft = chatSessionActivity.values.array
-				}
-				
-				let session = chatSessionActivityLeft.removeFirst()
-				if session.hasTimeout == true {
-					
-					removeChatSession(chatID: session.chatID)
-				}
-			}
-			
-			for _ in 0..<chatCheckCount {
-				
-				// If the leftover array equals 0, populate them.
-				if userSessionActivityLeft.count == 0 {
-					userSessionActivityLeft = userSessionActivity.values.array
-				}
-				
-				let session = userSessionActivityLeft.removeFirst()
-				if session.hasTimeout == true {
-					
-					removeUserSession(userID: session.userID)
-				}
-			}
+		if request.form.values.count != 0 {
+			vaporRequest.formData = request.form
 		}
+		
+		// Attempt to send it and get a TelegramResponse from it.
+		let tgResponse = TelegramResponse(response: try! drop.client.respond(to: vaporRequest))
+		
+		print(tgResponse.data)
+		
+		return tgResponse
+		
+	}
+	
+	/**
+	Handles a specific event sent from a Session.
+	*/
+	func sendEvent(_ event: SessionEvent) {
+		
+		switch event.action {
+			
+		// In this event, the session just needs removing without any other tasks.
+		case .remove:
+			sessions.forEach( { $0.removeSession(tag: event.tag) } )
+			
+		
+		// In a blacklist event, first make sure the Session ID type matches.  If not, return.
+		case .blacklist:
+			
+			switch event.tag.getSessionIDType {
+				
+			case .chat:
+				mod.addToBlacklist(chatIDs: event.tag.getSessionID)
+			case .user:
+				mod.addToBlacklist(userIDs: event.tag.getSessionID)
+			default:
+				return
+			}
+			
+			sessions.forEach( { $0.removeSession(tag: event.tag) } )
+			
+		}
+		
 		
 	}
 	
 	
 	/**
-	Attempts to create a session based on given criteria.  The given criteria determines whether the session is used to handle updates
+	Adds a new builder to the bot, enabling the automated creation and filtering of updates to your defined Session types.
 	*/
-	public func createChatSession(chatID: Int, setup: (ChatSession) -> ()) {
+	public func addBuilder(_ builder: SessionBuilder) {
 		
-		// If a chat session already exists, return.
-		if chatSessions[chatID] != nil { return }
+		// Create a generator for the Builder ID and cycle through until we can make sure it's unique
+		var generator = Xoroshiro()
 		
-		// If the chat ID is in the Moderator blacklist, return.
-		if mod.checkBlacklist(chatID: chatID) == true { return }
-		
-		print(">>>>> ADDING NEW SESSION <<<<<")
-		
-		
-		// If we've reached the maximum number of allowed sessions, send them a message if available.
-		if chatSessions.count >= maxChatSessions && maxChatSessions != 0 {
-			print("ChatSession count reached.  Deferring.")
-			//if maxChatSessionsAction != nil { maxChatSessionsAction!(self, chat) }
-			return
+		var id = 0
+		while id == 0 || sessions.contains(where: {$0.getID == id}) == true {
+			id = Int(generator.random32())
 		}
 		
-		
-		// If we're still here, add them.
-		if sessionSetupAction == nil { print(TGBotError.EntryMissing.rawValue) ; return }
-		let session = ChatSession(bot: self, chatID:chatID, data: customData, floodLimit: floodLimit, setup: self.sessionSetupAction!, sessionEndAction: self.sessionEndAction)
-		session.postInit()
-		
-		chatSessions[chatID] = session
-		
-		print("ChatSession added.")
-		print("Current Active ChatSessions: ")
-		print(chatSessions)
-	}
-	
-	/**
-	Attempts to create a user session, as long as one currently doesn't exist.
-	*/
-	public func createUserSession(user: User, setup: ((UserSession) -> ())?) -> UserSession? {
-		
-		// Before we create a session, check the user isn't in the Moderator blacklist.
-		if mod.checkBlacklist(userID: user.tgID) == true { return nil }
-		
-		let session = UserSession(bot: self, user: user, floodLimit: floodLimit)
-		return session
-	}
-  
-  
-  /**
-	Adds a session to the list of sessions that have active events/
-	*/
-  internal func addChatSessionEvent(session: ChatSession) {
-    if chatSessionEvents[session.chatID] == nil {
-      //print("NEW SESSION EVENT ADDED")
-      chatSessionEvents[session.chatID] = session
-      //print(sessionsEvents)
-    }
-  }
-  
-  
-  /** 
-	Checks all the currently active session events.  The call increments their timers and executes any actions that
-	need executing.
-	*/
-  internal func checkChatSessionQueues() {
-    for session in chatSessionEvents {
-      
-      let result = session.value.queue.incrementTimer()
-      if result == true {
-        //print("SESSION EVENTS COMPLETE, REMOVING...")
-        chatSessionEvents.removeValue(forKey: session.key)
-        //print(sessionsEvents)
-      }
-    }
-  }
-	
-	
-	/**
-	Removes a specified session from being run on Pelican.
-	This will not call the session endChatSessionAction, this function assumes it is being called from the session itself
-	if it needs to be called before removal.
-	*/
-	public func removeChatSession(chatID: Int) {
-		//print("REMOVING SESSION - ", (session.chat.title ?? session.chat.firstName!))
-		chatSessions.removeValue(forKey: chatID)
-		chatSessionEvents.removeValue(forKey: chatID)
-		
-		for (index, _) in chatSessionActivity.enumerated() {
-			if index == chatID {
-				chatSessionActivity.removeValue(forKey: chatID)
-			}
-		}
-	}
-	
-	
-	/**
-	Removes a specified user session from Pelican.
-	This doesn't stop the session from being re-created in the future (unless it was also added to the Moderator Blacklist).
-	*/
-	public func removeUserSession(userID: Int) {
-		
-		userSessions.removeValue(forKey: userID)
+		// Set the ID and add the builder
+		builder.setID(id)
+		sessions.append(builder)
 	}
 }

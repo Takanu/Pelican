@@ -15,14 +15,14 @@ to any available and matching routes.
 
 As generic
 */
-public class RouteController<UpdateType: UpdateCollection, Session, UpdateObject: Update> {
+public class RouteController {
 	
 	/**
 	The currently active set of routes for the ChatSession.
 	- warning: It's recommended to just use the provided functions for editing and removing routes, only use this if
 	you need something custom 👌.
 	*/
-	public var collection: [UpdateType : [Route<UpdateType, Session, UpdateObject>]]
+	public var collection: [UpdateType : [Route]]
 	
 	
 	init() {
@@ -36,7 +36,7 @@ public class RouteController<UpdateType: UpdateCollection, Session, UpdateObject
 	/**
 	Attempts to find and execute a route for the given user request, should only ever be accessed by ChatSession.
 	*/
-	func routeRequest(update: UpdateObject, type: UpdateType, session: Session) -> Bool {
+	func routeRequest(update: Update, type: UpdateType) -> Bool {
 		
 		var handled = false
 		
@@ -51,7 +51,7 @@ public class RouteController<UpdateType: UpdateCollection, Session, UpdateObject
 			if update.matches(route.pattern, types: [type.string()]) == true {
 				
 				// If we made it, execute the action
-				handled = action(session, update)
+				handled = action(update)
 				
 			}
 			
@@ -71,7 +71,7 @@ public class RouteController<UpdateType: UpdateCollection, Session, UpdateObject
 	matches the one provided in type and filter, it will be overwritten.
 	- parameter routes: The routes to be added to the controller.
 	*/
-	public func add(_ routes: Route<UpdateType, Session, UpdateObject>...) {
+	public func add(_ routes: Route...) {
 		
 		for route in routes {
 			var routeArray = collection[route.getType]!
@@ -101,7 +101,7 @@ public class RouteController<UpdateType: UpdateCollection, Session, UpdateObject
 	If the session already has a route that matches the one provided in type and filter, it will be overwritten.
 	- parameter routes: The routes to be added to the controller.
 	*/
-	public func add(_ pattern: String, type: UpdateType, action: @escaping (Session, UpdateObject) -> (Bool) ) {
+	public func add(_ pattern: String, type: UpdateType, action: @escaping (Update) -> (Bool) ) {
 		
 		let route = Route.init(pattern, type: type, action: action)
 		
@@ -137,7 +137,7 @@ public class RouteController<UpdateType: UpdateCollection, Session, UpdateObject
 		
 		var routeSet = collection[type]!
 		
-		for route in routeSet {
+		for _ in routeSet {
 			
 			if let index = routeSet.index(where: {$0.pattern == filter} ) {
 				routeSet.remove(at: index)
@@ -163,7 +163,7 @@ public class RouteController<UpdateType: UpdateCollection, Session, UpdateObject
 	*/
 	public func clearUnfiltered(type: UpdateType) {
 		
-		var newRouteSet: [Route<UpdateType, Session, UpdateObject>] = []
+		var newRouteSet: [Route] = []
 		
 		for route in collection[type]! {
 			
@@ -191,7 +191,7 @@ public class RouteController<UpdateType: UpdateCollection, Session, UpdateObject
 Defines a single action to be used on a ChatSession RouteController (`session.routes`), to connect user 
 requests to bot functionality in a modular and contained way.
 */
-public class Route<UpdateType: UpdateCollection, Session, UpdateObject: Update> {
+public class Route {
 	
 	/** 
 	The route that user responses are compared against, to decide whether or not to use it.
@@ -206,13 +206,13 @@ public class Route<UpdateType: UpdateCollection, Session, UpdateObject: Update> 
 	public var getType: UpdateType { return type }
 	
 	// Privately held actions.  Each route can only have one action, and
-	private var action: (Session, UpdateObject) -> (Bool)
-	public var getAction: (Session, UpdateObject) -> (Bool) { return action }
+	private var action: (Update) -> (Bool)
+	public var getAction: (Update) -> (Bool) { return action }
 	
 	/**
 	Initialises a route with a Message-type action and "Message" user response type.
 	*/
-	public init(_ pattern: String, type: UpdateType, action: @escaping (Session, UpdateObject) -> (Bool) ) {
+	public init(_ pattern: String, type: UpdateType, action: @escaping (Update) -> (Bool) ) {
 		self.pattern = pattern
 		self.type = type
 		self.action = action

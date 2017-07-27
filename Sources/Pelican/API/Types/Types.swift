@@ -26,15 +26,7 @@ public protocol SendType {
 /**
 Defines a type that encapsulates a request from a user, through Telegram.
 */
-public protocol UpdateModel: UserUpdateModel, ChatUpdateModel {
-	
-}
-
-public protocol UserUpdateModel {
-	
-}
-
-public protocol ChatUpdateModel {
+public protocol UpdateModel {
 	
 }
 

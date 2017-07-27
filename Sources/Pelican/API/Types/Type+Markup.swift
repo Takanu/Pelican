@@ -265,7 +265,7 @@ final public class MarkupKeyboardKey: Model {
  and an optional specific inline query in the current chat's input field.
  
 */
-final public class MarkupInline: Model, MarkupType {
+final public class MarkupInline: Model, MarkupType, Equatable {
 	public var storage = Storage()
 	public var keyboard: [[MarkupInlineKey]] = []
   //public var keyboard: [MarkupInlineRow] = []
@@ -531,7 +531,7 @@ final public class MarkupInline: Model, MarkupType {
 			for (i, key) in newRow.enumerated() {
 				if replaced == true { continue }
 				
-				if key.compare(key: oldKey) == true {
+				if key == oldKey {
 					newRow.remove(at: i)
 					newRow.insert(newKey, at: i)
 					replaced = true
@@ -559,10 +559,10 @@ final public class MarkupInline: Model, MarkupType {
 			var removed = false
 			
 			// Iterate through each key in each row for a match
-			for (i, key) in newRow.enumerated() {
+			for (i, newKey) in newRow.enumerated() {
 				if removed == true { continue }
 				
-				if key.compare(key: key) == true {
+				if key == newKey {
 					newRow.remove(at: i)
 					removed = true
 				}
@@ -578,6 +578,25 @@ final public class MarkupInline: Model, MarkupType {
 		
 		return false
   }
+	
+	static public func ==(lhs: MarkupInline, rhs: MarkupInline) -> Bool {
+		
+		if lhs.keyboard.count != rhs.keyboard.count { return false }
+		
+		for (i, lhsRow) in lhs.keyboard.enumerated() {
+			
+			let rhsRow = rhs.keyboard[i]
+			if lhsRow.count != rhsRow.count { return false }
+			
+			for (iKey, lhsKey) in lhsRow.enumerated() {
+				
+				let rhsKey = rhsRow[iKey]
+				if lhsKey != rhsKey { return false }
+			}
+		}
+		
+		return true
+	}
   
 	
   public required init(row: Row) throws {
@@ -622,7 +641,7 @@ to open it, and when open the client will insert the bot‘s username and a spec
 This can only be used when the bot supports Inline Queries.  Pressing the button will insert the bot‘s username
 and an optional specific inline query in the current chat's input field.
 */
-final public class MarkupInlineKey: Model {
+final public class MarkupInlineKey: Model, Equatable {
 	public var storage = Storage()
 	
   public var text: String // Label text
@@ -666,21 +685,15 @@ final public class MarkupInlineKey: Model {
 		self.type = .switchInlineQuery
 	}
 	
+	static public func ==(lhs: MarkupInlineKey, rhs: MarkupInlineKey) -> Bool {
+		
+		if lhs.text != rhs.text { return false }
+		if lhs.type != rhs.type { return false }
+		if lhs.data != rhs.data { return false }
+		
+		return true
+	}
 	
-  /** 
-	Compares the current key with another key parameter, and returns whether or
-	not the contents they hold are identical.
-	*/
-  public func compare(key: MarkupInlineKey) -> Bool {
-    if text != key.text { return false }
-    
-    if key.type != self.type { return false }
-    if key.data != self.data { return false }
-    
-    return true
-    
-  }
-  
   // Ignore context, just try and build an object from a node.
   public required init(row: Row) throws {
     text = try row.get("text")
