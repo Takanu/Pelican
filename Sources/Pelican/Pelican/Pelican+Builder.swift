@@ -233,35 +233,44 @@ public class Spawn {
 		}
 	}
 	
-	
-	public static func perChatID(includePermissions: [String], types: [UpdateType]?) -> ((Update) -> Int?) {
-		
-		return { _ in return nil }
-	}
-	
 	public static func perUserID(types: [UpdateType]?) -> ((Update) -> Int?) {
 		
 		return { update in
 			
 			if update.from == nil { return nil }
-			if types == nil { return update.chat!.tgID }
-			else if types!.contains(update.type) == true { return update.chat!.tgID }
+			if types == nil { return update.from!.tgID }
+			else if types!.contains(update.type) == true { return update.from!.tgID }
 			return nil
 		}
 	}
 	
-	public static func perUserID(include: [String], types: [UpdateType]?) -> ((Update) -> Int?) {
+	public static func perUserID(include: [Int], types: [UpdateType]) -> ((Update) -> Int?) {
 		
-		return { _ in return nil }
+		return { update in
+			
+			if update.from == nil { return nil }
+			if include.contains(update.from!.tgID) == true || include.count == 0 {
+				if types.contains(update.type) == true || types.count == 0 {
+					return update.from!.tgID
+				}
+			}
+			
+			return nil
+		}
 	}
 	
-	public static func perUserID(exclude: [String], types: [UpdateType]?) -> ((Update) -> Int?) {
+	public static func perUserID(exclude: [Int], types: [UpdateType]) -> ((Update) -> Int?) {
 		
-		return { _ in return nil }
-	}
-	
-	public static func perUserID(includePermissions: [String], types: [UpdateType]?) -> ((Update) -> Int?) {
-		
-		return { _ in return nil }
+		return { update in
+			
+			if update.from == nil { return nil }
+			if exclude.contains(update.from!.tgID) == false || exclude.count == 0 {
+				if types.contains(update.type) == true || types.count == 0 {
+					return update.from!.tgID
+				}
+			}
+			
+			return nil
+		}
 	}
 }

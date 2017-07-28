@@ -54,9 +54,6 @@ open class ChatSession: Session {
 	/// Stores what Moderator-controlled titles the Chat Session has.
 	public var mod: SessionModerator
 	
-	/// Stores a link to the schedule, that allows events to be executed at a later date.
-	public var schedule: Schedule
-	
 	/// Handles timeout conditions.
 	public var timeout: TimeoutController
 	
@@ -85,8 +82,7 @@ open class ChatSession: Session {
 		self.routes = RouteController()
 		
 		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
-		self.schedule = bot.schedule
-		self.timeout = TimeoutController(tag: self.tag, schedule: self.schedule)
+		self.timeout = TimeoutController(tag: self.tag, schedule: bot.schedule)
 		self.flood = FloodController()
 		
 		self.send = TGSend(chatID: self.chatID, tag: tag)

@@ -33,6 +33,9 @@ open class UserSession: Session {
 	variables to an individual user session.
 	*/
 	
+	// API REQUESTS
+	// Shortcuts for API requests.
+	public var answer: TGAnswer
 	
 	// DELEGATES / CONTROLLERS
 	
@@ -61,15 +64,17 @@ open class UserSession: Session {
 		self.routes = RouteController()
 		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
 		self.schedule = bot.schedule
+		
+		self.answer = TGAnswer(tag: tag)
 	}
 	
 	
-	public func postInit() {
+	open func postInit() {
 		
 	}
 	
 	
-	public func close() {
+	open func close() {
 		
 	}
 	

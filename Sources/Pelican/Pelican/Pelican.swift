@@ -137,12 +137,15 @@ to assign it to your bot and start receiving updates.  You can get your API toke
 ## Pelican Basic Setup
 
 ```
+// Make sure you set up Pelican manually so you can assign it variables.
 let config = try Config()
 let pelican = try Pelican(config: config)
 
-pelican.sessionSetupAction = setupBot
-pelican.setPoll(interval: 1)
 
+// Add Builder
+pelican.addBuilder(SessionBuilder(spawner: Spawn.perChatID(types: nil), idType: .chat, session: TestUser.self, setup: nil) )
+
+// Add the provider and run it!
 try config.addProvider(pelican)
 let drop = try Droplet(config)
 try drop.run()
@@ -626,8 +629,6 @@ public final class Pelican: Vapor.Provider {
 		
 		// Attempt to send it and get a TelegramResponse from it.
 		let tgResponse = TelegramResponse(response: try! drop.client.respond(to: vaporRequest))
-		
-		print(tgResponse.data)
 		
 		return tgResponse
 		
