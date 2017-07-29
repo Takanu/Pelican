@@ -26,47 +26,88 @@ public class Moderator {
 	public init() { }
 	
 	
+	
 	/**
-	An internal function designed as a callback for `SessionModerator`.  It is recommended to use the other
-	available Moderator methods instead for developing your bot.
+	An internal function to do the heavy lifting for tag changes.
 	*/
-	func changeTitle(tag: SessionTag, title: String, remove: Bool) {
+	func switchTitle(type: SessionIDType, title: String, ids: [Int], remove: Bool) {
 		
 		
-		func switchTitle(id: Int, list: [Int], remove: Bool) -> [Int] {
+		func editList(ids: [Int], list: [Int], remove: Bool) -> [Int] {
 			
 			var mutableList: [Int] = list
-				
+			
 			if remove == true {
-				if let index = mutableList.index(of: id) {
-					mutableList.remove(at: index)
-				}
+				
+				ids.forEach( {
+					if let index = mutableList.index(of: $0) {
+						mutableList.remove(at: index)
+					}
+				})
 			}
 				
-			else if mutableList.contains(id) == false {
-				mutableList.append(id)
+			else {
+				
+				ids.forEach( {
+					if mutableList.contains($0) == false {
+						mutableList.append($0)
+					}
+				})
 			}
 			
-			return list
+			return mutableList
 		}
 		
 		
-		switch tag.sessionIDType {
+		switch type {
 			
 		case .chat:
-			if let list = chatTitles[title] {
-				chatTitles[title] = switchTitle(id: tag.sessionID, list: list, remove: remove)
+			
+			if chatTitles[title] == nil {
+				chatTitles[title] = []
+			}
+			
+			let list = chatTitles[title]!
+			chatTitles[title] = editList(ids: ids, list: list, remove: remove)
+			
+			if chatTitles[title]!.count == 0 {
+				chatTitles.removeValue(forKey: title)
 			}
 			
 		case .user:
-			if let list = userTitles[title] {
-				userTitles[title] = switchTitle(id: tag.sessionID, list: list, remove: remove)
+			
+			if userTitles[title] == nil {
+				userTitles[title] = []
+			}
+			
+			let list = userTitles[title]!
+			userTitles[title] = editList(ids: ids, list: list, remove: remove)
+			
+			if userTitles[title]!.count == 0 {
+				userTitles.removeValue(forKey: title)
 			}
 			
 		default:
 			return
 		}
+	}
+	
+	/**
+	Returns the currently used titles.
+	*/
+	public func getTitles(forType type: SessionIDType) -> [String]? {
 		
+		switch type {
+			
+		case .chat:
+			return chatTitles.keys.array
+			
+		case .user:
+			return userTitles.keys.array
+			
+		default:
+			return nil
+		}
 	}
 	
 	/**
@@ -93,6 +134,49 @@ public class Moderator {
 		}
 		
 		return titles
+	}
+	
+	/**
+	Returns the IDs associated to a specific title.
+	*/
+	public func getIDs(forTitle title: String, type: SessionIDType) -> [Int]? {
+		
+		switch type {
+			
+		case .chat:
+			
+			if let ids = chatTitles[title] {
+				return ids
+			}
+			
+		case .user:
+			
+			if let ids = userTitles[title] {
+				return ids
+			}
+			
+		default:
+			return nil
+		}
+		
+		return nil
+	}
+	
+	
+	/**
+	Adds a given set of IDs to a specific title.
+	*/
+	public func addIDs(forTitle title: String, type: SessionIDType, ids: Int...) {
+		
+		switchTitle(type: type, title: title, ids: ids, remove: false)
+	}
+	
+	/**
+	Removes a given set of IDs from a specific title.
+	*/
+	public func removeIDs(forTitle title: String, type: SessionIDType, ids: Int...) {
+		
+		switchTitle(type: type, title: title, ids: ids, remove: true)
 	}
 	
 	

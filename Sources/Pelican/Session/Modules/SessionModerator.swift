@@ -18,13 +18,12 @@ public class SessionModerator {
 	
 	/// The session the moderator is delegating for, as identified by it's tag.
 	private var tag: SessionTag
-	/// The titles the Session currently has.
-	private var titles: [String]
 	
-	private var changeTitleCallback: (SessionTag, String, Bool) -> ()
+	private var changeTitleCallback: (SessionIDType, String, [Int], Bool) -> ()
+	private var checkTitleCallback: (Int, SessionIDType) -> ([String])
 	
 	public var getID: Int { return tag.getSessionID }
-	public var getTitles: [String] { return titles }
+	public var getTitles: [String] { return checkTitleCallback(tag.sessionID, tag.sessionIDType) }
 	
 	
 	/**
@@ -35,41 +34,108 @@ public class SessionModerator {
 	init?(tag: SessionTag, moderator: Moderator) {
 		
 		self.tag = tag
-		self.changeTitleCallback = moderator.changeTitle(tag:title:remove:)
-		self.titles = moderator.getTitles(forID: tag.sessionID, type: tag.sessionIDType)
+		
+		self.changeTitleCallback = moderator.switchTitle
+		self.checkTitleCallback = moderator.getTitles
 		
 		if tag.sessionIDType != .chat || tag.sessionIDType != .user { return }
 	}
 	
 	/**
-	Adds a title to the session ID.
+	Adds a title to this session.
 	*/
 	public func add(_ title: String) {
 		
-		if titles.contains(title) == true { return }
-		titles.append(title)
-		
-		changeTitleCallback(tag, title, false)
+		changeTitleCallback(tag.sessionIDType, title, [tag.sessionID], false)
 	}
 	
 	/**
-	Removes a title from the session ID, if associated with it.
+	Adds a title to the IDs of the users specified.
+	*/
+	public func addToUsers(title: String, users: User...) {
+		
+		changeTitleCallback(.user, title, users.map({$0.tgID}), false)
+	}
+	
+	/**
+	Adds a title to the IDs of the chats specified.
+	*/
+	public func addToChats(title: String, chats: Chat...) {
+		
+		changeTitleCallback(.chat, title, chats.map({$0.tgID}), false)
+	}
+	
+	/**
+	Removes a title from this session, if associated with it.
 	*/
 	public func remove(_ title: String) {
 		
-		if let index = titles.index(of: title) {
-			titles.remove(at: index)
-		}
-		
-		changeTitleCallback(tag, title, true)
+		changeTitleCallback(tag.sessionIDType, title, [tag.sessionID], true)
 	}
 	
 	/**
-	Checks to see whether the Session has a given title.
+	Adds a title to the IDs of the users specified.
+	*/
+	public func removeFromUsers(title: String, users: User...) {
+		
+		changeTitleCallback(.user, title, users.map({$0.tgID}), true)
+	}
+	
+	/**
+	Adds a title to the IDs of the chats specified.
+	*/
+	public func removeFromChats(title: String, chats: Chat...) {
+		
+		changeTitleCallback(.chat, title, chats.map({$0.tgID}), true)
+	}
+	
+	/**
+	Checks to see whether a User has the specified title.
+	- returns: True if it does, false if not.
+	*/
+	public func getTitles(forUser user: User) -> [String] {
+		
+		return checkTitleCallback(user.tgID, .user)
+	}
+	
+	/**
+	Checks to see whether a Chat has the specified title.
+	- returns: True if it does, false if not.
+	*/
+	public func getTitles(forChat chat: Chat) -> [String] {
+		
+		return checkTitleCallback(chat.tgID, .chat)
+	}
+	
+	/**
+	Checks to see whether this Session has a given title.
 	- returns: True if it does, false if not.
 	*/
 	public func checkTitle(_ title: String) -> Bool {
 		
+		let titles = checkTitleCallback(tag.sessionID, tag.sessionIDType)
+		if titles.contains(title) { return true }
+		return false
+	}
+	
+	/**
+	Checks to see whether a User has the specified title.
+	- returns: True if it does, false if not.
+	*/
+	public func checkTitle(forUser user: User, title: String) -> Bool {
+		
+		let titles = checkTitleCallback(user.tgID, .user)
+		if titles.contains(title) { return true }
+		return false
+	}
+	
+	/**
+	Checks to see whether a Chat has the specified title.
+	- returns: True if it does, false if not.
+	*/
+	public func checkTitle(forChat chat: Chat, title: String) -> Bool {
+		
+		let titles = checkTitleCallback(chat.tgID, .chat)
 		if titles.contains(title) { return true }
 		return false
 	}
@@ -79,13 +145,11 @@ public class SessionModerator {
 	*/
 	public func clearTitles() {
 		
+		let titles = checkTitleCallback(tag.sessionID, tag.sessionIDType)
+		
 		for title in titles {
-			changeTitleCallback(tag, title, true)
+			changeTitleCallback(tag.sessionIDType, title, [tag.sessionID], true)
 		}
-		
-		titles.removeAll()
-		
-		
 	}
 	
 	/**
