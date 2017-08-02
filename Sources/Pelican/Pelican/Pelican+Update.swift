@@ -38,11 +38,11 @@ Categorises the types of requests that can be made by a user to the bot.
 */
 public enum UpdateType: String, UpdateCollection {
 	case message
-	case callbackQuery = "callback_query"
-	case inlineQuery = "inline_query"
-	case chosenInlineResult = "chosen_inline_result"
-	//case shippingQuery = "shipping_query"
-	//case preCheckoutQuery = "pre_checkout_query"
+	case callbackQuery
+	case inlineQuery
+	case chosenInlineResult
+	//case shippingQuery
+	//case preCheckoutQuery
 	
 	public func string() -> String {
 		return rawValue
@@ -50,7 +50,7 @@ public enum UpdateType: String, UpdateCollection {
 }
 
 /**
-Encapsulates a single update received from a bot.
+Encapsulates a single update received from a Telegram bot.
 */
 public class Update {
 	
@@ -108,11 +108,6 @@ public class Update {
 			if message.from != nil {
 				self.from = message.from!
 			}
-			
-			// Build the header content
-			//header["chat_id"] = String(message.chat.tgID)
-			//if message.name != nil { header["name"] = message. }
-			//header["content_type"] = message.type.name()
 		}
 			
 		else if data is CallbackQuery {

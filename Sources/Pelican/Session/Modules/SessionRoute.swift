@@ -19,50 +19,33 @@ public class RouteController {
 	
 	/**
 	The currently active set of routes for the ChatSession.
-	- warning: It's recommended to just use the provided functions for editing and removing routes, only use this if
-	you need something custom 👌.
 	*/
-	public var collection: [UpdateType : [Route]]
+	var collection: [Route] = []
 	
+	/**
+	The active groups assigned to the route controller.
+	*/
+	var groups: [RouteGroup] = []
 	
-	init() {
-		collection = [:]
-		
-		for type in UpdateType.cases() {
-			collection[type] = []
-		}
-	}
+	/// The last ID assigned to a route.  Unlike Builder IDs, these are assigned sequentially to prevent an overlap.
+	var lastID: Int = 0
+	
+	init() { }
 	
 	/**
 	Attempts to find and execute a route for the given user request, should only ever be accessed by ChatSession.
 	*/
-	func routeRequest(update: Update, type: UpdateType) -> Bool {
+	func handle(update: Update) -> Bool {
 		
-		var handled = false
-		
-			
-		// Run through all available routes
-		for route in collection[type]!	{
-			
-			// Extract and execute the contained action.
-			let action = route.getAction
-			
-			// If the types match, check the filter
-			if update.matches(route.pattern, types: [type.string()]) == true {
-				
-				// If we made it, execute the action
-				handled = action(update)
-				
-			}
-			
-			// If it's been handled by the route, return true
-			if handled == true {
-				return handled
-			}
+		for route in collection {
+			if route.handle(update) == true { return true }
 		}
 		
-		// Return the result (100% false at this point)
-		return handled
+		for group in groups {
+			if group.handle(update) == true { return true }
+		}
+		
+		return false
 	}
 	
 	
@@ -74,107 +57,96 @@ public class RouteController {
 	public func add(_ routes: Route...) {
 		
 		for route in routes {
-			var routeArray = collection[route.getType]!
 			
-			if route.pattern != "" {
-				
-				// If an existing route already exists with the same criteria, remove it.
-				if routeArray.first(where: { $0.pattern == route.pattern } ) != nil {
-					
-					let index = routeArray.index(where: {$0.pattern == route.pattern } )!
-					routeArray.remove(at: index)
-				}
-				
-				routeArray.insert(route, at: 0)
-			}
-				
-			else {
-				routeArray.append(route)
+			// If the route ID is 0, we need to give it a unique one.
+			if route.id == 0 {
+				lastID += 1
+				route.setID(lastID)
 			}
 			
-			collection[route.getType] = routeArray
+			self.collection.append(route)
 		}
 	}
 	
 	/**
-	Adds a single route to the session based on the components that make up a route for this controller, enabling it to be used to receive user requests.  
-	If the session already has a route that matches the one provided in type and filter, it will be overwritten.
-	- parameter routes: The routes to be added to the controller.
+	Adds a group of routes to the session, enabling them to be used to receive user requests. Adding a group allows you to enable and
+	disable the routes it owns from being used by calling `setGroup(name:enabled:)`, as well as removing them using `removeGroup(name:)`.
+	
+	To avoid unexpected results, do not add a Route using `add(_:)` as well as this function, or otherwise it's action may be executed twice.
+	
+	- returns: True if the group was successfully created, false if not. If you try defining a group with a name that's identical to one that 
+	the controller already has, it will not be created.
 	*/
-	public func add(_ pattern: String, type: UpdateType, action: @escaping (Update) -> (Bool) ) {
+	public func addGroup(name: String, routes: Route...) -> Bool {
 		
-		let route = Route.init(pattern, type: type, action: action)
+		// If a group with the same name exists, remove it.
+		if groups.first(where: { $0.name == name }) != nil { return false }
 		
-		var routeArray = collection[route.getType]!
-		
-		if route.pattern != "" {
+		// Assign IDs here beforehand
+		for route in routes {
 			
-			// If an existing route already exists with the same criteria, remove it.
-			if routeArray.first(where: { $0.pattern == route.pattern } ) != nil {
-				
-				let index = routeArray.index(where: {$0.pattern == route.pattern } )!
-				routeArray.remove(at: index)
+			// If the route ID is 0, we need to give it a unique one.
+			if route.id == 0 {
+				lastID += 1
+				route.setID(lastID)
 			}
-			
-			routeArray.insert(route, at: 0)
-		}
-			
-		else {
-			routeArray.append(route)
 		}
 		
-		collection[route.getType] = routeArray
+		let group = RouteGroup(name: name, routes: routes)
+		groups.append(group)
+		
+		return true
 	}
-
 	
 	/**
-	Removes a route based on a given route type and filter name.
-	- parameter type: The request target of the route you wish to remove.
-	- parameter filter: The filter of the route to be removed.
-	- returns: True if a route matched the given criteria and was removed, false if not.
+	Sets the status of a group to either enabled or disabled.
 	*/
-	public func remove(type: UpdateType, filter: String) -> Bool {
+	public func setGroupStatus(name: String, enabled: Bool) {
 		
-		var routeSet = collection[type]!
+		if let group = groups.first(where: { $0.name == name }) {
+			group.enabled = enabled
+		}
+	}
+	
+	/**
+	Gets the status of a group, using it's name.
+	*/
+	public func getGroupStatus(name: String) -> Bool? {
 		
-		for _ in routeSet {
-			
-			if let index = routeSet.index(where: {$0.pattern == filter} ) {
-				routeSet.remove(at: index)
-				collection[type]! = routeSet
-				return true
+		if let group = groups.first(where: { $0.name == name }) {
+			return group.enabled
+		}
+		
+		return nil
+	}
+	
+	/**
+	Removes a Route from the stack if it matches the one provided.
+	*/
+	public func remove(_ route: Route) {
+		
+		for (i, otherRoute) in collection.enumerated() {
+			if otherRoute.compare(route) == true {
+				
+				collection.remove(at: i)
+				return
 			}
+		}
+	}
+	
+	/**
+	Removes a RouteGroup from the stack if the name provided matches one 
+	currently held by the controller.
+	*/
+	public func removeGroup(name: String) -> Bool {
+		
+		if let index = groups.index(where: {$0.name == name} ) {
+			groups.remove(at: index)
+			return true
 		}
 		
 		return false
 	}
-	
-	/**
-	Clears all routes of a given request target from the session.
-	- parameter type: The request target you wish to clear.
-	*/
-	public func clear(type: UpdateType) {
-		collection[type] = []
-	}
-	
-	/**
-	Clears all routes of a given type that have no defined filter.  Useful if you have one or two routes
-	that act as a default request collector, that due to the current state of the bot require removal.
-	*/
-	public func clearUnfiltered(type: UpdateType) {
-		
-		var newRouteSet: [Route] = []
-		
-		for route in collection[type]! {
-			
-			if route.pattern != "" {
-				newRouteSet.append(route)
-			}
-		}
-		
-		collection[type]! = newRouteSet
-	}
-	
 	
 	/**
 	Clears all routes for all available user request types.
@@ -185,16 +157,244 @@ public class RouteController {
 	
 }
 
+/**
+Defines a collection of routes that can be enabled and disabled, without having to remove it from the controller.
+*/
+class RouteGroup {
+	
+	// Core Data
+	var name: String
+	var collection: [Route] = []
+	
+	// State
+	public var enabled: Bool = true
+	
+	init(name: String, routes: [Route]) {
+		
+		self.name = name
+		self.collection = routes
+	}
+	
+	/**
+	Attempts to find and execute a route for the given user request, should only ever be accessed by ChatSession.
+	*/
+	func handle(_ update: Update) -> Bool {
+		
+		if enabled == false { return false }
+		
+		for route in collection {
+			if route.handle(update) == true { return true }
+		}
+		
+		return false
+	}
+	
+}
 
 
 /**
-Defines a single action to be used on a ChatSession RouteController (`session.routes`), to connect user 
+Sets the framework for matching a single action to be used on a ChatSession RouteController (`session.routes`), to connect user
 requests to bot functionality in a modular and contained way.
+
+For pre-built Routes to cover all common use-cases, see `RoutePass`, `RouteCommand`, `RouteListen` and `RouteManual`.
 */
-public class Route {
+public protocol Route: class {
 	
 	/** 
-	The route that user responses are compared against, to decide whether or not to use it.
+	A unique identifier assigned to a Route when it's added to the RouteController, used to identify it for
+	removal.
+	*/
+	var id: Int { get set }
+	
+	/// The action the route will execute if successful
+	var action: (Update) -> (Bool) { get }
+	
+	/**
+	Accepts an update for a route to try and handle, based on it's own criteria.
+	- returns: True if handled successfully, false if not.  Although the Route's action
+	function might be called, it can still return false if the action function returns as false.
+	*/
+	func handle(_ update: Update) -> Bool
+	
+	/**
+	Allows a route to compare itself with another route of any type to see if they match.
+	*/
+	func compare(_ route: Route) -> Bool
+}
+
+extension Route {
+	
+	func setID(_ id: Int) {
+		self.id = id
+	}
+}
+
+
+
+
+/**
+Allows any update handled by it to execute the action so long as it meets a specified update type.
+Useful for when you wish to accept any kind of content input from the user.
+*/
+public class RoutePass: Route {
+	
+	public var id: Int = 0
+	public var action: (Update) -> (Bool)
+	
+	/// The update types the update can potentially be in order for the action to be executed.
+	public var updateTypes: [UpdateType] = []
+	
+	/**
+	Initialises a Route that will allow any Update matching specific Update types to trigger an action.
+	- parameter name: The name of the route.  This is used to check for equatibility with other routes, so ensure
+	you create unique names for routes you want to be considered separate entities.
+	- parameter updateTypes: The types of updates the route can consider for triggering an action.
+	- parameter action: The function to be executed if the Route is able to handle an incoming update.
+	*/
+	public init(updateTypes: [UpdateType], action: @escaping (Update) -> (Bool)) {
+		
+		self.action = action
+		self.updateTypes = updateTypes
+	}
+	
+	public func handle(_ update: Update) -> Bool {
+		
+		if updateTypes.contains(update.type) == true {
+			return action(update)
+		}
+		
+		return false
+	}
+	
+	public func compare(_ route: Route) -> Bool {
+		
+		// Check the types match
+		if route is RoutePass {
+			let otherRoute = route as! RoutePass
+			
+			// Check the ID
+			if self.id != otherRoute.id { return false }
+			
+			// Check the type contents
+			if self.updateTypes.count == otherRoute.updateTypes.count {
+				
+				for (i, type) in self.updateTypes.enumerated() {
+					if type != otherRoute.updateTypes[i] { return false }
+				}
+				
+				return true
+			}
+		}
+		
+		return false
+	}
+}
+
+/**
+Used to specifically route bot commands (such as /start and /hello@YourBot) to actions.  You can define multiple
+commands, and as long as one of them matches the update content the action will be executed.
+*/
+public class RouteCommand: Route {
+	
+	public var id: Int = 0
+	public var action: (Update) -> (Bool)
+	
+	
+	/// The commands to listen for in a message.  Only one has to be found in the set for the action to execute.
+	public var commands: [String] = []
+
+	/**
+	Initialises a RouteCommand type, to link user message commands to bot actions.
+	
+	- parameter commands: The commands you wish the route to be bound to.  List them without a forward slash, and if
+	multiple are being included, with commas in-between them (`"start, settings, shop"`).
+	- parameter action: The function to be executed if the Route is able to handle an incoming update.
+	*/
+	public init(commands: String, action: @escaping (Update) -> (Bool)) {
+		
+		self.action = action
+		
+		for command in commands.components(separatedBy: ",") {
+			self.commands.append(command.replacingOccurrences(of: " ", with: ""))
+		}
+	}
+	
+	public func handle(_ update: Update) -> Bool {
+		
+		// Return if the update is not a message
+		if update.type != .message { return false }
+		
+		let message = update.data as! Message
+		
+		if message.entities != nil {
+			for entity in message.entities! {
+				if entity.type == .botCommand {
+					
+					// Attempt to extract the command from the Message
+					let commandString = entity.extract(fromMessage: message)
+					if commandString != nil {
+						
+						var command = ""
+						
+						// Remove the bot name, and be left with just the command.
+						if commandString?.contains("@") == true {
+							command = commandString!.components(separatedBy: "@")[0]
+							command = command.replacingOccurrences(of: "/", with: "")
+						}
+						
+						else {
+							command = commandString!.replacingOccurrences(of: "/", with: "")
+						}
+						
+						// If the command is included in the given list, execute the action.
+						if commands.contains(command) == true {
+							return action(update)
+						}
+					}
+				}
+			}
+		}
+		
+		return false
+	}
+	
+	public func compare(_ route: Route) -> Bool {
+		
+		// Check the types match
+		if route is RouteCommand {
+			let otherRoute = route as! RouteCommand
+			
+			// Check the ID
+			if self.id != otherRoute.id { return false }
+			
+			// Check the command contents
+			if self.commands.count == otherRoute.commands.count {
+				
+				for (i, type) in self.commands.enumerated() {
+					if type != otherRoute.commands[i] { return false }
+				}
+				
+				return true
+			}
+		}
+		
+		return false
+	}
+}
+
+/**
+Used to specifically route bot commands (such as /start and /hello@YourBot) to actions.  You can define multiple
+commands, and as long as one of them matches the update content the action will be executed.
+
+- warning: Currently just supports string matching, Regex support will come later.
+*/
+public class RouteListen: Route {
+	
+	public var id: Int = 0
+	public var action: (Update) -> (Bool)
+	
+	/** 
+	The pattern that the update content is compared against, to decide whether or not to use it.
 	Leave it blank if the route is dynamic and wishes to receive any already unclaimed responses.
 	*/
 	public var pattern: String = ""
@@ -205,17 +405,93 @@ public class Route {
 	/// Retrieves the route type, that determines what kind of user responses it is targeting.
 	public var getType: UpdateType { return type }
 	
-	// Privately held actions.  Each route can only have one action, and
-	private var action: (Update) -> (Bool)
-	public var getAction: (Update) -> (Bool) { return action }
-	
 	/**
-	Initialises a route with a Message-type action and "Message" user response type.
+	Initialises a route that listens out for specific pieces of text in update content.
+	- parameter name: The name of the route.  This is used to check for equatibility with other routes, so ensure
+	you create unique names for routes you want to be considered separate entities.
+	- parameter pattern: The text or RegEx request to search for in the contents of an update.
+	- parameter type: The types of updates the route can consider for triggering an action.
+	- parameter action: The function to be executed if the Route is able to handle an incoming update.
 	*/
-	public init(_ pattern: String, type: UpdateType, action: @escaping (Update) -> (Bool) ) {
-		self.pattern = pattern
+	public init(pattern: String, type: UpdateType, action: @escaping (Update) -> (Bool)) {
+		
 		self.type = type
 		self.action = action
+		self.pattern = pattern
+	}
+	
+	public func handle(_ update: Update) -> Bool {
+		
+		// If the types match, check the filter
+		if update.matches(pattern, types: [type.string()]) == true {
+			
+			// If we made it, execute the action
+			return action(update)
+			
+		}
+		
+		return false
+	}
+	
+	public func compare(_ route: Route) -> Bool {
+		
+		// Check the types match
+		if route is RouteListen {
+			let otherRoute = route as! RouteListen
+			
+			// Check the properties
+			if self.id != otherRoute.id { return false }
+			if self.pattern != otherRoute.pattern { return false }
+			if self.type != otherRoute.type { return false }
+			
+			return true
+		}
+		
+		return false
+	}
+}
+
+/**
+Lets you define your own routing function for incoming updates.
+*/
+public class RouteManual: Route {
+	
+	public var id: Int = 0
+	public var action: (Update) -> (Bool)
+	
+	/// The commands to listen for in a message.  Only one has to be found in the set for the action to execute.
+	public var handler: (Update) -> (Bool)
+	
+	/**
+	Initialises a route with a manually defined handler function to check whether an Update can trigger a Route action.
+	- parameter name: The name of the route.  This is used to check for equatibility with other routes, so ensure
+	you create unique names for routes you want to be considered separate entities.
+	- parameter handler: The custom handler to use to define whether an Update can trigger a Route action.
+	- parameter action: The function to be executed if the Route is able to handle an incoming update.
+	*/
+	public init(handler: @escaping (Update) -> (Bool), action: @escaping (Update) -> (Bool)) {
+		
+		self.action = action
+		self.handler = handler
+	}
+	
+	public func handle(_ update: Update) -> Bool {
+		return handler(update)
+	}
+	
+	public func compare(_ route: Route) -> Bool {
+		
+		// Check the types match
+		if route is RouteManual {
+			let otherRoute = route as! RouteManual
+			
+			// Check the properties
+			if self.id != otherRoute.id { return false }
+			
+			return true
+		}
+		
+		return false
 	}
 }
 

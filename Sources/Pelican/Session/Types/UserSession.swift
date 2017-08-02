@@ -82,7 +82,7 @@ open class UserSession: Session {
 	public func update(_ update: Update) {
 		
 		// This needs revising, whatever...
-		_ = routes.routeRequest(update: update, type: update.type)
+		_ = routes.handle(update: update)
 		
 	}
 }

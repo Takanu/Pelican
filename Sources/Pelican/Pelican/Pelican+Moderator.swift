@@ -3,10 +3,6 @@ import Foundation
 import Vapor
 
 
-
-
-
-
 /**
 Manages user access to the bot through a permanent blacklist feature (that works in conjunction with FloodLimit), while
 enabling the creation of custom user lists for flexible permission and other custom user and chat grouping systems.

@@ -110,7 +110,7 @@ open class ChatSession: Session {
 		timeout.bump(update)
 		
 		// This needs revising, whatever...
-		let handled = routes.routeRequest(update: update, type: update.type)
+		let handled = routes.handle(update: update)
 		
 		if handled == false && update.type == .callbackQuery {
 			_ = prompts.filterQuery(update.data as! CallbackQuery)
