@@ -45,8 +45,6 @@ public class Schedule {
 			queue.append(event)
 		}
 		
-		print("Event Added.  Current Queue - \(queue)")
-		
 	}
 	
 	/**
@@ -56,9 +54,7 @@ public class Schedule {
 		
 		if let index = queue.index(where: { $0 == event } ) {
 			queue.remove(at: index)
-			print("Event Removed.  Current Queue - \(queue)")
 		}
-		print("Event Removed.  Current Queue - \(queue)")
 	}
 	
 	/** 

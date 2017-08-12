@@ -91,14 +91,19 @@ public class PromptController {
   
   /** Filters a query for a prompt to receive and handle.
    */
-  func filterQuery(_ query: CallbackQuery) -> Bool {
+  func handle(_ update: Update) -> Bool {
+		
+		// Return if basic update conditions aren't met
     if enabled == false { return false }
-    
+		if update.type != .callbackQuery { return false }
+		
+		let query = update.data as! CallbackQuery
+		
     for prompt in prompts {
       if prompt.message != nil {
         if prompt.message!.tgID == query.message?.tgID {
 					
-          let handled = prompt.query(query: query)
+          let handled = prompt.query(update: update)
 					if handled == true {
 						return true
 					}
@@ -200,7 +205,8 @@ public class Prompt: ReceiveUpload, Equatable {
   // RESULTS AND RESULT STATE
   var usersPressed: [User] = []             // Who ended up pressing a button.
   var results: [String:[User]] = [:]        // What each user pressed.
-	public var lastResult: PromptResult?							// A result containing who pressed the last callback button.
+	public var lastResult: PromptResult?				// A result containing who pressed the last callback button.
+	public var lastUpdate: Update?							// The last callback query to be received by the bot.
   var completed: Bool = false               // Whether the prompt has met it's completion requirements.
 	var finished: Bool = false								/// Whether this prompt is in a finished state.
 	
@@ -297,8 +303,10 @@ public class Prompt: ReceiveUpload, Equatable {
 	Receives a callback query to see if the prompt can use it as an input.
 	- returns: Whether or not the callback query was successfully handled by the prompt.
    */
-  func query(query: CallbackQuery) -> Bool {
-    
+  func query(update: Update) -> Bool {
+		
+		let query = update.data as! CallbackQuery
+		
     // Return early if some basic conditions are not met
     if query.data == nil { return false }
     if message == nil { return false }
@@ -307,6 +315,9 @@ public class Prompt: ReceiveUpload, Equatable {
         return false
       }
     }
+		
+		// Assign the query to the "last query" slot.
+		lastUpdate = update
     
     // Get the player mentioned in the query
     let user = query.from
@@ -326,8 +337,8 @@ public class Prompt: ReceiveUpload, Equatable {
 			let key = self.inline.getKey(withData: query.data!)
 			self.lastResult = PromptResult(users: [query.from], key: key!)
 			
-			if update != nil {
-				update!(self)
+			if self.update != nil {
+				self.update!(self)
 			}
     }
       
@@ -398,6 +409,19 @@ public class Prompt: ReceiveUpload, Equatable {
     return false
   }
 	
+	/**
+	Answers the last-received query with a custom response.
+	*/
+	public func answerLastQuery(text: String) {
+		
+		if lastUpdate == nil { return }
+		
+		let query = lastUpdate!.data as! CallbackQuery
+		
+		let request = TelegramRequest.answerCallbackQuery(queryID: query.id, text: text, showAlert: true, url: nil)
+		_ = tag.sendRequest(request)
+	}
+	
 	
 	/** 
 	Attempts to update both the inline keyboard and text of the currently displayed message.
@@ -419,11 +443,11 @@ public class Prompt: ReceiveUpload, Equatable {
 		self.text = newText
 		
 		if self.file != nil {
-			_ = tag.sendRequest(TelegramRequest.editMessageCaption(chatID: message!.chat.tgID, messageID: message!.tgID, caption: text, replyMarkup: inline))
+			_ = tag.sendRequest(TelegramRequest.editMessageCaption(chatID: message!.chat.tgID, messageID: message!.tgID, caption: text, replyMarkup: newInline))
 		}
 			
 		else {
-			_ = tag.sendRequest(TelegramRequest.editMessageText(chatID: message!.chat.tgID, messageID: message!.tgID, inlineMessageID: nil, text: text, replyMarkup: inline))
+			_ = tag.sendRequest(TelegramRequest.editMessageText(chatID: message!.chat.tgID, messageID: message!.tgID, inlineMessageID: nil, text: text, replyMarkup: newInline))
 		}
 	}
 	

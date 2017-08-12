@@ -8,6 +8,7 @@
 
 import Foundation
 import Vapor
+import Fluent
 
 /**
 A delegate for a session, to send requests to Telegram that correspond with sending chat messages.
@@ -25,10 +26,12 @@ public class TGSend {
 	/**
 	Sends a text-based message to the chat linked to this session.
 	*/
-	public func message(_ message: String, markup: MarkupType?, parseMode: MessageParseMode = .markdown, replyID: Int = 0, webPreview: Bool = false, disableNtf: Bool = false) {
+	public func message(_ message: String, markup: MarkupType?, parseMode: MessageParseMode = .markdown, replyID: Int = 0, webPreview: Bool = false, disableNtf: Bool = false) -> Message {
 		
 		let request = TelegramRequest.sendMessage(chatID: chatID, text: message, replyMarkup: markup, parseMode: parseMode, disableWebPreview: webPreview, disableNtf: disableNtf, replyMessageID: replyID)
-		_ = tag.sendRequest(request)
+		let response = tag.sendRequest(request)
+		
+		return try! Message(row: Row(response.data!))
 	}
 	
 	/**
@@ -58,7 +61,7 @@ public class TGEdit {
 	/**
 	Edits a text based message.
 	*/
-	public func message(messageID: Int?, inlineMessageID: Int?, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .none, disableWebPreview: Bool = false) {
+	public func message(messageID: Int?, inlineMessageID: Int?, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .markdown, disableWebPreview: Bool = false) {
 		
 		let request = TelegramRequest.editMessageText(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, text: text, replyMarkup: replyMarkup, parseMode: parseMode, disableWebPreview: disableWebPreview)
 		_ = tag.sendRequest(request)
@@ -225,7 +228,7 @@ public class TGAnswer {
 	}
 	
 	/**
-	Sends a text-based message to the chat linked to this session.
+	???
 	*/
 	public func callbackQuery(queryID: String, text: String?, showAlert: Bool, url: String = "", cacheTime: Int = 0) {
 		
@@ -234,7 +237,7 @@ public class TGAnswer {
 	}
 	
 	/**
-	Sends and uploads a file as a message to the chat linked to this session, using a `FileLink`
+	???
 	*/
 	public func inlineQuery(queryID: Int, results: [InlineResult], cacheTime: Int = 0, isPersonal: Bool = false, nextOffset: String?, switchPM: String?, switchPMParam: String?) {
 		

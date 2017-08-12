@@ -192,6 +192,8 @@ public class ChatSessionQueue {
 		for event in eventHistory {
 			_ = removeEvent(event)
 		}
+		
+		eventHistory.removeAll()
 	}
 }
 

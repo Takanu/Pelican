@@ -423,7 +423,7 @@ public class RouteListen: Route {
 	public func handle(_ update: Update) -> Bool {
 		
 		// If the types match, check the filter
-		if update.matches(pattern, types: [type.string()]) == true {
+		if update.content.contains(pattern) == true {
 			
 			// If we made it, execute the action
 			return action(update)

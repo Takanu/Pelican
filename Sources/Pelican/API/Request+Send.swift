@@ -23,7 +23,7 @@ extension TelegramRequest {
 	## API Description
 	Sends a message.  Must contain a chat ID, message text and an optional MarkupType.
 	*/
-	public static func sendMessage(chatID: Int, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .none, disableWebPreview: Bool = false, disableNtf: Bool = false, replyMessageID: Int = 0) -> TelegramRequest {
+	public static func sendMessage(chatID: Int, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .markdown, disableWebPreview: Bool = false, disableNtf: Bool = false, replyMessageID: Int = 0) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -39,6 +39,8 @@ extension TelegramRequest {
 			print(replyMarkup!.getQuery())
 			request.query["reply_markup"] = replyMarkup!.getQuery()
 		}
+
+		
 		if parseMode != .none { request.query["parse_mode"] = parseMode.rawValue }
 		if replyMessageID != 0 { request.query["reply_to_message_id"] = replyMessageID }
 		

@@ -75,8 +75,9 @@ open class ChatSession: Session {
 	public required init(bot: Pelican, tag: SessionTag, update: Update) {
 		
 		self.tag = tag
-		
+		self.chat = update.chat!
 		self.chatID = update.chat!.tgID
+		
 		self.prompts = PromptController(tag: tag, schedule: bot.schedule)
 		self.queue = ChatSessionQueue(chatID: update.chat!.tgID, schedule: bot.schedule, tag: self.tag)
 		self.routes = RouteController()
@@ -112,8 +113,8 @@ open class ChatSession: Session {
 		// This needs revising, whatever...
 		let handled = routes.handle(update: update)
 		
-		if handled == false && update.type == .callbackQuery {
-			_ = prompts.filterQuery(update.data as! CallbackQuery)
+		if handled == false {
+			_ = prompts.handle(update)
 		}
 		
 		// Bump the flood controller after

@@ -24,7 +24,7 @@ extension TelegramRequest {
 	## API Description
 	Use this method to edit text and game messages sent by the bot or via the bot (for inline bots). On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
 	*/
-	public static func editMessageText(chatID: Int?, messageID: Int?, inlineMessageID: Int?, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .none, disableWebPreview: Bool = false) -> TelegramRequest {
+	public static func editMessageText(chatID: Int?, messageID: Int?, inlineMessageID: Int?, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .markdown, disableWebPreview: Bool = false) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
