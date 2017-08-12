@@ -628,7 +628,13 @@ public final class Pelican: Vapor.Provider {
 		}
 		
 		// Attempt to send it and get a TelegramResponse from it.
-		let tgResponse = TelegramResponse(response: try! drop.client.respond(to: vaporRequest))
+		let response = try! drop.client.respond(to: vaporRequest)
+		let tgResponse = TelegramResponse(response: response)
+		
+		// (DEBUG) If the API call was not successful, print the issue.
+		//if tgResponse.success == false {
+		//	print(response)
+		//}
 		
 		return tgResponse
 		
