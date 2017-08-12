@@ -19,9 +19,10 @@ Where bots are concerned though, Telegram offers an open and free API system whe
 
 So, what does Pelican do currently?
 
-- Modular Session System
+- Modular Session System for generating active objects to contain updates within a chat-based, user-based or custom update scope.
+- Modular Routing System for matching incoming update contents to bot or session functionality.
 - In-Built Moderator, Flood, Timeout and Queue systems
 - Inline message containers ("Prompts") for inline message response and update management
-- A bunch of other things.
+- A bunch of other cool stuff!
 
-The code has extensive documentation to help you use it, and I will include up-to-date tests and demo code soon.
+The code has extensive documentation to help you use it, and I will include up-to-date tests and demo code soon.  If you have any questions, feel free to message me on GitHub or on Telegram at t.me/takanu.
