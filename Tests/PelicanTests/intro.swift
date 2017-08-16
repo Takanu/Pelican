@@ -1,3 +1,5 @@
+
+/*
 /// Import Vapor and get a droplet
 import Vapor
 import Pelican
@@ -84,7 +86,7 @@ pelican.responseLimit = 1       // Defines how many messages the bot will attemp
 // START IT UP!
 drop.run()
 
-
+*/
 
 
 

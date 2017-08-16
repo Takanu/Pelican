@@ -334,20 +334,21 @@ public class RouteCommand: Route {
 					let commandString = entity.extract(fromMessage: message)
 					if commandString != nil {
 						
-						var command = ""
+						var command = commandString!
 						
 						// Remove the bot name, and be left with just the command.
-						if commandString?.contains("@") == true {
-							command = commandString!.components(separatedBy: "@")[0]
-							command = command.replacingOccurrences(of: "/", with: "")
+						if commandString!.contains("@") == true {
+							
+							command = command.components(separatedBy: "@")[0]
+							command.removeFirst()
 						}
 						
 						else {
-							command = commandString!.replacingOccurrences(of: "/", with: "")
+							command.removeFirst()
 						}
 						
 						// If the command is included in the given list, execute the action.
-						if commands.contains(command) == true {
+						if commands.contains(command) {
 							return action(update)
 						}
 					}
@@ -423,7 +424,7 @@ public class RouteListen: Route {
 	public func handle(_ update: Update) -> Bool {
 		
 		// If the types match, check the filter
-		if update.content.contains(pattern) == true {
+		if update.matches(pattern, types: [type.string()]) == true {
 			
 			// If we made it, execute the action
 			return action(update)

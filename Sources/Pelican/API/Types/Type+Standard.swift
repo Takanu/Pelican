@@ -407,7 +407,7 @@ final public class MessageEntity: Model {
 		let stringBody = encoded.prefix(upTo: encEnd)
 		let finalString = stringBody.suffix(from: encStart)
 		
-		return String.init(describing: finalString)
+		return String(finalString)
 		
 	}
   
