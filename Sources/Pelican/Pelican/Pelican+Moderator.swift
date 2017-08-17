@@ -28,7 +28,6 @@ public class Moderator {
 	*/
 	func switchTitle(type: SessionIDType, title: String, ids: [Int], remove: Bool) {
 		
-		
 		func editList(ids: [Int], list: [Int], remove: Bool) -> [Int] {
 			
 			var mutableList: [Int] = list

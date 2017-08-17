@@ -180,6 +180,10 @@ public final class Pelican: Vapor.Provider {
 	/// Defines an object to be used for custom data, to be used purely for cloning into newly-created ChatSessions.  DO NOT EDIT CONTENTS.
   private var customData: NSCopying?
 	
+	/// Returns the API key assigned to your bot.
+	public var getAPIKey: String { return apiKey }
+	/// Returns the combination of the API request URL and your API token.
+	public var getAPIURL: String { return apiURL }
 	
   // CONNECTION SETTINGS
 	/**
@@ -370,204 +374,182 @@ public final class Pelican: Vapor.Provider {
 			return nil
 		}
 		
-		var request = URLRequest(url: URL(string: apiURL + "/getUpdates")!)
-		request.httpMethod = "POST"
-		let session = URLSession.shared
 		
-		session.dataTask(with: request) {data, response, error in
-			
-			if data != nil {
-				
-				//print(try! JSONDecoder().decode(JSON.self, from: data!))
-				print("connection completed.")
-			}
-			
-			}.resume()
-		
-		return nil
-		
-		
-//    guard let response = try? drop.client.get(apiURL + "/getUpdates", query: query) else {
-//      drop.console.error(TGReqError.NoResponse.rawValue, newLine: true)
-//      return nil
-//    }
-		
-		
-//    // Get the basic result data
-//    let result: Array = response.data["result"]?.array ?? []
-//    let messageCount = result.count
-//
-//    // Make the collection types
-//		var updates: [Update] = []
-//		if cycleDebug == true { print("updates found - \(messageCount)") }
-//
-//    // Iterate through the collected messages
-//    for i in 0..<messageCount {
-//      let update_id = response.data["result", i, "update_id"]?.int ?? -1
-//
-//
-//      // This is just a plain old message
-//      if allowedUpdates.contains(UpdateType.message) {
-//        if (response.data["result", i, "message"]) != nil {
-//
-//					// Find and build a node based on the search.
-//					guard let messageNode = response.json?.makeNode(in: nil)["result", i, "message"] else {
-//            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//            offset = update_id + 1
-//            continue
-//          }
-//
-//					guard let message = try? Message(row: Row(messageNode)) else {
-//            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//            offset = update_id + 1
-//            continue
-//          }
-//
-//					// Check that the update should be used before adding it.
-//					if mod.checkBlacklist(chatID: message.chat.tgID) == false {
-//						if mod.checkBlacklist(userID: message.from!.tgID) == false {
-//							updates.append(Update(withData: message as UpdateModel, node: messageNode))
-//						}
-//					}
-//        }
-//      }
-//
-//			/*
-//      // This is if a message was edited
-//      if allowedUpdates.contains(UpdateType.editedMessage) {
-//        if (response.data["result", i, "edited_message"]) != nil {
-//          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "edited_message"] else {
-//            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//            offset = update_id + 1
-//            continue
-//          }
-//
-//					guard let message = try? Message(row: Row(messageNode)) else {
-//						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//						offset = update_id + 1
-//						continue
-//					}
-//
-//					updates.append(Update(withData: message as UpdateModel, node: messageNode))
-//        }
-//      }
-//
-//      // This is for a channel post
-//      if allowedUpdates.contains(UpdateType.channelPost) {
-//        if (response.data["result", i, "channel_post"]) != nil {
-//          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "channel_post"] else {
-//            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//            offset = update_id + 1
-//            continue
-//          }
-//
-//					guard let message = try? Message(row: Row(messageNode)) else {
-//						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//						offset = update_id + 1
-//						continue
-//					}
-//
-//          updates.append(Update(withData: message as UpdateModel, node: messageNode))
-//        }
-//      }
-//
-//      // This is for an edited channel post
-//      if allowedUpdates.contains(UpdateType.editedChannelPost) {
-//        if (response.data["result", i, "edited_channel_post"]) != nil {
-//          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "edited_channel_post"] else {
-//            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//            offset = update_id + 1
-//            continue
-//          }
-//
-//					guard let message = try? Message(row: Row(messageNode)) else {
-//						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//						offset = update_id + 1
-//						continue
-//					}
-//
-//          updates.append(Update(withData: message as UpdateModel, node: messageNode))
-//        }
-//      }
-//			*/
-//
-//      // COME BACK TO THESE LATER
-//      // This type is for when someone tries to search something in the message box for this bot
-//      if allowedUpdates.contains(UpdateType.inlineQuery) {
-//        if (response.data["result", i, "inline_query"]) != nil {
-//          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "inline_query"] else {
-//            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//						print("inline_query")
-//            offset = update_id + 1
-//            continue
-//          }
-//
-//					guard let message = try? InlineQuery(row: Row(messageNode)) else {
-//						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//						print("inline_query")
-//						offset = update_id + 1
-//						continue
-//					}
-//
-//					// Check that the update should be used before adding it.
-//					if mod.checkBlacklist(userID: message.from.tgID) == false {
-//						updates.append(Update(withData: message as UpdateModel, node: messageNode))
-//					}
-//        }
-//      }
-//
-//      // This type is for when someone has selected an search result from the inline query
-//      if allowedUpdates.contains(UpdateType.chosenInlineResult) {
-//        if (response.data["result", i, "chosen_inline_result"]) != nil {
-//          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "chosen_inline_result"] else {
-//            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//						print("Chosen Inline Result")
-//            offset = update_id + 1
-//            continue
-//          }
-//
-//					guard let message = try? ChosenInlineResult(row: Row(messageNode)) else {
-//						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//						print("Chosen Inline Result")
-//						offset = update_id + 1
-//						continue
-//					}
-//
-//					// Check that the update should be used before adding it.
-//					if mod.checkBlacklist(userID: message.from.tgID) == false {
-//						updates.append(Update(withData: message as UpdateModel, node: messageNode))
-//					}
-//        }
-//      }
-//
-//      /// Callback Query handling (receiving button presses for inline buttons with callback data)
-//      if allowedUpdates.contains(UpdateType.callbackQuery) {
-//        if (response.data["result", i, "callback_query"]) != nil {
-//          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "callback_query"] else {
-//            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//						print("Callback Query")
-//            offset = update_id + 1
-//            continue
-//          }
-//
-//					guard let message = try? CallbackQuery(row: Row(messageNode)) else {
-//						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-//						print("Callback Query")
-//						offset = update_id + 1
-//						continue
-//					}
-//
-//					// Check that the update should be used before adding it.
-//					if mod.checkBlacklist(userID: message.from.tgID) == false {
-//						updates.append(Update(withData: message as UpdateModel, node: messageNode))
-//					}
-//        }
-//      }
-//
-//      offset = update_id + 1
-//    }
-//
-//    return updates
+    // Get the basic result data
+    let result: Array = response.data["result"]?.array ?? []
+    let messageCount = result.count
+
+    // Make the collection types
+		var updates: [Update] = []
+		if cycleDebug == true { print("updates found - \(messageCount)") }
+
+    // Iterate through the collected messages
+    for i in 0..<messageCount {
+      let update_id = response.data["result", i, "update_id"]?.int ?? -1
+
+
+      // This is just a plain old message
+      if allowedUpdates.contains(UpdateType.message) {
+        if (response.data["result", i, "message"]) != nil {
+
+					// Find and build a node based on the search.
+					guard let messageNode = response.json?.makeNode(in: nil)["result", i, "message"] else {
+            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+            offset = update_id + 1
+            continue
+          }
+
+					guard let message = try? Message(row: Row(messageNode)) else {
+            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+            offset = update_id + 1
+            continue
+          }
+
+					// Check that the update should be used before adding it.
+					if mod.checkBlacklist(chatID: message.chat.tgID) == false {
+						if mod.checkBlacklist(userID: message.from!.tgID) == false {
+							updates.append(Update(withData: message as UpdateModel, node: messageNode))
+						}
+					}
+        }
+      }
+
+			/*
+      // This is if a message was edited
+      if allowedUpdates.contains(UpdateType.editedMessage) {
+        if (response.data["result", i, "edited_message"]) != nil {
+          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "edited_message"] else {
+            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+            offset = update_id + 1
+            continue
+          }
+
+					guard let message = try? Message(row: Row(messageNode)) else {
+						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						offset = update_id + 1
+						continue
+					}
+
+					updates.append(Update(withData: message as UpdateModel, node: messageNode))
+        }
+      }
+
+      // This is for a channel post
+      if allowedUpdates.contains(UpdateType.channelPost) {
+        if (response.data["result", i, "channel_post"]) != nil {
+          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "channel_post"] else {
+            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+            offset = update_id + 1
+            continue
+          }
+
+					guard let message = try? Message(row: Row(messageNode)) else {
+						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						offset = update_id + 1
+						continue
+					}
+
+          updates.append(Update(withData: message as UpdateModel, node: messageNode))
+        }
+      }
+
+      // This is for an edited channel post
+      if allowedUpdates.contains(UpdateType.editedChannelPost) {
+        if (response.data["result", i, "edited_channel_post"]) != nil {
+          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "edited_channel_post"] else {
+            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+            offset = update_id + 1
+            continue
+          }
+
+					guard let message = try? Message(row: Row(messageNode)) else {
+						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						offset = update_id + 1
+						continue
+					}
+
+          updates.append(Update(withData: message as UpdateModel, node: messageNode))
+        }
+      }
+			*/
+
+      // COME BACK TO THESE LATER
+      // This type is for when someone tries to search something in the message box for this bot
+      if allowedUpdates.contains(UpdateType.inlineQuery) {
+        if (response.data["result", i, "inline_query"]) != nil {
+          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "inline_query"] else {
+            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						print("inline_query")
+            offset = update_id + 1
+            continue
+          }
+
+					guard let message = try? InlineQuery(row: Row(messageNode)) else {
+						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						print("inline_query")
+						offset = update_id + 1
+						continue
+					}
+
+					// Check that the update should be used before adding it.
+					if mod.checkBlacklist(userID: message.from.tgID) == false {
+						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					}
+        }
+      }
+
+      // This type is for when someone has selected an search result from the inline query
+      if allowedUpdates.contains(UpdateType.chosenInlineResult) {
+        if (response.data["result", i, "chosen_inline_result"]) != nil {
+          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "chosen_inline_result"] else {
+            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						print("Chosen Inline Result")
+            offset = update_id + 1
+            continue
+          }
+
+					guard let message = try? ChosenInlineResult(row: Row(messageNode)) else {
+						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						print("Chosen Inline Result")
+						offset = update_id + 1
+						continue
+					}
+
+					// Check that the update should be used before adding it.
+					if mod.checkBlacklist(userID: message.from.tgID) == false {
+						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					}
+        }
+      }
+
+      /// Callback Query handling (receiving button presses for inline buttons with callback data)
+      if allowedUpdates.contains(UpdateType.callbackQuery) {
+        if (response.data["result", i, "callback_query"]) != nil {
+          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "callback_query"] else {
+            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						print("Callback Query")
+            offset = update_id + 1
+            continue
+          }
+
+					guard let message = try? CallbackQuery(row: Row(messageNode)) else {
+						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						print("Callback Query")
+						offset = update_id + 1
+						continue
+					}
+
+					// Check that the update should be used before adding it.
+					if mod.checkBlacklist(userID: message.from.tgID) == false {
+						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					}
+        }
+      }
+
+      offset = update_id + 1
+    }
+
+    return updates
   }
 	
 	
