@@ -22,9 +22,11 @@ private class UpdateQueue {
 	private var lastExecuteTime: TimeInterval
   private let execute: () -> Void
   private var operation: DispatchWorkItem?
+	private var cycleDebug: Bool = false
   
-  init(interval: TimeInterval, execute: @escaping () -> Void) {
+	init(interval: TimeInterval, debug: Bool,  execute: @escaping () -> Void) {
     self.interval = interval
+		self.cycleDebug = debug
 		self.lastExecuteTime = TimeInterval.init(0)
     self.execute = execute
 		
@@ -33,6 +35,8 @@ private class UpdateQueue {
 	
   func start() {
 		
+		if cycleDebug == true { print("dispatch work started.") }
+		
 		self.operation = DispatchWorkItem(qos: .userInteractive, flags: .enforceQoS) { [weak self] in
 			
 			// Record the starting time and execute the loop
@@ -40,7 +44,6 @@ private class UpdateQueue {
 			self?.execute()
 			
 			defer {
-				
 				// Build a time interval for the loop
 				self?.lastExecuteTime = abs(startTime.timeIntervalSinceNow)
 				self?.start()
@@ -53,11 +56,13 @@ private class UpdateQueue {
 		
 		// If the delay time left is below 0, execute the loop immediately.
 		if delayTime <= 0 {
+			if cycleDebug == true { print("loop executing immediately.") }
 		 	queue.async(execute: self.operation!)
 		}
 		
 		// Otherwise use the built delay time.
 		else {
+			if cycleDebug == true { print("loop executing at \(DispatchWallTime.now() + delayTime)") }
 			queue.asyncAfter(wallDeadline: .now() + delayTime, execute: self.operation!)
 		}
 		
@@ -65,11 +70,14 @@ private class UpdateQueue {
   
   func stop() {
     operation?.cancel()
+		if cycleDebug == true { print("update sequence cancelled.") }
   }
 }
 
 /**
 Defines the kind of action you wish a chat action to specify.  (This description sucks).
+
+- note: Should be moved to Types+Standard
 */
 public enum ChatAction: String {
   case typing = "typing"
@@ -174,8 +182,17 @@ public final class Pelican: Vapor.Provider {
 	
 	
   // CONNECTION SETTINGS
+	/**
+	(Polling) Identifier of the first update to be returned. Must be greater by one than the highest among the identifiers of previously received updates. By default, updates starting with the earliest unconfirmed update are returned.
+	
+	An update is considered confirmed as soon as getUpdates is called with an offset higher than its update_id. The negative offset can be specified to retrieve updates starting from -offset update from the end of the updates queue. All previous updates will forgotten.
+	
+	- warning: Pelican automatically handles this variable, don't use it unless you want to perform something very specific.
+	*/
   public var offset: Int = 0
+	/// (Polling) The number of messages that can be received in any given update, between 1 and 100.
   public var limit: Int = 100
+	// (Polling) The length of time Pelican will hold onto an update connection with Telegram to wait for updates before disconnecting.
   public var timeout: Int = 0
 	
 	/// The maximum number of times the bot will attempt to get a response before it logs an error.
@@ -208,11 +225,13 @@ public final class Pelican: Vapor.Provider {
 	public var schedule = Schedule()
 	
 	
-  // Blacklist
+  // MODERATION
 	/// The moderator system, used for blacklisting and whitelisting users and chats to either prevent or allow them to use the bot.
 	public var mod: Moderator
-	/// Define an action if someone enters the blacklist.
-  public var blacklistPrepareAction: ((Pelican, Chat) -> ())?
+	
+	// DEBUG
+	/// Turn this on to activate connection and update cycle debug prints.
+	public var cycleDebug: Bool = false
 	
 	
 	// Boots the provider?
@@ -301,8 +320,12 @@ public final class Pelican: Vapor.Provider {
 	until the timeout amount is reached.
 	*/
   public func setPoll(interval: Int) {
-    updateQueue = UpdateQueue(interval: TimeInterval(interval)) {
+		updateQueue = UpdateQueue(interval: TimeInterval(interval), debug: cycleDebug) {
+			
+			if self.cycleDebug == true { print("update starting.") }
       self.filterUpdates()
+			
+			if self.cycleDebug == true { print("update complete.") }
     }
     
     pollInterval = interval
@@ -338,11 +361,23 @@ public final class Pelican: Vapor.Provider {
 		//print("UPDATE START")
 		
     let query = makeUpdateQuery()
-    
-    guard let response = try? drop.client.get(apiURL + "/getUpdates", query: query) else {
-      drop.console.error(TGReqError.NoResponse.rawValue, newLine: true)
-      return nil
-    }
+		
+		if cycleDebug == true { print("contacting telegram...") }
+		
+		// Vapor Fetching
+		guard let response = try? drop.client.post(apiURL + "/getUpdates", query: query, [:], nil, through: []) else {
+			drop.console.error(TGReqError.NoResponse.rawValue, newLine: true)
+			return nil
+		}
+		
+		//let session = URLSession(configuration: .ephemeral)
+		//session.dataTask(with: apiURL + "/getUpdates")
+		
+		
+//    guard let response = try? drop.client.get(apiURL + "/getUpdates", query: query) else {
+//      drop.console.error(TGReqError.NoResponse.rawValue, newLine: true)
+//      return nil
+//    }
 		
 		
     // Get the basic result data
@@ -351,7 +386,7 @@ public final class Pelican: Vapor.Provider {
     
     // Make the collection types
 		var updates: [Update] = []
-		
+		if cycleDebug == true { print("updates found - \(messageCount)") }
 		
     // Iterate through the collected messages
     for i in 0..<messageCount {
@@ -530,10 +565,10 @@ public final class Pelican: Vapor.Provider {
 	*/
   internal func filterUpdates() {
 		
-    //print("START FILTER")
-		
 		// Get updates from Telegram
+		if cycleDebug == true { print("finding updates....") }
     guard let updates = getUpdateSets() else {
+			if cycleDebug == true { print("none found, exiting early.") }
       return
     }
 		
@@ -542,10 +577,10 @@ public final class Pelican: Vapor.Provider {
     globalTimer += pollInterval
     //checkChatSessionQueues()
 		
+		if cycleDebug == true { print("filtering updates....") }
 		
 		// Filter the update to the current builders.
 		for update in updates {
-			
 			
 			// Collect a list of builders that will accept the update.
 			var captures: [SessionBuilder] = []
@@ -628,13 +663,7 @@ public final class Pelican: Vapor.Provider {
 		}
 		
 		// Attempt to send it and get a TelegramResponse from it.
-		let response = try! drop.client.respond(to: vaporRequest)
-		let tgResponse = TelegramResponse(response: response)
-		
-		// (DEBUG) If the API call was not successful, print the issue.
-		//if tgResponse.success == false {
-		//	print(response)
-		//}
+		let tgResponse = TelegramResponse(response: try! drop.client.respond(to: vaporRequest))
 		
 		return tgResponse
 		
