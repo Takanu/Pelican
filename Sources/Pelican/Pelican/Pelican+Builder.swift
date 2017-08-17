@@ -60,7 +60,7 @@ public class SessionBuilder {
 	
 	- note: If left unused, the builder will always execute an update it has successfully captured, even if another builder has also captured it.
 	*/
-	var collision: ((Pelican, Update) -> (BuilderCollision))?
+	public var collision: ((Pelican, Update) -> (BuilderCollision))?
 	
 	/// The number of sessions the builder can have active at any given time.  Leave at 0 for no limit.
 	var maxSessions: Int = 0
