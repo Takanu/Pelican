@@ -19,7 +19,8 @@ private class UpdateQueue {
                                     target: nil)
   
   private let interval: TimeInterval
-	private var lastExecuteTime: TimeInterval
+	private var startTime: Date
+	private var lastExecuteLength: TimeInterval
   private let execute: () -> Void
   private var operation: DispatchWorkItem?
 	private var cycleDebug: Bool = false
@@ -27,46 +28,35 @@ private class UpdateQueue {
 	init(interval: TimeInterval, debug: Bool,  execute: @escaping () -> Void) {
     self.interval = interval
 		self.cycleDebug = debug
-		self.lastExecuteTime = TimeInterval.init(0)
+		self.startTime = Date()
+		self.lastExecuteLength = TimeInterval.init(0)
     self.execute = execute
-		
-		
-  }
-	
-  func start() {
-		
-		if cycleDebug == true { print("dispatch work started.") }
-		
 		self.operation = DispatchWorkItem(qos: .userInteractive, flags: .enforceQoS) { [weak self] in
 			
 			// Record the starting time and execute the loop
-			let startTime = Date()
+			self?.startTime = Date()
 			self?.execute()
-			
-			defer {
-				// Build a time interval for the loop
-				self?.lastExecuteTime = abs(startTime.timeIntervalSinceNow)
-				self?.start()
-			}
-			
 		}
+  }
+	
+	func queueNext() {
+		lastExecuteLength = abs(startTime.timeIntervalSinceNow)
 		
 		// Account for loop time in the asynchronous delay.
-		let delayTime = interval - lastExecuteTime
+		let delayTime = interval - lastExecuteLength
 		
 		// If the delay time left is below 0, execute the loop immediately.
 		if delayTime <= 0 {
 			if cycleDebug == true { print("loop executing immediately.") }
-		 	queue.async(execute: self.operation!)
+			queue.async(execute: self.operation!)
 		}
-		
-		// Otherwise use the built delay time.
+			
+			// Otherwise use the built delay time.
 		else {
 			if cycleDebug == true { print("loop executing at \(DispatchWallTime.now() + delayTime)") }
 			queue.asyncAfter(wallDeadline: .now() + delayTime, execute: self.operation!)
 		}
-		
-  }
+	}
   
   func stop() {
     operation?.cancel()
@@ -177,6 +167,8 @@ public final class Pelican: Vapor.Provider {
   var apiKey: String
 	/// The combination of the API request URL and your API token.
   var apiURL: String
+	/// Client Connection with Vapor, to Telegram.
+	//var updateSession: URLSession
 	/// Defines an object to be used for custom data, to be used purely for cloning into newly-created ChatSessions.  DO NOT EDIT CONTENTS.
   private var customData: NSCopying?
 	
@@ -276,18 +268,18 @@ public final class Pelican: Vapor.Provider {
 		
 		// This is a bit dodgy
     self.drop = try Droplet()
+		
+		// Fake-initialise the client
 		try! cache.setBundlePath(drop.config.publicDir)
   }
 	
 	
-  public func afterInit(_ drop: Droplet) {
-    self.drop = drop
-  }
+  public func afterInit(_ drop: Droplet) { }
 	
 	
   public func beforeRun(_ drop: Droplet) {
     if ignoreInitialUpdates == true {
-      _ = self.getUpdateSets()
+      //_ = self.getUpdateSets()
     }
     
     if allowedUpdates.count == 0 {
@@ -295,28 +287,18 @@ public final class Pelican: Vapor.Provider {
         allowedUpdates.append(type)
       }
     }
-    
-    started = true
-    updateQueue!.start()
-    //Jobs.add(interval: .seconds(Double(pollInterval))) {
-    //    self.filterUpdates()
-    //}
   }
-  
-  public func boot(_ drop: Droplet) {}
-  
 	
-	
-	
-	
-	
-  /**
-	Allows you to assign a custom type that will get used for each ChatSession that is created.
-	Once assigned, this can then be accessed in the ChatSession by using `session.data`.
-	*/
-  public func setCustomData(_ data: NSCopying) {
-    self.customData = data.copy(with: nil) as? NSCopying
-  }
+  /// Perform correct droplet configuration here.
+  public func boot(_ drop: Droplet) {
+		
+		self.drop = drop
+		//self.client = try! self.drop.client.makeClient(hostname: "api.telegram.org", port: 80, securityLayer: .none)
+		
+		started = true
+		updateQueue!.queueNext()
+	}
+
 	
 	/**
 	Sets the frequency at which the bot looks for updates from users to act on.  If a timeout is set,
@@ -327,8 +309,7 @@ public final class Pelican: Vapor.Provider {
 		updateQueue = UpdateQueue(interval: TimeInterval(interval), debug: cycleDebug) {
 			
 			if self.cycleDebug == true { print("update starting.") }
-      self.filterUpdates()
-			
+      self.requestUpdates()
 			if self.cycleDebug == true { print("update complete.") }
     }
     
@@ -358,26 +339,65 @@ public final class Pelican: Vapor.Provider {
   /**
 	Requests a set of updates from Telegram, based on the poll, offset, timeout and update limit settings
 	assigned to Pelican.
-	- returns: A `TelegramUpdateSet` if successful, or nil if otherwise.
+	- returns: A `TelegramUpdateSet` if succsessful, or nil if otherwise.
 	*/
-	public func getUpdateSets() -> ([Update])? {
+	public func requestUpdates() {
 		
 		//print("UPDATE START")
 		
     let query = makeUpdateQuery()
+		var updates: [Update] = []
 		
 		if cycleDebug == true { print("contacting telegram...") }
 		
-		// Vapor Fetching
-		guard let response = try? drop.client.post(apiURL + "/getUpdates", query: query, [:], nil, through: []) else {
-			drop.console.error(TGReqError.NoResponse.rawValue, newLine: true)
-			return nil
-		}
+//		// Vapor Fetching
+//		//guard let response = try? drop.client.get("/bot" + apiKey + "/getUpdates", query: query, [:], nil, through: []) else {
+//		guard let response = try? client!.get("/bot" + apiKey +  "/getUpdates", query: query, [:], nil, through: []) else {
+//			drop.console.error(TGReqError.NoResponse.rawValue, newLine: true)
+//			return nil
+//		}
+//
+//		print(response.body.bytes!.makeString())
+//
+//		let updateResult = self.filterUpdateResponse(response: response.json!)
+//		if updateResult != nil {
+//			updates = updateResult!
+//		}
 		
+		// Until Vapor can perform the very basic concept of making repeated client requests without hanging, this is being used.
+		var request = URLRequest(url: URL(string: apiURL + "/getUpdates" + "?offset=\(offset)")!)
+		request.httpMethod = "GET"
+		request.httpShouldHandleCookies = false
+		let session = URLSession.shared
+
+		// Build the task
+		session.dataTask(with: request) { data, response, error in
+
+			if error != nil {
+				self.updateQueue!.queueNext()
+				return
+			}
+			
+			else {
+				let json = try! JSON.init(bytes: data!.makeBytes())
+				//print(json)
+
+				let updateResult = self.filterUpdateResponse(response: json)
+				if updateResult != nil {
+					updates = updateResult!
+					self.filterUpdates(updates: updates)
+					self.updateQueue!.queueNext()
+				}
+			}
+
+		}.resume()
+	}
+	
+	public func filterUpdateResponse(response: JSON) -> [Update]? {
 		
     // Get the basic result data
-    let result: Array = response.data["result"]?.array ?? []
-    let messageCount = result.count
+		let results = response["result"]?.array ?? []
+    let messageCount = results.count
 
     // Make the collection types
 		var updates: [Update] = []
@@ -385,15 +405,15 @@ public final class Pelican: Vapor.Provider {
 
     // Iterate through the collected messages
     for i in 0..<messageCount {
-      let update_id = response.data["result", i, "update_id"]?.int ?? -1
+      let update_id = response["result", i, "update_id"]?.int ?? -1
 
 
       // This is just a plain old message
       if allowedUpdates.contains(UpdateType.message) {
-        if (response.data["result", i, "message"]) != nil {
+        if (response["result", i, "message"]) != nil {
 
 					// Find and build a node based on the search.
-					guard let messageNode = response.json?.makeNode(in: nil)["result", i, "message"] else {
+					guard let messageNode = response.makeNode(in: nil)["result", i, "message"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
             offset = update_id + 1
             continue
@@ -476,8 +496,8 @@ public final class Pelican: Vapor.Provider {
       // COME BACK TO THESE LATER
       // This type is for when someone tries to search something in the message box for this bot
       if allowedUpdates.contains(UpdateType.inlineQuery) {
-        if (response.data["result", i, "inline_query"]) != nil {
-          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "inline_query"] else {
+        if (response["result", i, "inline_query"]) != nil {
+          guard let messageNode = response.makeNode(in: nil)["result", i, "inline_query"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
 						print("inline_query")
             offset = update_id + 1
@@ -500,8 +520,8 @@ public final class Pelican: Vapor.Provider {
 
       // This type is for when someone has selected an search result from the inline query
       if allowedUpdates.contains(UpdateType.chosenInlineResult) {
-        if (response.data["result", i, "chosen_inline_result"]) != nil {
-          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "chosen_inline_result"] else {
+        if (response["result", i, "chosen_inline_result"]) != nil {
+          guard let messageNode = response.makeNode(in: nil)["result", i, "chosen_inline_result"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
 						print("Chosen Inline Result")
             offset = update_id + 1
@@ -524,8 +544,8 @@ public final class Pelican: Vapor.Provider {
 
       /// Callback Query handling (receiving button presses for inline buttons with callback data)
       if allowedUpdates.contains(UpdateType.callbackQuery) {
-        if (response.data["result", i, "callback_query"]) != nil {
-          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "callback_query"] else {
+        if (response["result", i, "callback_query"]) != nil {
+          guard let messageNode = response.makeNode(in: nil)["result", i, "callback_query"] else {
             drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
 						print("Callback Query")
             offset = update_id + 1
@@ -558,14 +578,14 @@ public final class Pelican: Vapor.Provider {
 	Used by the in-built long polling solution to match updates to sessions.
 	### EDIT/REMOVE IN UPCOMING REFACTOR
 	*/
-  internal func filterUpdates() {
+	internal func filterUpdates(updates: [Update]) {
 		
-		// Get updates from Telegram
-		if cycleDebug == true { print("finding updates....") }
-    guard let updates = getUpdateSets() else {
-			if cycleDebug == true { print("none found, exiting early.") }
-      return
-    }
+//		// Get updates from Telegram
+//		if cycleDebug == true { print("finding updates....") }
+//    guard let updates = getUpdateSets() else {
+//			if cycleDebug == true { print("none found, exiting early.") }
+//      return
+//    }
 		
 		
     // Check the global timer for any scheduled events
@@ -635,7 +655,8 @@ public final class Pelican: Vapor.Provider {
 		
 		// Update the last active time.
 		timeLastUpdate = Date()
-		//print("UPDATE END")
+		
+		print("updates filtered.")
 		
   }
 	

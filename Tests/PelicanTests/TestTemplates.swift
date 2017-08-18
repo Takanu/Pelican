@@ -14,31 +14,35 @@ enum TestTemplateError: String, Error {
 	case NoToken = "The token could not be found."
 }
 
-// Used to provide common functions between test cases.
-class TestCase: XCTestCase {
+class GhostPelican {
+	var drop: Droplet
+	var pelican: Pelican
+	var config: Config
+	var token: String
 	
-	/// Creates a basic Pelican and Droplet object.
-	func generateTemplate() throws -> (drop: Droplet, pelican: Pelican, config: Config, token: String)? {
+	init() throws {
 		
 		// Make sure you set up Pelican manually so you can assign it variables.
-		let config = try! Config()
-		let pelican = try! Pelican(config: config)
+		config = try Config()
+		pelican = try Pelican(config: config)
 		
-		guard let token = config["pelican", "token"]?.string else {
-			throw TestTemplateError.NoToken
-		}
+		token = (config["pelican", "token"]?.string!)!
 		
 		pelican.setPoll(interval: 1)
 		pelican.cycleDebug = true
 		
 		try config.addProvider(pelican)
-		let drop = try Droplet(config)
-		
-		return (drop, pelican, config, token)
+		drop = try Droplet(config)
 	}
+}
+
+// Used to provide common functions between test cases.
+class TestCase: XCTestCase {
 	
-	
-	/// Repeats a given task multiple times, to see if it fails to complete it or if other errors are asserted.
+	/**
+	Repeats a given task multiple times, to see if it fails to complete it or if other errors are asserted.
+	The function will also report back assertions with the number of times the operation was successfully executed beforehand.
+	*/
 	func testLoop(loop: Int, timeout: Double, description: String, task: @escaping () -> Void) {
 		
 		var i = 0
@@ -60,11 +64,11 @@ class TestCase: XCTestCase {
 			
 			// Perform the operation and set-up the expectation
 			queue.asyncAfter(deadline: .init(secondsFromNow: 1), execute: operation)
-			waitForExpectations(timeout: timeout) { error in
+			waitForExpectations(timeout: timeout + 1) { error in
 				
 				// If we received an error as a result of the expectation not being fulfilled, assert an error and escape.
 				if error != nil {
-					XCTFail("Took too long to complete the task.")
+					XCTFail("Took too long to complete the task.  Failed after \(i) operations.")
 					escape = true
 					return
 				}

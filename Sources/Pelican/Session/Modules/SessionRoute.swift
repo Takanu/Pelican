@@ -340,11 +340,13 @@ public class RouteCommand: Route {
 						if commandString!.contains("@") == true {
 							
 							command = command.components(separatedBy: "@")[0]
-							command.removeFirst()
+							command = command.replacingOccurrences(of: "/", with: "")
+							//command.removeFirst()
 						}
 						
 						else {
-							command.removeFirst()
+							//command.removeFirst()
+							command = command.replacingOccurrences(of: "/", with: "")
 						}
 						
 						// If the command is included in the given list, execute the action.

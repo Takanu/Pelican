@@ -6,7 +6,7 @@ import Foundation
 import XCTest
 
 
-class SetupTest: TestCase {
+class BotSetup: TestCase {
 	
 	func testPelicanSetup() throws {
 		
@@ -44,9 +44,8 @@ class SetupTest: TestCase {
 		pelican.timeout = 0
 		
 		// START IT UP!
-		
 		try config.addProvider(pelican)
 		let drop = try Droplet(config)
-		try drop.run()
+		
 	}
 }
