@@ -168,7 +168,7 @@ public final class Pelican: Vapor.Provider {
 	/// The combination of the API request URL and your API token.
   var apiURL: String
 	/// Client Connection with Vapor, to Telegram.
-	//var updateSession: URLSession
+	var client: ClientProtocol?
 	/// Defines an object to be used for custom data, to be used purely for cloning into newly-created ChatSessions.  DO NOT EDIT CONTENTS.
   private var customData: NSCopying?
 	
@@ -274,10 +274,16 @@ public final class Pelican: Vapor.Provider {
   }
 	
 	
-  public func afterInit(_ drop: Droplet) { }
+  public func afterInit(_ drop: Droplet) {
+		
+		
+	}
 	
 	
   public func beforeRun(_ drop: Droplet) {
+		
+		self.drop = drop
+		
     if ignoreInitialUpdates == true {
       //_ = self.getUpdateSets()
     }
@@ -287,16 +293,15 @@ public final class Pelican: Vapor.Provider {
         allowedUpdates.append(type)
       }
     }
+		
+		started = true
+		updateQueue!.queueNext()
   }
 	
   /// Perform correct droplet configuration here.
   public func boot(_ drop: Droplet) {
-		
-		self.drop = drop
-		//self.client = try! self.drop.client.makeClient(hostname: "api.telegram.org", port: 80, securityLayer: .none)
-		
-		started = true
-		updateQueue!.queueNext()
+
+		self.client = try! self.drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(EngineClient.defaultTLSContext()), proxy: drop.client.defaultProxy)
 	}
 
 	
@@ -350,47 +355,50 @@ public final class Pelican: Vapor.Provider {
 		
 		if cycleDebug == true { print("contacting telegram...") }
 		
-//		// Vapor Fetching
-//		//guard let response = try? drop.client.get("/bot" + apiKey + "/getUpdates", query: query, [:], nil, through: []) else {
-//		guard let response = try? client!.get("/bot" + apiKey +  "/getUpdates", query: query, [:], nil, through: []) else {
-//			drop.console.error(TGReqError.NoResponse.rawValue, newLine: true)
-//			return nil
-//		}
-//
-//		print(response.body.bytes!.makeString())
-//
-//		let updateResult = self.filterUpdateResponse(response: response.json!)
-//		if updateResult != nil {
-//			updates = updateResult!
-//		}
+		// Vapor Fetching
+		//guard let response = try? drop.client.get("/bot" + apiKey + "/getUpdates", query: query, [:], nil, through: []) else {
+		guard let response = try? client!.get("/bot" + apiKey +  "/getUpdates", query: query, [:], nil, through: []) else {
+			drop.console.error(TGReqError.NoResponse.rawValue, newLine: true)
+			return
+		}
+
+		print(response.body.bytes!.makeString())
+
+		let updateResult = self.filterUpdateResponse(response: response.json!)
+		if updateResult != nil {
+			updates = updateResult!
+			self.filterUpdates(updates: updates)
+		}
 		
-		// Until Vapor can perform the very basic concept of making repeated client requests without hanging, this is being used.
-		var request = URLRequest(url: URL(string: apiURL + "/getUpdates" + "?offset=\(offset)")!)
-		request.httpMethod = "GET"
-		request.httpShouldHandleCookies = false
-		let session = URLSession.shared
-
-		// Build the task
-		session.dataTask(with: request) { data, response, error in
-
-			if error != nil {
-				self.updateQueue!.queueNext()
-				return
-			}
-			
-			else {
-				let json = try! JSON.init(bytes: data!.makeBytes())
-				//print(json)
-
-				let updateResult = self.filterUpdateResponse(response: json)
-				if updateResult != nil {
-					updates = updateResult!
-					self.filterUpdates(updates: updates)
-					self.updateQueue!.queueNext()
-				}
-			}
-
-		}.resume()
+		self.updateQueue!.queueNext()
+		
+//		// Until Vapor can perform the very basic concept of making repeated client requests without hanging, this is being used.
+//		var request = URLRequest(url: URL(string: apiURL + "/getUpdates" + "?offset=\(offset)")!)
+//		request.httpMethod = "GET"
+//		request.httpShouldHandleCookies = false
+//		let session = URLSession.shared
+//
+//		// Build the task
+//		session.dataTask(with: request) { data, response, error in
+//
+//			if error != nil {
+//				self.updateQueue!.queueNext()
+//				return
+//			}
+//			
+//			else {
+//				let json = try! JSON.init(bytes: data!.makeBytes())
+//				//print(json)
+//
+//				let updateResult = self.filterUpdateResponse(response: json)
+//				if updateResult != nil {
+//					updates = updateResult!
+//					self.filterUpdates(updates: updates)
+//					self.updateQueue!.queueNext()
+//				}
+//			}
+//
+//		}.resume()
 	}
 	
 	public func filterUpdateResponse(response: JSON) -> [Update]? {
@@ -679,7 +687,8 @@ public final class Pelican: Vapor.Provider {
 		}
 		
 		// Attempt to send it and get a TelegramResponse from it.
-		let tgResponse = TelegramResponse(response: try! drop.client.respond(to: vaporRequest))
+		let response = try! client!.respond(to: vaporRequest)
+		let tgResponse = TelegramResponse(response: response)
 		
 		return tgResponse
 		
