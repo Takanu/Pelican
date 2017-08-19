@@ -15,14 +15,18 @@ class TechnicalConnectionTypes: TestCase {
 	/// The length of time a task is allowed to take before a timeout is triggered in the loop tests.
 	var loopTimeout: Double = 5
 	/// The number of times the defined operation will be repeated in the loop tests.
-	var loopCount = 50
+	var loopCount = 200
 	/// The template to be operated with.
 	var ghost = try! GhostPelican()
+	/// A test client based on the Vapor API
+	var client: ClientProtocol?
 	
 	override func setUp() {
 		
 		// Build a new template
 		ghost = try! GhostPelican()
+		client = try! ghost.drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(EngineClient.defaultTLSContext()), proxy: nil)
+		
 	}
 
 	func testVaporRequestSingle() throws {
@@ -83,6 +87,15 @@ class TechnicalConnectionTypes: TestCase {
 					let json = try! JSON.init(bytes: data!.makeBytes())
 				}
 			}.resume()
+		}
+	}
+	
+	func testVaporCustomClientRequestLoop() {
+		
+		ghost.pelican.cycleDebug = true
+		
+		testLoop(loop: loopCount, timeout: loopTimeout, description: "Connect to the Telegram Bot API using a custom client.") {
+			XCTAssertNotNil(try! self.client!.post(self.ghost.pelican.getAPIURL + "/getUpdates"))
 		}
 	}
 }

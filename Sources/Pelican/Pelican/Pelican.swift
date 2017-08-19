@@ -159,8 +159,6 @@ public final class Pelican: Vapor.Provider {
 	
 	
 	// CORE PROPERTIES
-	/// The droplet this provider is running on.
-  var drop: Droplet
 	/// The cache system responsible for handling the re-using of already uploaded files and assets, to preserve system resources.
   var cache: CacheManager
 	/// The API key assigned to your bot.  PLEASE DO NOT ASSIGN IT HERE, ADD IT TO A JSON FILE INSIDE config/pelican.json as a "token".
@@ -189,7 +187,7 @@ public final class Pelican: Vapor.Provider {
 	/// (Polling) The number of messages that can be received in any given update, between 1 and 100.
   public var limit: Int = 100
 	// (Polling) The length of time Pelican will hold onto an update connection with Telegram to wait for updates before disconnecting.
-  public var timeout: Int = 0
+  public var timeout: Int = 1
 	
 	/// The maximum number of times the bot will attempt to get a response before it logs an error.
 	public var maxRequestAttempts: Int = 0
@@ -266,26 +264,18 @@ public final class Pelican: Vapor.Provider {
                                      qos: .background,
                                      target: nil)
 		
-		// This is a bit dodgy
-    self.drop = try Droplet()
-		
 		// Fake-initialise the client
-		try! cache.setBundlePath(drop.config.publicDir)
+		//try! cache.setBundlePath(Droplet().config.publicDir)
   }
 	
 	
-  public func afterInit(_ drop: Droplet) {
-		
-		
-	}
+  public func afterInit(_ drop: Droplet) { }
 	
 	
   public func beforeRun(_ drop: Droplet) {
 		
-		self.drop = drop
-		
     if ignoreInitialUpdates == true {
-      //_ = self.getUpdateSets()
+      _ = self.requestUpdates()
     }
     
     if allowedUpdates.count == 0 {
@@ -301,7 +291,7 @@ public final class Pelican: Vapor.Provider {
   /// Perform correct droplet configuration here.
   public func boot(_ drop: Droplet) {
 
-		self.client = try! self.drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(EngineClient.defaultTLSContext()), proxy: drop.client.defaultProxy)
+		self.client = try! drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(EngineClient.defaultTLSContext()), proxy: nil)
 	}
 
 	
@@ -314,7 +304,11 @@ public final class Pelican: Vapor.Provider {
 		updateQueue = UpdateQueue(interval: TimeInterval(interval), debug: cycleDebug) {
 			
 			if self.cycleDebug == true { print("update starting.") }
-      self.requestUpdates()
+			
+      let updates = self.requestUpdates()
+			if updates != nil { self.filterUpdates(updates: updates!) }
+			self.updateQueue!.queueNext()
+				
 			if self.cycleDebug == true { print("update complete.") }
     }
     
@@ -346,31 +340,33 @@ public final class Pelican: Vapor.Provider {
 	assigned to Pelican.
 	- returns: A `TelegramUpdateSet` if succsessful, or nil if otherwise.
 	*/
-	public func requestUpdates() {
+	public func requestUpdates() -> [Update]? {
 		
 		//print("UPDATE START")
 		
     let query = makeUpdateQuery()
-		var updates: [Update] = []
 		
 		if cycleDebug == true { print("contacting telegram...") }
+		var response: Response
 		
-		// Vapor Fetching
-		//guard let response = try? drop.client.get("/bot" + apiKey + "/getUpdates", query: query, [:], nil, through: []) else {
-		guard let response = try? client!.get("/bot" + apiKey +  "/getUpdates", query: query, [:], nil, through: []) else {
-			drop.console.error(TGReqError.NoResponse.rawValue, newLine: true)
-			return
+		do {
+			response = try client!.get(apiURL +  "/getUpdates", query: query, [:], nil, through: [])
+		} catch {
+			print(error)
+			print(TGReqError.NoResponse.rawValue)
+			
+			return nil
 		}
 
 		print(response.body.bytes!.makeString())
 
 		let updateResult = self.filterUpdateResponse(response: response.json!)
 		if updateResult != nil {
-			updates = updateResult!
-			self.filterUpdates(updates: updates)
+			return updateResult
 		}
 		
-		self.updateQueue!.queueNext()
+		return nil
+
 		
 //		// Until Vapor can perform the very basic concept of making repeated client requests without hanging, this is being used.
 //		var request = URLRequest(url: URL(string: apiURL + "/getUpdates" + "?offset=\(offset)")!)
@@ -422,13 +418,13 @@ public final class Pelican: Vapor.Provider {
 
 					// Find and build a node based on the search.
 					guard let messageNode = response.makeNode(in: nil)["result", i, "message"] else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
             offset = update_id + 1
             continue
           }
 
 					guard let message = try? Message(row: Row(messageNode)) else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
             offset = update_id + 1
             continue
           }
@@ -506,15 +502,15 @@ public final class Pelican: Vapor.Provider {
       if allowedUpdates.contains(UpdateType.inlineQuery) {
         if (response["result", i, "inline_query"]) != nil {
           guard let messageNode = response.makeNode(in: nil)["result", i, "inline_query"] else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						print("inline_query")
+            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						//print("inline_query")
             offset = update_id + 1
             continue
           }
 
 					guard let message = try? InlineQuery(row: Row(messageNode)) else {
-						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						print("inline_query")
+						//drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						//print("inline_query")
 						offset = update_id + 1
 						continue
 					}
@@ -530,15 +526,15 @@ public final class Pelican: Vapor.Provider {
       if allowedUpdates.contains(UpdateType.chosenInlineResult) {
         if (response["result", i, "chosen_inline_result"]) != nil {
           guard let messageNode = response.makeNode(in: nil)["result", i, "chosen_inline_result"] else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						print("Chosen Inline Result")
+            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						//print("Chosen Inline Result")
             offset = update_id + 1
             continue
           }
 
 					guard let message = try? ChosenInlineResult(row: Row(messageNode)) else {
-						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						print("Chosen Inline Result")
+						//drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						//print("Chosen Inline Result")
 						offset = update_id + 1
 						continue
 					}
@@ -554,15 +550,15 @@ public final class Pelican: Vapor.Provider {
       if allowedUpdates.contains(UpdateType.callbackQuery) {
         if (response["result", i, "callback_query"]) != nil {
           guard let messageNode = response.makeNode(in: nil)["result", i, "callback_query"] else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						print("Callback Query")
+            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						//print("Callback Query")
             offset = update_id + 1
             continue
           }
 
 					guard let message = try? CallbackQuery(row: Row(messageNode)) else {
-						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						print("Callback Query")
+						//drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
+						//print("Callback Query")
 						offset = update_id + 1
 						continue
 					}
@@ -688,6 +684,7 @@ public final class Pelican: Vapor.Provider {
 		
 		// Attempt to send it and get a TelegramResponse from it.
 		let response = try! client!.respond(to: vaporRequest)
+		print(response.body.bytes!.makeString())
 		let tgResponse = TelegramResponse(response: response)
 		
 		return tgResponse
