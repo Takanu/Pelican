@@ -105,6 +105,13 @@ enum TGUpdateError: String, Error {
   case BadUpdate = "The message received from Telegram was malformed or unable to be processed by this bot."
 }
 
+/**
+Motherfucking Vapor.
+*/
+enum TGVaporError: String, Error {
+	case EngineSucks = "Engine is unable to keep an SSL connection going, please use \"foundation\" instead, under your droplet configuration file."
+}
+
 /** 
 A deprecated internal type used to enable models to switch between node-type conversion for response purposes, 
 and that for databasing purposes.
@@ -266,6 +273,13 @@ public final class Pelican: Vapor.Provider {
 		
 		// Fake-initialise the client
 		//try! cache.setBundlePath(Droplet().config.publicDir)
+		
+		// Ensure that the Foundation Engine is being used.
+		let engine = config["droplet", "client"].string ?? ""
+		if engine != "foundation" {
+			print("Hey, sorry but you'll need to use the Foundation Client instead of the Engine Client.  I've tried being friends with it but it's just too stubborn.  Ill remove this once the Engine Client starts working with it <3")
+			throw TGVaporError.EngineSucks
+		}
   }
 	
 	
@@ -290,8 +304,8 @@ public final class Pelican: Vapor.Provider {
 	
   /// Perform correct droplet configuration here.
   public func boot(_ drop: Droplet) {
-
-		self.client = try! drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(EngineClient.defaultTLSContext()), proxy: nil)
+		
+		self.client = try! drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(FoundationClient.defaultTLSContext()), proxy: drop.client.defaultProxy)
 	}
 
 	
@@ -347,18 +361,23 @@ public final class Pelican: Vapor.Provider {
     let query = makeUpdateQuery()
 		
 		if cycleDebug == true { print("contacting telegram...") }
+
 		var response: Response
 		
 		do {
-			response = try client!.get(apiURL +  "/getUpdates", query: query, [:], nil, through: [])
+			// Build a new request with the correct URI and fetch the other data from the Session Request
+			let vaporRequest = Request(method: .post, uri: apiURL + "/getUpdates")
+			
+			vaporRequest.query = try query.makeNode(in: nil)
+			vaporRequest.headers = [HeaderKey.connection: "keep-alive"]
+			response = try client!.respond(to: vaporRequest)
+			
 		} catch {
 			print(error)
 			print(TGReqError.NoResponse.rawValue)
 			
 			return nil
 		}
-
-		print(response.body.bytes!.makeString())
 
 		let updateResult = self.filterUpdateResponse(response: response.json!)
 		if updateResult != nil {
@@ -660,7 +679,7 @@ public final class Pelican: Vapor.Provider {
 		// Update the last active time.
 		timeLastUpdate = Date()
 		
-		print("updates filtered.")
+		if cycleDebug == true { print("updates filtered.") }
 		
   }
 	
@@ -672,19 +691,19 @@ public final class Pelican: Vapor.Provider {
 	func sendRequest(_ request: TelegramRequest) -> TelegramResponse {
 		
 		// Build a new request with the correct URI and fetch the other data from the Session Request
-		let vaporRequest = Request(method: .post, uri: apiURL + "/" + request.methodName)
+		// The query function tower is due to a bug where assigning the query as a node forces URL encoding, which URLComponent already applies.
+		let uri = URI.init(scheme: "https",
+		                   userInfo: nil,
+		                   hostname: "api.telegram.org",
+		                   port: nil,
+		                   path: "/bot" + apiKey + "/" + request.methodName,
+		                   query: try! request.query.makeNode(in: nil).formURLEncoded().makeString().removingPercentEncoding,
+		                   fragment: nil)
 		
-		if request.query.values.count != 0 {
-			vaporRequest.query = try! request.query.makeNode(in: nil)
-		}
-		
-		if request.form.values.count != 0 {
-			vaporRequest.formData = request.form
-		}
+		let vaporRequest = Request(method: .post, uri: uri)
 		
 		// Attempt to send it and get a TelegramResponse from it.
 		let response = try! client!.respond(to: vaporRequest)
-		print(response.body.bytes!.makeString())
 		let tgResponse = TelegramResponse(response: response)
 		
 		return tgResponse
