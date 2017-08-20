@@ -586,7 +586,9 @@ final public class Document: TelegramType, SendType {
   // NodeRepresentable conforming methods
   public required init(row: Row) throws {
     fileID = try row.get("file_id")
-    thumb = try row.get("thumb")
+    if let thumbRow = row["thumb"] {
+      self.thumb = try .init(row: Row(thumbRow)) as PhotoSize
+    }
     fileName = try row.get("file_name")
     mimeType = try row.get("mime_type")
     fileSize = try row.get("file_size")
@@ -638,7 +640,9 @@ final public class Sticker: TelegramType, SendType {
     fileID = try row.get("file_id")
     width = try row.get("width")
     height = try row.get("height")
-    thumb = try row.get("thumb")
+    if let thumbRow = row["thumb"] {
+      self.thumb = try .init(row: Row(thumbRow)) as PhotoSize
+    }
     emoji = try row.get("emoji")
     fileSize = try row.get("file_size")
   }
@@ -695,7 +699,9 @@ final public class Video: TelegramType, SendType {
     width = try row.get("width")
     height = try row.get("height")
     duration = try row.get("duration")
-    thumb = try row.get("thumb")
+    if let thumbRow = row["thumb"] {
+      self.thumb = try .init(row: Row(thumbRow)) as PhotoSize
+    }
     mimeType = try row.get("mime_type")
     fileSize = try row.get("file_size")
   }
@@ -788,7 +794,9 @@ final public class VideoNote: TelegramType, SendType {
 		fileID = try row.get("file_id")
 		length = try row.get("length")
 		duration = try row.get("duration")
-		thumb = try row.get("thumb")
+    if let thumbRow = row["thumb"] {
+      self.thumb = try .init(row: Row(thumbRow)) as PhotoSize
+    }
 		fileSize = try row.get("file_size")
 	}
 	
