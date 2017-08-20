@@ -275,7 +275,7 @@ public final class Pelican: Vapor.Provider {
 		//try! cache.setBundlePath(Droplet().config.publicDir)
 		
 		// Ensure that the Foundation Engine is being used.
-		let engine = config["droplet", "client"].string ?? ""
+		let engine = config["droplet", "client"]?.string ?? ""
 		if engine != "foundation" {
 			print("Hey, sorry but you'll need to use the Foundation Client instead of the Engine Client.  I've tried being friends with it but it's just too stubborn.  Ill remove this once the Engine Client starts working with it <3")
 			throw TGVaporError.EngineSucks
