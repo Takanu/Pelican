@@ -26,6 +26,7 @@ final public class Game: Model {
     animation = try row.get("animation")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("title", title)
@@ -61,6 +62,7 @@ final public class Animation: Model {
     fileSize = try row.get("file_size")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("file_id", fileID)
@@ -91,6 +93,7 @@ final public class GameHighScore: Model {
     score = try row.get("score")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("position", position)
