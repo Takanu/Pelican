@@ -25,6 +25,7 @@ final public class InlineQuery: Model, UpdateModel {
 		}
   }
 	
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("id", id)
@@ -60,6 +61,7 @@ public struct ChosenInlineResult: UpdateModel {
 		inlineMessageID = try row.get("inline_message_id")
 	}
 	
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("result_id", resultID)
@@ -103,7 +105,7 @@ final public class InlineResultArticle: InlineResult {
     self.description = description
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public init(row: Row) throws {
     type = try row.get("type")
     tgID = try row.get("id")
@@ -117,6 +119,7 @@ final public class InlineResultArticle: InlineResult {
 		//thumb = try row.get("thumb")
   }
 	
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("type", type)
@@ -148,7 +151,7 @@ public struct InlineResultContact: InlineResult {
   public var lastName: String?               //  Contact's last name.
   var thumb: InlineThumbnail?         // Inline thumbnail type.
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public init(row: Row) throws {
     type = try row.get("type")
     id = try row.get("id")
@@ -199,7 +202,7 @@ public struct InlineResultLocation: InlineResult {
   public var longitude: Float                // Location longitude in degrees.
   var thumb: InlineThumbnail?         // Inline thumbnail type.
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public init(row: Row) throws {
     type = try row.get("type")
     id = try row.get("id")
@@ -250,7 +253,7 @@ public struct InlineResultVenue: InlineResult {
   public var foursquareID: String?           // Foursquare identifier of the venue if know.
   var thumb: InlineThumbnail?         // Inline thumbnail type.
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public init(row: Row) throws {
     type = try row.get("type")
     id = try row.get("id")
@@ -299,7 +302,7 @@ public struct InlineResultGame: InlineResult {
   public var replyMarkup: MarkupInline?      // Inline keyboard attached to the message
   public var name: String                    // Short name of the game
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public init(row: Row) throws {
     type = try row.get("type")
     id = try row.get("id")
@@ -689,7 +692,7 @@ final public class InputMessageText: InputMessageContent {
     self.disableWebPreview = disableWebPreview
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     text = try row.get("message_text")
     parseMode = try row.get("parse_mode")
@@ -697,7 +700,8 @@ final public class InputMessageText: InputMessageContent {
 		
   }
 	
-  public func makeRow() throws -> Row {
+  // RowRepresentable conforming methods
+	public func makeRow() throws -> Row {
     var row = Row()
 		try row.set("message_text", text)
 		try row.set("parse_mode", parseMode)
@@ -718,13 +722,14 @@ final public class InputMessageLocation: InputMessageContent {
     self.longitude = longitude
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public init(row: Row) throws {
     latitude = try row.get("latitude")
     longitude = try row.get("longitude")
   }
   
-  public func makeRow() throws -> Row {
+  // RowRepresentable conforming methods
+	public func makeRow() throws -> Row {
     var row = Row()
 		try row.set("latitude", latitude)
 		try row.set("longitude", longitude)
@@ -751,7 +756,7 @@ final public class InputMessageVenue: InputMessageContent {
     self.address = ""
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public init(row: Row) throws {
     latitude = try row.get("latitude")
     longitude = try row.get("longitude")
@@ -760,7 +765,8 @@ final public class InputMessageVenue: InputMessageContent {
     foursquareID = try row.get("foursquare_id")
   }
   
-  public func makeRow() throws -> Row {
+  // RowRepresentable conforming methods
+	public func makeRow() throws -> Row {
     var row = Row()
 		try row.set("latitude", latitude)
 		try row.set("longitude", longitude)
@@ -785,14 +791,15 @@ final public class InputMessageContact: InputMessageContent {
     self.lastName = ""
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public init(row: Row) throws {
     phoneNumber = try row.get("phone_number")
     firstName = try row.get("first_name")
     lastName = try row.get("last_name")
   }
   
-  public func makeRow() throws -> Row {
+  // RowRepresentable conforming methods
+	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("phone_number", phoneNumber)
 		try row.set("first_name", firstName)

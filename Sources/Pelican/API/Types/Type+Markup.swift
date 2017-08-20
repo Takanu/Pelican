@@ -188,6 +188,7 @@ final public class MarkupKeyboard: MarkupType {
     selective = try row.get("selective")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("keyboard", keyboard)
@@ -223,6 +224,7 @@ final public class MarkupKeyboardKey: Model {
     requestLocation = try row.get("request_location") ?? false
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("text", text)
@@ -603,6 +605,7 @@ final public class MarkupInline: Model, MarkupType, Equatable {
     keyboard = try row.get("inline_keyboard")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("inline_keyboard", keyboard)
@@ -724,6 +727,7 @@ final public class MarkupInlineKey: Model, Equatable {
 		}
   }
 	
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("text", text)
@@ -790,6 +794,7 @@ final public class MarkupKeyboardRemove: Model, MarkupType {
     
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("remove_keyboard", removeKeyboard)
@@ -836,6 +841,7 @@ final public class MarkupForceReply: Model, MarkupType {
     
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("force_reply", forceReply)

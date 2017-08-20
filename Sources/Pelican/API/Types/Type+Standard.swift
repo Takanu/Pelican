@@ -43,7 +43,8 @@ final public class User: Model {
 		
 	}
   
-  public func makeRow() throws -> Row {
+  // RowRepresentable conforming methods
+	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("id", tgID)
 		try row.set("first_name", firstName)
@@ -95,7 +96,7 @@ final public class Chat: TelegramType {
     self.type = type
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     
     // Tries to extract depending on what context is being used (I GET IT NOW, CLEVER)
@@ -109,6 +110,7 @@ final public class Chat: TelegramType {
     allMembersAdmins = try row.get("all_members_are_administrators")
   }
 	
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("id", tgID)
@@ -230,7 +232,7 @@ final public class Message: TelegramType, UpdateModel {
   }
   
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
 		
 		self.tgID = try row.get("message_id")
@@ -323,6 +325,7 @@ final public class Message: TelegramType, UpdateModel {
     }
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("message_id", tgID)
@@ -411,7 +414,7 @@ final public class MessageEntity: Model {
 		
 	}
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
 		type = MessageEntityType(rawValue: row["type"]!.string!.snakeToCamelCase)!
     offset = try row.get("offset")
@@ -420,6 +423,7 @@ final public class MessageEntity: Model {
     user = try row.get("user")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("type", type)
@@ -454,13 +458,14 @@ final public class Photo: TelegramType, SendType {
     return keys
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
 		if let photoRow = row["photos"] {
 			self.photos = try photoRow.array?.map( { try PhotoSize(row: $0) } ) ?? []
 		}
 	}
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("photos", photos)
@@ -486,7 +491,7 @@ final public class PhotoSize: TelegramType {
     self.height = height
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     fileID = try row.get("file_id")
     width = try row.get("width")
@@ -494,6 +499,7 @@ final public class PhotoSize: TelegramType {
     fileSize = try row.get("file_size")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("file_id", fileID)
@@ -545,6 +551,7 @@ final public class Audio: TelegramType, SendType {
     fileSize = try row.get("file_size")
   }
 	
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("file_id", fileID)
@@ -583,7 +590,7 @@ final public class Document: TelegramType, SendType {
     return keys
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     fileID = try row.get("file_id")
     thumb = try row.get("thumb")
@@ -592,6 +599,7 @@ final public class Document: TelegramType, SendType {
     fileSize = try row.get("file_size")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("file_id", fileID)
@@ -633,7 +641,7 @@ final public class Sticker: TelegramType, SendType {
   }
   
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     fileID = try row.get("file_id")
     width = try row.get("width")
@@ -643,6 +651,8 @@ final public class Sticker: TelegramType, SendType {
     fileSize = try row.get("file_size")
   }
   
+  // RowRepresentable conforming methods
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("file_id", fileID)
@@ -689,7 +699,7 @@ final public class Video: TelegramType, SendType {
     return keys
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     fileID = try row.get("file_id")
     width = try row.get("width")
@@ -700,6 +710,7 @@ final public class Video: TelegramType, SendType {
     fileSize = try row.get("file_size")
   }
 	
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("file_id", fileID)
@@ -739,7 +750,7 @@ final public class Voice: TelegramType, SendType {
     return keys
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     fileID = try row.get("file_id")
     duration = try row.get("duration")
@@ -747,6 +758,7 @@ final public class Voice: TelegramType, SendType {
     fileSize = try row.get("file_size")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("file_id", fileID)
@@ -792,6 +804,7 @@ final public class VideoNote: TelegramType, SendType {
 		fileSize = try row.get("file_size")
 	}
 	
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("file_id", fileID)
@@ -831,7 +844,7 @@ final public class Contact: TelegramType, SendType {
     return keys
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     phoneNumber = try row.get("phone_number")
     firstName = try row.get("first_name")
@@ -839,6 +852,7 @@ final public class Contact: TelegramType, SendType {
     userID = try row.get("user_id")
   }
 	
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("phone_number", phoneNumber)
@@ -880,6 +894,7 @@ final public class Location: SendType, Model {
     longitude = try row.get("longitude")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("latitude", latitude)
@@ -919,7 +934,7 @@ final public class Venue: TelegramType, SendType {
     return keys
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     location = try row.get("location")
     title = try row.get("title")
@@ -927,6 +942,7 @@ final public class Venue: TelegramType, SendType {
     foursquareID = try row.get("foursquare_id")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("location", location)
@@ -952,12 +968,13 @@ final public class UserProfilePhotos: Model {
   }
   
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     totalCount = try row.get("total_count")
 		photos = try row.get("photos")
   }
 	
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("total_count", totalCount)
@@ -1040,7 +1057,7 @@ final public class CallbackQuery: Model, UpdateModel {
 		self.chatInstance = chatInstance
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     id = try row.get("id")
 		from = try User(row: try row.get("from") )
@@ -1051,6 +1068,7 @@ final public class CallbackQuery: Model, UpdateModel {
     gameShortName = try row.get("game_short_name")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("id", id)
@@ -1083,7 +1101,7 @@ final public class ChatMember: Model {
   }
   
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     user = try row.get("user")
     let text = try row.get("status") as String
@@ -1103,6 +1121,7 @@ final public class ChatMember: Model {
     }
   }
 	
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("user", user)
@@ -1123,12 +1142,13 @@ final public class ResponseParameters: Model {
     self.retryAfter = retryAfter
   }
   
-  // NodeRepresentable conforming methods
+  // RowInitializable conforming methods
   public required init(row: Row) throws {
     migrateToChatID = try row.get("migrate_to_chat_id")
     retryAfter = try row.get("retry_after")
   }
   
+	// RowRepresentable conforming methods
 	public func makeRow() throws -> Row {
 		var row = Row()
 		try row.set("migrate_to_chat_id", migrateToChatID)
