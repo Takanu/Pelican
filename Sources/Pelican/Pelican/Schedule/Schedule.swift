@@ -2,7 +2,7 @@
 //  Pelican+Schedule.swift
 //  PelicanTests
 //
-//  Created by Ido Constantine on 18/07/2017.
+//  Created by Takanu Kyriako on 18/07/2017.
 //
 //
 

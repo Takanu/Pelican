@@ -2,7 +2,7 @@
 //  ConnectionTest.swift
 //  PelicanTests
 //
-//  Created by Ido Constantine on 17/08/2017.
+//  Created by Takanu Kyriako on 17/08/2017.
 //
 
 import XCTest

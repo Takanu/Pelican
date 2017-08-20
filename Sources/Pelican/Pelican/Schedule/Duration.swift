@@ -2,7 +2,7 @@
 //  Pelican+Duration.swift
 //  PelicanTests
 //
-//  Created by Ido Constantine on 18/07/2017.
+//  Created by Takanu Kyriako on 18/07/2017.
 //
 //
 
@@ -143,8 +143,18 @@ extension Duration {
 
 extension Int {
 	/// Converts the integer into an enum representation of seconds.
+	public var sec: Duration {
+		return .seconds(Double(self))
+	}
+	
+	/// Converts the integer into an enum representation of seconds.
 	public var seconds: Duration {
 		return .seconds(Double(self))
+	}
+	
+	/// Converts the integer into an enum representation of minutes.
+	public var min: Duration {
+		return .minutes(self)
 	}
 	
 	/// Converts the integer into an enum representation of minutes.

@@ -11,6 +11,11 @@ protocol TelegramParameter: NodeConvertible, JSONConvertible {
   func getQueryParameter() -> String
 }
 
+/** Required for classes that wish to receive message objects once the upload is complete.
+*/
+public protocol ReceiveUpload {
+	func receiveMessage(message: Message)
+}
 
 // The Dispatch queue for getting updates and serving them to sessions.
 private class UpdateQueue {

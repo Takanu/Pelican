@@ -2,7 +2,7 @@
 //  SessionModerator.swift
 //  PelicanTests
 //
-//  Created by Ido Constantine on 26/07/2017.
+//  Created by Takanu Kyriako on 26/07/2017.
 //
 //
 

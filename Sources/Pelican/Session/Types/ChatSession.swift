@@ -31,14 +31,12 @@ open class ChatSession: Session {
 	public var getChat: Chat? { return chat }
 	
 	
-	
 	// API REQUESTS
 	// Shortcuts for API requests.
 	public var send: TGSend
 	public var admin: TGAdmin
 	public var edit: TGEdit
 	public var answer: TGAnswer
-	
 	
 	
 	// DELEGATES AND CONTROLLERS
@@ -55,11 +53,10 @@ open class ChatSession: Session {
 	public var mod: SessionModerator
 	
 	/// Handles timeout conditions.
-	public var timeout: TimeoutController
+	public var timeout: Timeout
 	
 	/// Handles flood conditions.
-	public var flood: FloodController
-	
+	public var flood: Flood
 	
 	
 	// MAINTENANCE
@@ -83,8 +80,8 @@ open class ChatSession: Session {
 		self.routes = RouteController()
 		
 		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
-		self.timeout = TimeoutController(tag: self.tag, schedule: bot.schedule)
-		self.flood = FloodController()
+		self.timeout = Timeout(tag: self.tag, schedule: bot.schedule)
+		self.flood = Flood()
 		
 		self.send = TGSend(chatID: self.chatID, tag: tag)
 		self.admin = TGAdmin(chatID: self.chatID, tag: tag)
