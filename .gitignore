@@ -1,3 +1,7 @@
 *.xcodeproj
 Packages
 .build
+Package.pins
+Package.resolved
+Config
+Public
