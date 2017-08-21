@@ -1,0 +1,25 @@
+//
+//  UpdateType.swift
+//  Pelican
+//
+//  Created by Ido Constantine on 21/08/2017.
+//
+
+import Foundation
+
+
+/**
+Categorises the types of requests that can be made by a user to the bot.
+*/
+public enum UpdateType: String, UpdateCollection {
+	case message
+	case callbackQuery
+	case inlineQuery
+	case chosenInlineResult
+	//case shippingQuery
+	//case preCheckoutQuery
+	
+	public func string() -> String {
+		return rawValue
+	}
+}
