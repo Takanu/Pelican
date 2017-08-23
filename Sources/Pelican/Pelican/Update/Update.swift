@@ -11,14 +11,14 @@ import Vapor
 
 
 /**
-Defines convenience iteration and string extraction methods for UpdateType and it's derivatives.
+Defines convenience iteration and string extraction methods for various enumeration types, such as UpdateType.
 */
-public protocol UpdateCollection : Hashable {
+public protocol CasedEnum : Hashable {
 	
 	func string() -> String
 }
 
-extension UpdateCollection {
+extension CasedEnum {
 	static func cases() -> AnySequence<Self> {
 		typealias S = Self
 		return AnySequence { () -> AnyIterator<S> in

@@ -9,6 +9,8 @@
 import Foundation
 import Vapor
 
+// This needs re-factoring ASAP.
+
 internal func iterateEnum<T: Hashable>(_: T.Type) -> AnyIterator<T> {
   var i = 0
   return AnyIterator {

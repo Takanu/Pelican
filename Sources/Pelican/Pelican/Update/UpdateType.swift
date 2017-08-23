@@ -11,7 +11,7 @@ import Foundation
 /**
 Categorises the types of requests that can be made by a user to the bot.
 */
-public enum UpdateType: String, UpdateCollection {
+public enum UpdateType: String, CasedEnum {
 	case message
 	case callbackQuery
 	case inlineQuery
