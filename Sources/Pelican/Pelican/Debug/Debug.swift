@@ -10,9 +10,12 @@ import Foundation
 /**
 Internally handles debug switches and prints for Pelican.  Provides a clean interface that categorises and sorts prints
 while also ensuring the logs don't get included in any release builds.
+
+To see the prints this class produces, please include `PELICAN_DEBUG` as a custom boot flag in your Swift Build options.
 */
 class PLog {
 	
+	static var enabled: Bool = false
 	static var switches: [DebugType:Bool] = [:]
 	
 	init() {
@@ -29,6 +32,8 @@ class PLog {
 		for type in types {
 			PLog.switches[type] = true
 		}
+		
+		PLog.enabled = true
 	}
 	
 	/**
@@ -37,6 +42,7 @@ class PLog {
 	func enableAllTypes() {
 		
 		PLog.switches.forEach({ PLog.switches[$0.key] = true })
+		PLog.enabled = true
 	}
 	
 	/**

@@ -12,11 +12,20 @@ Sets the log content categories, for when you wish to debug specific things.
 */
 enum DebugType: String, CasedEnum {
 	
-	case updateCycle
-	case requests
+	/// The update/upload/responce thread cycles
+	case cycles
+	/// Requests or responses to and from the Telegram API
+	case apiMethods
+	/// Logs relating to Telegram API types
+	case apiTypes
+	/// Session-related logs
 	case session
+	/// Logs relating to Session's modules
 	case modules
+	/// Logs relating to the Pelican type, and other types it controls.
 	case pelican
+	/// Logs not belonging to any particular category
+	case other
 	
 	public func string() -> String {
 		return rawValue
