@@ -31,19 +31,3 @@ enum DebugType: String, CasedEnum {
 		return rawValue
 	}
 }
-
-/**
-Provides the available levels of debugging available in PLog.
-*/
-enum DebugLevel: String, CasedEnum {
-	
-	case verbose
-	case info
-	case warning
-	case error
-	case severe
-	
-	public func string() -> String {
-		return rawValue
-	}
-}

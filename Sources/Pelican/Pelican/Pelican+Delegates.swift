@@ -30,9 +30,9 @@ extension Pelican {
 		let vaporRequest = Request(method: .post, uri: uri)
 		
 		// Attempt to send it and get a TelegramResponse from it.
-		PLog.verbose(.apiMethods, text: "Telegram Request - (\(vaporRequest))")
+		PLog.verbose("Telegram Request - (\(vaporRequest))")
 		let response = try! client!.respond(to: vaporRequest)
-		PLog.verbose(.apiMethods, text: "Telegram Response - (\(response))")
+		PLog.verbose("Telegram Response - (\(response))")
 		
 		let tgResponse = TelegramResponse(response: response)
 		return tgResponse

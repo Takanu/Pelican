@@ -15,8 +15,8 @@ For any model that replicates the Telegram API, it must inherit fron this to be 
 in a way that Telegram understands.
 */
 protocol TelegramType: Model {
+	
 }
-
 
 // All types that conform to this protocol are able to convert itself into a aet of query information
 protocol TelegramQuery: NodeConvertible, JSONConvertible {

@@ -282,9 +282,11 @@ final public class MarkupInline: Model, MarkupType, Equatable {
   */
   public init(withButtons buttonsIn: MarkupInlineKey...) {
 		var array: [MarkupInlineKey] = []
+		
     for button in buttonsIn {
       array.append(button)
     }
+		
 		keyboard.append(array)
   }
   
@@ -293,12 +295,14 @@ final public class MarkupInline: Model, MarkupType, Equatable {
 	be arranged on a single row.
 	- parameter pair: A sequence of label/url String tuples that will define each key on the keyboard.
 	*/
-  public init(withURL sequence: (label: String, url: String)...) {
+  public init(withURL sequence: (url: String, text: String)...) {
     var array: [MarkupInlineKey] = []
+		
     for tuple in sequence {
-      let button = MarkupInlineKey(fromURL: tuple.url, label: tuple.label)
+      let button = MarkupInlineKey(fromURL: tuple.url, text: tuple.text)
       array.append(button)
     }
+		
     keyboard.append(array)
   }
   
@@ -307,12 +311,19 @@ final public class MarkupInline: Model, MarkupType, Equatable {
 	be arranged on a single row.
 	- parameter pair: A sequence of label/callback String tuples that will define each key on the keyboard.
 	*/
-  public init(withCallback sequence: (label: String, query: String)...) {
+  public init?(withCallback sequence: (query: String, text: String?)...) {
     var array: [MarkupInlineKey] = []
+		
     for tuple in sequence {
-      let button = MarkupInlineKey(fromCallbackData: tuple.query, label: tuple.label)
-      array.append(button)
+			
+			// Try to process them, but propogate the error if it fails.
+			guard let button = MarkupInlineKey(fromCallbackData: tuple.query, text: tuple.text) else {
+				return nil
+			}
+			
+			array.append(button)
     }
+		
     keyboard.append(array)
   }
 	
@@ -321,11 +332,16 @@ final public class MarkupInline: Model, MarkupType, Equatable {
 	is a single row.
 	- parameter array: A an array of label/callback String tuple arrays that will define each row on the keyboard.
 	*/
-	public init(withCallback array: [[(label: String, query: String)]]) {
+	public init?(withCallback array: [[(query: String, text: String)]]) {
 		for row in array {
 			var array: [MarkupInlineKey] = []
 			for tuple in row {
-				let button = MarkupInlineKey(fromCallbackData: tuple.query, label: tuple.label)
+				
+				// Try to process them, but propogate the error if it fails.
+				guard let button = MarkupInlineKey(fromCallbackData: tuple.query, text: tuple.text) else {
+					return nil
+				}
+				
 				array.append(button)
 			}
 			keyboard.append(array)
@@ -337,10 +353,10 @@ final public class MarkupInline: Model, MarkupType, Equatable {
 	be arranged on a single row.
 	- parameter pair: A sequence of label/"Inline Query Current Chat" String tuples that will define each key on the keyboard.
 	*/
-	public init(withInlineQueryCurrent sequence: (label: String, query: String)...) {
+	public init(withInlineQueryCurrent sequence: (query: String, text: String)...) {
 		var array: [MarkupInlineKey] = []
 		for tuple in sequence {
-			let button = MarkupInlineKey(fromInlineQueryCurrent: tuple.query, label: tuple.label)
+			let button = MarkupInlineKey(fromInlineQueryCurrent: tuple.query, text: tuple.text)
 			array.append(button)
 		}
 		keyboard.append(array)
@@ -351,10 +367,10 @@ final public class MarkupInline: Model, MarkupType, Equatable {
 	be arranged on a single row.
 	- parameter pair: A sequence of label/"Inline Query New Chat" String tuples that will define each key on the keyboard.
 	*/
-	public init(withInlineQueryNewChat sequence: (label: String, query: String)...) {
+	public init(withInlineQueryNewChat sequence: (query: String, text: String)...) {
 		var array: [MarkupInlineKey] = []
-		for label in sequence {
-			let button = MarkupInlineKey(fromInlineQueryNewChat: label.query, label: label.label)
+		for tuple in sequence {
+			let button = MarkupInlineKey(fromInlineQueryNewChat: tuple.query, text: tuple.text)
 			array.append(button)
 		}
 		keyboard.append(array)
@@ -368,14 +384,19 @@ final public class MarkupInline: Model, MarkupType, Equatable {
 	
 	- parameter labels: A sequence of String labels that will define each key on the keyboard.
 	*/
-  public init(withGenCallback sequence: String...) {
+  public init?(withGenCallback sequence: String...) {
     var array: [MarkupInlineKey] = []
     var id = 1
+		
     for label in sequence {
-      let button = MarkupInlineKey(fromCallbackData: String(id), label: label)
+			guard let button = MarkupInlineKey(fromCallbackData: String(id), text: label) else {
+				return nil
+			}
+			
       array.append(button)
       id += 1
     }
+		
     keyboard.append(array)
   }
   
@@ -388,12 +409,17 @@ final public class MarkupInline: Model, MarkupType, Equatable {
 	
 	- parameter rows: A nested set of String Arrays, where each String array will form a single row on the inline keyboard.
 	*/
-  public init(withGenCallback rows: [[String]]) {
+  public init?(withGenCallback rows: [[String]]) {
+		
     var id = 1
     for row in rows {
       var array: [MarkupInlineKey] = []
+			
       for label in row {
-        let button = MarkupInlineKey(fromCallbackData: String(id), label: label)
+				guard let button = MarkupInlineKey(fromCallbackData: String(id), text: label) else {
+					return nil
+				}
+				
         array.append(button)
         id += 1
       }
@@ -403,7 +429,7 @@ final public class MarkupInline: Model, MarkupType, Equatable {
   }
 	
 	/**
-	Adds an extra row to the keyboard based on the sequence of buttons you provide.
+	Adds an extra row to the keyboard using the sequence of buttons provided.
 	*/
 	public func addRow(sequence: MarkupInlineKey...) {
 		var array: [MarkupInlineKey] = []
@@ -416,11 +442,13 @@ final public class MarkupInline: Model, MarkupType, Equatable {
 	}
 	
 	/**
-	Adds an extra row to the keyboard based on the array of buttons you provide.
+	Adds extra rows to the keyboard based on the array of buttons you provide.
 	*/
-	public func addRow(array: [MarkupInlineKey]) {
+	public func addRow(array: [MarkupInlineKey]...) {
 		
-		keyboard.append(array)
+		for item in array {
+			keyboard.append(item)
+		}
 	}
   
   
@@ -651,36 +679,58 @@ final public class MarkupInlineKey: Model, Equatable {
 	
 	/** 
 	Creates a `MarkupInlineKey` as a URL key.
+	
+	This key type causes the specified URL to be opened by the client
+	when button is pressed.  If it links to a public Telegram chat or bot, it will be immediately opened.
 	*/
-  public init(fromURL url: String, label: String) {
-    self.text = label
+  public init(fromURL url: String, text: String) {
+    self.text = text
     self.data = url
     self.type = .url
   }
 	
 	/**
 	Creates a `MarkupInlineKey` as a Callback Data key.
+	
+	This key sends the defined callback data back to the bot to be handled.
+	
+	- parameter callback: The data to be sent back to the bot once pressed.  Accepts 1-64 bytes of data.
+	- parameter text: The text label to be shown on the button.  Set to nil if you wish it to be the same as the callback.
 	*/
-  public init(fromCallbackData callback: String, label: String) {
-    self.text = label
+  public init?(fromCallbackData callback: String, text: String?) {
+		
+		// Check to see if the callback meets the byte requirement.
+		if callback.lengthOfBytes(using: String.Encoding.utf8) > 64 {
+			PLog.error("The MarkupKey with the text label, \"\(String(describing:text))\" has a callback of \(callback) that exceeded 64 bytes.")
+			return nil
+		}
+		
+		// Check to see if we have a label
+		if text != nil { self.text = text! }
+		else { self.text = callback }
+		
     self.data = callback
     self.type = .callbackData
   }
 	
 	/**
 	Creates a `MarkupInlineKey` as a Current Chat Inline Query key.
+	
+	This key prompts the user to select one of their chats, open it and insert the bot‘s username and the specified query in the input field.
 	*/
-  public init(fromInlineQueryCurrent data: String, label: String) {
-    self.text = label
+  public init(fromInlineQueryCurrent data: String, text: String) {
+    self.text = text
     self.data = data
     self.type = .switchInlineQuery_currentChat
   }
 	
 	/**
 	Creates a `MarkupInlineKey` as a New Chat Inline Query key.
+	
+	This key inserts the bot‘s username and the specified inline query in the current chat's input field.  Can be empty.
 	*/
-	public init(fromInlineQueryNewChat data: String, label: String) {
-		self.text = label
+	public init(fromInlineQueryNewChat data: String, text: String) {
+		self.text = text
 		self.data = data
 		self.type = .switchInlineQuery
 	}
@@ -747,10 +797,14 @@ final public class MarkupInlineKey: Model, Equatable {
 Defines what type of function a InlineButtonKey has.
 */
 public enum InlineButtonType: String {
-  case url                           // HTTP url to be opened when button is pressed.
-  case callbackData                  // Data to be sent in a callback query to the bot when button is pressed, 1-64 bytes
-  case switchInlineQuery             // Prompts the user to select one of their chats, open it and insert the bot‘s username and the specified query in the input field.
-  case switchInlineQuery_currentChat // If set, pressing the button will insert the bot‘s username and the specified inline query in the current chat's input field.  Can be empty.
+  /// HTTP url to be opened by the client when button is pressed.
+  case url
+	/// Data to be sent in a callback query to the bot when button is pressed, 1-64 bytes
+  case callbackData
+	/// Prompts the user to select one of their chats, open it and insert the bot‘s username and the specified query in the input field.
+  case switchInlineQuery
+	/// If set, pressing the button will insert the bot‘s username and the specified inline query in the current chat's input field.  Can be empty.
+  case switchInlineQuery_currentChat
 }
 
 

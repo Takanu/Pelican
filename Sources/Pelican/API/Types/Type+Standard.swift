@@ -3,10 +3,7 @@ import Foundation
 import Vapor
 import FluentProvider
 
-// Errors related to update processing.  Might merge the two?
-enum TGTypeError: String, Error {
-  case ExtractFailed = "The extraction failed."
-}
+
 
 /** 
 Represents a Telegram user or bot.
@@ -240,7 +237,7 @@ final public class Message: TelegramType, UpdateModel {
       self.from = try .init(row: Row(subFrom)) as User }
     self.date = try row.get("date")
     
-    guard let subChat = row["chat"] else { throw TGTypeError.ExtractFailed }
+    guard let subChat = row["chat"] else { throw TypeError.ExtractFailed }
     self.chat = try .init(row: Row(subChat)) as Chat
     
     

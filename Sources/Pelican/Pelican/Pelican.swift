@@ -28,11 +28,9 @@ private class UpdateQueue {
 	private var lastExecuteLength: TimeInterval
   private let execute: () -> Void
   private var operation: DispatchWorkItem?
-	private var cycleDebug: Bool = false
   
-	init(interval: TimeInterval, debug: Bool,  execute: @escaping () -> Void) {
+	init(interval: TimeInterval, execute: @escaping () -> Void) {
     self.interval = interval
-		self.cycleDebug = debug
 		self.startTime = Date()
 		self.lastExecuteLength = TimeInterval.init(0)
     self.execute = execute
@@ -52,20 +50,20 @@ private class UpdateQueue {
 		
 		// If the delay time left is below 0, execute the loop immediately.
 		if delayTime <= 0 {
-			if cycleDebug == true { print("loop executing immediately.") }
+			PLog.verbose("Update loop executing immediately.")
 			queue.async(execute: self.operation!)
 		}
 			
 			// Otherwise use the built delay time.
 		else {
-			if cycleDebug == true { print("loop executing at \(DispatchWallTime.now() + delayTime)") }
+			PLog.verbose("Update loop executing at \(DispatchWallTime.now() + delayTime)")
 			queue.asyncAfter(wallDeadline: .now() + delayTime, execute: self.operation!)
 		}
 	}
   
   func stop() {
     operation?.cancel()
-		if cycleDebug == true { print("update sequence cancelled.") }
+		PLog.warning("Update cycle cancelled")
   }
 }
 
@@ -182,10 +180,12 @@ public final class Pelican: Vapor.Provider {
 	/// Defines an object to be used for custom data, to be used purely for cloning into newly-created ChatSessions.  DO NOT EDIT CONTENTS.
   private var customData: NSCopying?
 	
+	
 	/// Returns the API key assigned to your bot.
 	public var getAPIKey: String { return apiKey }
 	/// Returns the combination of the API request URL and your API token.
 	public var getAPIURL: String { return apiURL }
+	
 	
   // CONNECTION SETTINGS
 	/**
@@ -201,8 +201,6 @@ public final class Pelican: Vapor.Provider {
 	// (Polling) The length of time Pelican will hold onto an update connection with Telegram to wait for updates before disconnecting.
   public var timeout: Int = 1
 	
-	/// The maximum number of times the bot will attempt to get a response before it logs an error.
-	public var maxRequestAttempts: Int = 0
 	/// Defines what update types the bot will receive.  Leave empty if all are allowed, or otherwise specify to optimise the bot.
   public var allowedUpdates: [UpdateType] = []
 	/// If true, the bot will ignore any historic messages it has received while it has been offline.
@@ -236,8 +234,7 @@ public final class Pelican: Vapor.Provider {
 	public var mod: Moderator
 	
 	// DEBUG
-	/// Turn this on to activate connection and update cycle debug prints.
-	public var cycleDebug: Bool = false
+	// ???
 	
 	
 	// Boots the provider?
@@ -290,7 +287,7 @@ public final class Pelican: Vapor.Provider {
 	
   public func afterInit(_ drop: Droplet) { }
 	
-	
+	/// Occurs "just" before the drop is run itself, after drop.run() is called.
   public func beforeRun(_ drop: Droplet) {
 		
     if ignoreInitialUpdates == true {
@@ -310,7 +307,11 @@ public final class Pelican: Vapor.Provider {
   /// Perform correct droplet configuration here.
   public func boot(_ drop: Droplet) {
 		
+		// Setup the client used to send and get requests.
 		self.client = try! drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(FoundationClient.defaultTLSContext()), proxy: drop.client.defaultProxy)
+		
+		// Setup the logger.
+		PLog.console = drop.log
 	}
 
 	
@@ -320,15 +321,15 @@ public final class Pelican: Vapor.Provider {
 	until the timeout amount is reached.
 	*/
   public func setPoll(interval: Int) {
-		updateQueue = UpdateQueue(interval: TimeInterval(interval), debug: cycleDebug) {
+		updateQueue = UpdateQueue(interval: TimeInterval(interval)) {
 			
-			if self.cycleDebug == true { print("update starting.") }
+			PLog.verbose("Update Starting...")
 			
       let updates = self.requestUpdates()
 			if updates != nil { self.filterUpdates(updates: updates!) }
 			self.updateQueue!.queueNext()
-				
-			if self.cycleDebug == true { print("update complete.") }
+			
+			PLog.verbose("Update Complete.")
     }
     
     pollInterval = interval
@@ -364,9 +365,8 @@ public final class Pelican: Vapor.Provider {
 		//print("UPDATE START")
 		
     let query = makeUpdateQuery()
+		PLog.verbose("Contacting Telegram for Updates...")
 		
-		if cycleDebug == true { print("contacting telegram...") }
-
 		var response: Response
 		
 		do {
@@ -380,7 +380,6 @@ public final class Pelican: Vapor.Provider {
 		} catch {
 			print(error)
 			print(TGReqError.NoResponse.rawValue)
-			
 			return nil
 		}
 
@@ -429,7 +428,7 @@ public final class Pelican: Vapor.Provider {
 
     // Make the collection types
 		var updates: [Update] = []
-		if cycleDebug == true { print("updates found - \(messageCount)") }
+		PLog.verbose("Updates Found - \(messageCount)")
 
     // Iterate through the collected messages
     for i in 0..<messageCount {
@@ -608,19 +607,10 @@ public final class Pelican: Vapor.Provider {
 	*/
 	internal func filterUpdates(updates: [Update]) {
 		
-//		// Get updates from Telegram
-//		if cycleDebug == true { print("finding updates....") }
-//    guard let updates = getUpdateSets() else {
-//			if cycleDebug == true { print("none found, exiting early.") }
-//      return
-//    }
-		
-		
     // Check the global timer for any scheduled events
     globalTimer += pollInterval
     //checkChatSessionQueues()
-		
-		if cycleDebug == true { print("filtering updates....") }
+		PLog.verbose("Handling updates...")
 		
 		// Filter the update to the current builders.
 		for update in updates {
@@ -683,8 +673,7 @@ public final class Pelican: Vapor.Provider {
 		
 		// Update the last active time.
 		timeLastUpdate = Date()
-		
-		if cycleDebug == true { print("updates filtered.") }
+		PLog.verbose("Updates handled.")
 		
   }
 	
