@@ -21,7 +21,7 @@ public class Prompt: ReceiveUpload, Equatable {
 	var tag: SessionTag
   
   var text: String = ""
-  var file: FileLink?
+  var file: MessageFile?
   var inline: MarkupInline
 	var event: ScheduleEvent?
   var message: Message?
@@ -40,7 +40,7 @@ public class Prompt: ReceiveUpload, Equatable {
 	/// Returns the body of text that defines the message the Prompt is attached to.
 	public var getText: String { return text }
 	/// Returns the optional file link that can be assigned to give the message media contents.
-	public var getFile: FileLink? { return file }
+	public var getFile: MessageFile? { return file }
 	/// Returns the inline keyboard currently used for the Prompt.
 	public var getInline: MarkupInline { return inline }
 	/// Returns the Message that the Prompt has created and is responding to, if sent.
@@ -97,7 +97,7 @@ public class Prompt: ReceiveUpload, Equatable {
 	/** 
 	For internal use only, Prompts have to be attached to the PromptController in order to function.
 	*/
-	init(controller: PromptController, name: String, inline: MarkupInline, text: String, file: FileLink?, update: ((Prompt) -> ())? ) {
+	init(controller: PromptController, name: String, inline: MarkupInline, text: String, file: MessageFile?, update: ((Prompt) -> ())? ) {
 		
 		self.tag = controller.tag
 		self.name = name
@@ -145,8 +145,8 @@ public class Prompt: ReceiveUpload, Equatable {
     // Otherwise just send it normally
     if self.file != nil {
 			
-			let request = TelegramRequest.uploadFile(link: file!, callback: self, chatID: tag.getSessionID, markup: inline, caption: text, disableNtf: false, replyMessageID: 0)
-			_ = tag.sendRequest(request)
+			//let request = TelegramRequest.uploadFile(link: file!, callback: self, chatID: tag.getSessionID, markup: inline, caption: text, disableNtf: false, replyMessageID: 0)
+			//_ = tag.sendRequest(request)
     }
     
     else {
@@ -481,7 +481,7 @@ public class Prompt: ReceiveUpload, Equatable {
 		}
 		
 		if lhs.file != nil && rhs.file != nil {
-			if lhs.file!.location.data != rhs.file!.location.data {
+			if lhs.file!.url != rhs.file!.url {
 				return false
 			}
 		}

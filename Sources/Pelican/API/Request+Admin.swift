@@ -152,7 +152,7 @@ extension TelegramRequest {
 	
 	- note: In regular groups (non-supergroups), this method will only work if the ‘All Members Are Admins’ setting is off in the target group.
 	*/
-	public static func setChatPhoto(chatID: Int, file: FileLink) -> TelegramRequest {
+	public static func setChatPhoto(chatID: Int, file: MessageFile) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		

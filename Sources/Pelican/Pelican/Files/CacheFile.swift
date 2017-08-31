@@ -3,110 +3,37 @@ import Foundation
 import Vapor
 
 
-/** Represents a file that has been uploaded and is stored in the cache for.
- */
-struct CacheFile {
-  private enum File {
-    case audio(Audio)
-    case document(Document)
-    case photo(Photo)
-    case sticker(Sticker)
-    case video(Video)
-    case voice(Voice)
-  }
-  
-  private var file: File
-  /// The time at which it was uploaded.
-  var uploadTime: Int
-  /// The file upload type that was used to upload it.
-  var uploadData: FileLink
-  
-  var getFile: MessageContent {
-    switch file {
-    case .audio(let file):
-      return file
-    case .document(let file):
-      return file
-    case .photo(let file):
-      return file
-    case .sticker(let file):
-      return file
-    case .video(let file):
-      return file
-    case .voice(let file):
-      return file
-    }
-  }
-  
-  var getType: FileType {
-    switch file {
-    case .audio:
-      return .audio
-    case .document:
-      return .document
-    case .photo:
-      return .photo
-    case .sticker:
-      return .sticker
-    case .video:
-      return .video
-    case .voice:
-      return .voice
-    }
-  }
-  
-  
-  init(upload: FileLink, file: Message, time: Int) throws {
-    switch file.type {
-    case .audio(let file):
-      self.file = .audio(file)
-    case .document(let file):
-      self.file = .document(file)
-    case .photo(let file):
-      self.file = .photo(file)
-    case .sticker(let file):
-      self.file = .sticker(file)
-    case .video(let file):
-      self.file = .video(file)
-    case .voice(let file):
-      self.file = .voice(file)
-    default:
-      throw CacheError.WrongType
-    }
-    
-    self.uploadTime = time
-    self.uploadData = upload
-  }
+/**
+Represents a file that has been uploaded and is stored in the cache for.
+Used for obtaining and re-using the resource, as well as
+*/
+struct CacheFile: Equatable {
+	
+	/// The message file being stored
+	var file: MessageFile
+	/// The time it was last uploaded (useful for predicting when it needs to be uploaded again).
+	var uploadTime: Date
+	
+	/**
+	Attempts to create the type for the given file.  Warning: This will fail if the file has no file ID, thus
+	indicating it has never been uploaded to Telegram.  A file must already be uploaded to be cached.
+	*/
+	init?(file: MessageFile) {
+		
+		if file.fileID == nil { return nil }
+		
+		self.file = file
+		self.uploadTime = Date()
+	}
+	
+	public static func ==(lhs: CacheFile, rhs: CacheFile) -> Bool {
+		
+		if lhs.uploadTime != rhs.uploadTime { return false }
+		if lhs.file.fileID != rhs.file.fileID { return false }
+		if lhs.file.url != rhs.file.url { return false }
+		
+		return true
+	}
+	
 }
-
-public enum FileType: String {
-  case audio
-  case document
-  case photo
-  case sticker
-  case video
-  case voice
-}
-
-extension FileType {
-  public var method: String {
-    switch self {
-    case .audio:
-      return "sendAudio"
-    case .document:
-      return "sendDocument"
-    case .photo:
-      return "sendPhoto"
-    case .sticker:
-      return "sendSticker"
-    case .video:
-      return "sendVideo"
-    case .voice:
-      return "sendVoice"
-    }
-  }
-}
-
-
-
 

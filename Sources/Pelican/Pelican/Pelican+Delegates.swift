@@ -17,18 +17,35 @@ extension Pelican {
 	*/
 	func sendRequest(_ request: TelegramRequest) -> TelegramResponse {
 		
+		// If we have a message file, we need to handle this separately
+		if request.content is MessageFile {
+			
+			do {
+				let fileForm = try cache.getFormEntry(forFile: request.content as! MessageFile)
+				request.form.merge(fileForm, uniquingKeysWith: { one, two in return one } )
+				
+			} catch {
+				
+				PLog.error(String(describing: error))
+				
+			}
+		}
+		
+		
 		// Build a new request with the correct URI and fetch the other data from the Session Request
 		// The query function tower is due to a bug where assigning the query as a node forces URL encoding, which URLComponent already applies.
 		/// The nasty Query URL chaining is due to some automated url encoding it perform itself when assigned in this manner without telling you.
 		let uri = URI.init(scheme: "https",
-		                   userInfo: nil,
-		                   hostname: "api.telegram.org",
-		                   port: nil,
-		                   path: "/bot" + apiKey + "/" + request.methodName,
-		                   query: try! request.query.makeNode(in: nil).formURLEncoded().makeString().removingPercentEncoding,
-		                   fragment: nil)
+									 userInfo: nil,
+									 hostname: "api.telegram.org",
+									 port: nil,
+									 path: "/bot" + apiKey + "/" + request.methodName,
+									 query: try! request.query.makeNode(in: nil).formURLEncoded().makeString().removingPercentEncoding,
+									 fragment: nil)
 		
 		let vaporRequest = Request(method: .post, uri: uri)
+		vaporRequest.formData = request.form
+		
 		
 		// Attempt to send it and get a TelegramResponse from it.
 		PLog.verbose("Telegram Request - (\(vaporRequest))")

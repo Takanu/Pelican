@@ -54,7 +54,7 @@ public class PromptController {
 	- parameter upload: A specific file to be sent as the contents of the message belonging to this prompt.
 	- parameter update: (Optional) The closure that is executed every time the prompt receives a callback query.
 	*/
-	public func createPrompt(name: String, inline: MarkupInline, text: String, file: FileLink?, update: ((Prompt) -> ())? ) -> Prompt {
+	public func createPrompt(name: String, inline: MarkupInline, text: String, file: MessageFile?, update: ((Prompt) -> ())? ) -> Prompt {
 		let prompt = Prompt(controller: self, name: name, inline: inline, text: text, file: file, update: update)
 		prompt.controller = self
 		self.add(prompt)

@@ -72,7 +72,7 @@ public class TGAdmin {
 	/**
 	Sets the profile photo for the chat, using a `FileLink`.
 	*/
-	public func setChatPhoto(file: FileLink) {
+	public func setChatPhoto(file: MessageFile) {
 		
 		let request = TelegramRequest.setChatPhoto(chatID: chatID, file: file)
 		_ = tag.sendRequest(request)

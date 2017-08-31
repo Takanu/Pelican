@@ -83,13 +83,21 @@ extension TelegramRequest {
 	}
 	*/
 	
-	/** Builds and returns a TelegramRequest for the API method with the given arguments.
+	/**
+	Builds and returns a TelegramRequest for the API method with the given arguments.
 	
 	## Function Description
-	Uploads a file using the FileLink type.  The FileLink can either refer to a locally stored 
-	file inside Public or an HTTP link to an externally stored file.
+	Uploads a file using any type that follows the MessageFile protocol.
+	
+	- note: Ensure the MessageFile being sent either has a valid File ID or url to a local or remote resource, or otherwise nothing will be sent
+	
+	- parameter file: The file to be uploaded.  The MessageFile protocol is adopted by all API types that require the uploading of files, such as `Audio`, `Photo` and `VideoNote`.
+	- parameter callback: TBA
+	- parameter chatID: The chat you wish to send the file to
+	- parameter caption: Provide an optional caption that will sit below the uploaded file in a Telegram chat.  Note that this only works with Audio,
+	Photo, Video, Document and Voice message file types - you wont see a caption appear with any other uploaded file type.
 	*/
-	public static func uploadFile(link: FileLink, callback: ReceiveUpload? = nil, chatID: Int, markup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) -> TelegramRequest {
+	public static func sendFile(file: MessageFile, callback: ReceiveUpload? = nil, chatID: Int, markup: MarkupType?, caption: String = "", disableNtf: Bool = false, replyMessageID: Int = 0) -> TelegramRequest {
 		
 		
 		// The PhotoSize/Photo model stopped working, this can't be used until later.
@@ -111,26 +119,29 @@ extension TelegramRequest {
 		
 		// Create the form data and assign some initial values
 		request.form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
-		//form[link.type.rawValue] = Field(name: link.type.rawValue, filename: link.name, part: Part(headers: [:], body: data!))
-		
 		
 		// Check whether any other query needs to be added as form data.
-		if caption != "" {
+		let captionTypes = ["audio", "photo", "video", "document", "voice"]
+		
+		if caption != "" && captionTypes.contains(file.contentType) {
 			request.form["caption"] = Field(name: "caption", filename: nil, part: Part(headers: [:], body: caption.bytes))
 		}
+		
 		if markup != nil {
 			request.form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: try! markup!.makeRow().converted(to: JSON.self).makeBytes()))
 		}
+		
 		if replyMessageID != 0 {
 			request.form["reply_to_message_id"] = Field(name: "reply_to_message_id", filename: nil, part: Part(headers: [:], body: String(replyMessageID).bytes))
 		}
+		
 		if disableNtf != false {
 			request.form["disable_notification"] = Field(name: "disable_notification", filename: nil, part: Part(headers: [:], body: String(disableNtf).bytes))
 		}
 		
 		// Set the Request, Method and Content
-		//request.methodName = link.type.method
-		request.content = link as Any
+		request.methodName = file.method
+		request.content = file as Any // We'll deal with this at the point Pelican receives the request.
 		
 		return request
 		
