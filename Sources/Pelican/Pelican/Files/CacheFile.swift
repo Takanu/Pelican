@@ -21,7 +21,7 @@ struct CacheFile {
   /// The file upload type that was used to upload it.
   var uploadData: FileLink
   
-  var getFile: SendType {
+  var getFile: MessageContent {
     switch file {
     case .audio(let file):
       return file

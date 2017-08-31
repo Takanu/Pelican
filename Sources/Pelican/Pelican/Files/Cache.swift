@@ -2,7 +2,7 @@
 //  CacheManager.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 21/08/2017.
+//  Created by Takanu Kyriako on 21/08/2017.
 //
 
 import Foundation
@@ -35,7 +35,7 @@ public class CacheManager {
 		if self.bundle == nil { throw CacheError.BadBundle }
 	}
 	
-	
+	/*
 	/** Used to keep cache types separate, to make cache searching less intensive?  (idk).
 	This should be replaced with one stack that can then filter using generics.
 	*/
@@ -79,7 +79,7 @@ public class CacheManager {
 		let file = try! CacheFile(upload: upload, file: message, time: 0)
 		var cache: [CacheFile] = getCache(type: file.getType)
 		
-		if cache.contains(where: { $0.uploadData.id == upload.id }) == false {
+		if cache.contains(where: { $0.uploadData.location.data == upload.location.data }) == false {
 			cache.append(file)
 			setCache(cache, type: file.getType)
 			return true
@@ -91,7 +91,7 @@ public class CacheManager {
 	/** Tries to find whether an uploaded version of that file exists in the cache.
 	Returns the object if true, or nothing if false.
 	*/
-	func find(upload: FileLink, bot: Pelican) -> SendType? {
+	func find(upload: FileLink, bot: Pelican) -> MessageContent? {
 		let cache = getCache(type: upload.type)
 		for item in cache {
 			
@@ -116,7 +116,7 @@ public class CacheManager {
 			
 		case .path(path: let fullPath):
 			if bundle == nil {
-				print(CacheError.BadBundle.rawValue)
+				PLog.error(CacheError.BadBundle.rawValue)
 				return nil
 			}
 			
@@ -133,7 +133,7 @@ public class CacheManager {
 			// Try getting the URL
 			guard let url = bundle!.url(forResource: name, withExtension: ext, subdirectory: path)
 				else {
-					print(CacheError.LocalNotFound.rawValue)
+					PLog.error(CacheError.LocalNotFound.rawValue)
 					return nil
 			}
 			
@@ -144,7 +144,7 @@ public class CacheManager {
 				return bytes
 				
 			} catch {
-				print(CacheError.LocalNotFound.rawValue)
+				PLog.error(CacheError.LocalNotFound.rawValue)
 				return nil
 			}
 			
@@ -153,4 +153,5 @@ public class CacheManager {
 			return nil
 		}
 	}
+*/
 }

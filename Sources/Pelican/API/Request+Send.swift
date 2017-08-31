@@ -129,7 +129,7 @@ extension TelegramRequest {
 		}
 		
 		// Set the Request, Method and Content
-		request.methodName = link.type.method
+		//request.methodName = link.type.method
 		request.content = link as Any
 		
 		return request

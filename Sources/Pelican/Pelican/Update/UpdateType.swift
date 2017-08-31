@@ -2,7 +2,7 @@
 //  UpdateType.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 21/08/2017.
+//  Created by Takanu Kyriako on 21/08/2017.
 //
 
 import Foundation

@@ -2,7 +2,7 @@
 //  Type+Error.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 29/08/2017.
+//  Created by Takanu Kyriako on 29/08/2017.
 //
 
 import Foundation

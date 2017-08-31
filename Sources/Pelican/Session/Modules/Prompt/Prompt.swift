@@ -481,7 +481,7 @@ public class Prompt: ReceiveUpload, Equatable {
 		}
 		
 		if lhs.file != nil && rhs.file != nil {
-			if lhs.file!.id != rhs.file!.id {
+			if lhs.file!.location.data != rhs.file!.location.data {
 				return false
 			}
 		}

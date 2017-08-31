@@ -2,7 +2,7 @@
 //  Pelican+Delegates.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 24/08/2017.
+//  Created by Takanu Kyriako on 24/08/2017.
 //
 
 import Foundation
@@ -19,6 +19,7 @@ extension Pelican {
 		
 		// Build a new request with the correct URI and fetch the other data from the Session Request
 		// The query function tower is due to a bug where assigning the query as a node forces URL encoding, which URLComponent already applies.
+		/// The nasty Query URL chaining is due to some automated url encoding it perform itself when assigned in this manner without telling you.
 		let uri = URI.init(scheme: "https",
 		                   userInfo: nil,
 		                   hostname: "api.telegram.org",

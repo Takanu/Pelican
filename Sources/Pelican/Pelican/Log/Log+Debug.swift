@@ -2,7 +2,7 @@
 //  Pelican+Debug.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 23/08/2017.
+//  Created by Takanu Kyriako on 23/08/2017.
 //
 
 import Foundation
