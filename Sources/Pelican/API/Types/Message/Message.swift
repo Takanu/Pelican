@@ -17,7 +17,7 @@ public enum MessageType {
 	case contact(Contact)
 	case document(Document)
 	case game(Game)
-	case photo(Photo)
+	case photo([Photo])
 	case location(Location)
 	case sticker(Sticker)
 	case venue(Venue)
@@ -98,7 +98,7 @@ final public class Message: TelegramType, UpdateModel {
 	public var newChatMembers: [User]?             // A status message specifying information about new users added to the group.
 	public var leftChatMember: User?               // A status message specifying information about a user who left the group.
 	public var newChatTitle: String?               // A status message specifying the new title for the chat.
-	public var newChatPhoto: [PhotoSize]?          // A status message showing the new chat public photo.
+	public var newChatPhoto: [Photo]?          // A status message showing the new chat public photo.
 	public var deleteChatPhoto: Bool = false       // Service Message: the chat photo was deleted.
 	public var groupChatCreated: Bool = false      // Service Message: the group has been created.
 	public var supergroupChatCreated: Bool = false // I dont get this field...
@@ -161,7 +161,9 @@ final public class Message: TelegramType, UpdateModel {
 			self.type = .game(try .init(row: Row(type)) as Game) }
 			
 		else if let type = row["photo"] {
-			self.type = .photo(try .init(row: Row(type)) as Photo) }
+			self.type = .photo(try type.array?.map( { try Photo(row: $0) } ) ?? [])
+			//self.type = .photo(try .init(row: Row(type)) as Photo) }
+		}
 			
 		else if let type = row["location"] {
 			self.type = .location(try .init(row: Row(type)) as Location) }
@@ -196,7 +198,7 @@ final public class Message: TelegramType, UpdateModel {
 		
 		self.newChatTitle = try row.get("new_chat_title")
 		if let photoRow = row["new_chat_photo"] {
-			self.newChatPhoto = try photoRow.array?.map( { try PhotoSize(row: $0) } )
+			self.newChatPhoto = try photoRow.array?.map( { try Photo(row: $0) } )
 		}
 		self.deleteChatPhoto = try row.get("delete_chat_photo") ?? false
 		self.groupChatCreated = try row.get("group_chat_created") ?? false

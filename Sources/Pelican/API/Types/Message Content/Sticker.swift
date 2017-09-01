@@ -9,28 +9,46 @@ import Foundation
 import Vapor
 import FluentProvider
 
+/**
+Represents a Telegram sticker.
+*/
 final public class Sticker: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
 	public var storage = Storage()
 	public var contentType: String = "sticker"
-	public var method: String = "/sendSticker"
+	public var method: String = "sendSticker"
 	
 	// FILE SOURCE
 	public var fileID: String?
 	public var url: String?
 	
 	// PARAMETERS
-	public var width: Int
-	public var height: Int
-	public var thumb: PhotoSize? // Sticker thumbnail in .webp or .jpg format.
+	public var width: Int?
+	public var height: Int?
+	public var thumb: Photo? // Sticker thumbnail in .webp or .jpg format.
 	public var emoji: String? // Emoji associated with the sticker.
 	public var fileSize: Int?
 	
-	public init(fileID: String, width: Int, height: Int) {
+	public init(fileID: String, width: Int? = nil, height: Int? = nil, thumb: Photo? = nil, emoji: String? = nil, fileSize: Int? = nil) {
 		self.fileID = fileID
 		self.width = width
 		self.height = height
+		self.thumb = thumb
+		self.emoji = emoji
+		self.fileSize = fileSize
+	}
+	
+	public init?(url: String, width: Int? = nil, height: Int? = nil, thumb: Photo? = nil, emoji: String? = nil, fileSize: Int? = nil) {
+		
+		if url.checkURLValidity(acceptedExtensions: ["png", "jpg"]) == false { return nil }
+		
+		self.url = url
+		self.width = width
+		self.height = height
+		self.thumb = thumb
+		self.emoji = emoji
+		self.fileSize = fileSize
 	}
 	
 	// SendType conforming methods to send itself to Telegram under the provided method.
@@ -41,14 +59,13 @@ final public class Sticker: TelegramType, MessageFile {
 		return keys
 	}
 	
-	
 	// NodeRepresentable conforming methods
 	public required init(row: Row) throws {
 		fileID = try row.get("file_id")
 		width = try row.get("width")
 		height = try row.get("height")
 		if let thumbRow = row["thumb"] {
-			self.thumb = try .init(row: Row(thumbRow)) as PhotoSize
+			self.thumb = try .init(row: Row(thumbRow)) as Photo
 		}
 		emoji = try row.get("emoji")
 		fileSize = try row.get("file_size")

@@ -136,12 +136,22 @@ public class CacheManager {
 		}
 		
 		else if file.url != nil {
+			
+			var bytes: Bytes?
 			do {
-				let bytes = try fetchFile(path: file.url!)
-				return ["photo": Field(name: "photo", filename: "noodle.png", part: Part(headers: [HeaderKey.contentType:"image/png"], body: bytes!) )]
+				bytes = try fetchFile(path: file.url!)
 			} catch {
 				throw error
 			}
+			
+			if bytes == nil {
+				throw CacheError.NoBytes
+			}
+			
+			let fileName = file.url!.components(separatedBy: "/").last!
+			//let ext = file.url!.components(separatedBy: ".").last!
+				
+			return [file.contentType: Field(name: file.contentType, filename: fileName, part: Part(headers: [HeaderKey.contentType:"multipart/form-data"], body: bytes!) )]
 		}
 		
 		throw CacheFormError.LinkNotFound

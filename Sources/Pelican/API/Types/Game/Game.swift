@@ -16,7 +16,7 @@ final public class Game: Model {
 	
 	public var title: String                 // Title of the game
 	public var description: String           // Description of the game
-	public var photo: [PhotoSize]            // Photo that will be displayed in the game message in chats.
+	public var photo: [Photo]            		 // Photo that will be displayed in the game message in chats.
 	public var text: String?                 // Brief description of the game as well as provide space for high scores.
 	public var textEntries: [MessageEntity]? // Special entities that appear in text, such as usernames.
 	public var animation: String?            // Animation type that will be displayed in the game message in chats.  Upload via BotFather

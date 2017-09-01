@@ -9,17 +9,23 @@ import Foundation
 import Vapor
 import FluentProvider
 
+/**
+Represents a different type of location, for venue-like venuing.
+*/
 final public class Venue: TelegramType, MessageContent {
+	
+	// STORAGE AND IDENTIFIERS
 	public var storage = Storage()
 	public var contentType: String = "venue" // MessageType conforming variable for Message class filtering.
-	public var method: String = "/sendVenue" // SendType conforming variable for use when sent
+	public var method: String = "sendVenue" // SendType conforming variable for use when sent
 	
+	// PARAMETERS
 	public var location: Location
 	public var title: String
 	public var address: String
 	public var foursquareID: String?
 	
-	public init(location: Location, title: String, address: String) {
+	public init(location: Location, title: String, address: String, foursquareID: String? = nil) {
 		self.location = location
 		self.title = title
 		self.address = address

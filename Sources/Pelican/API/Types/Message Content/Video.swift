@@ -9,30 +9,50 @@ import Foundation
 import Vapor
 import FluentProvider
 
+/**
+Represents a video file.  Go figure.
+*/
 final public class Video: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
 	public var storage = Storage()
 	public var contentType: String = "video" // MessageType conforming variable for Message class filtering.
-	public var method: String = "/sendVideo" // SendType conforming variable for use when sent
+	public var method: String = "sendVideo" // SendType conforming variable for use when sent
 	
 	// FILE SOURCE
 	public var fileID: String?
 	public var url: String?
 	
 	// PARAMETERS
-	public var width: Int
-	public var height: Int
-	public var duration: Int
-	public var thumb: PhotoSize?
+	public var width: Int?
+	public var height: Int?
+	public var duration: Int?
+	public var thumb: Photo?
 	public var mimeType: String?
 	public var fileSize: Int?
 	
-	public init(fileID: String, width: Int, height: Int, duration: Int) {
+	
+	public init(fileID: String, width: Int? = nil, height: Int? = nil, duration: Int? = nil, thumb: Photo? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
 		self.fileID = fileID
 		self.width = width
 		self.height = height
 		self.duration = duration
+		self.thumb = thumb
+		self.mimeType = mimeType
+		self.fileSize = fileSize
+	}
+	
+	public init?(url: String, width: Int? = nil, height: Int? = nil, duration: Int? = nil, thumb: Photo? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
+		
+		if url.checkURLValidity(acceptedExtensions: ["mp4"]) == false { return nil }
+		
+		self.url = url
+		self.width = width
+		self.height = height
+		self.duration = duration
+		self.thumb = thumb
+		self.mimeType = mimeType
+		self.fileSize = fileSize
 	}
 	
 	
@@ -55,7 +75,7 @@ final public class Video: TelegramType, MessageFile {
 		height = try row.get("height")
 		duration = try row.get("duration")
 		if let thumbRow = row["thumb"] {
-			self.thumb = try .init(row: Row(thumbRow)) as PhotoSize
+			self.thumb = try .init(row: Row(thumbRow)) as Photo
 		}
 		mimeType = try row.get("mime_type")
 		fileSize = try row.get("file_size")

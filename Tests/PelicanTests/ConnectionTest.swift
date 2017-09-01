@@ -92,8 +92,6 @@ class TechnicalConnectionTypes: TestCase {
 	
 	func testVaporCustomClientRequestLoop() {
 		
-		ghost.pelican.cycleDebug = true
-		
 		testLoop(loop: loopCount, timeout: loopTimeout, description: "Connect to the Telegram Bot API using a custom client.") {
 			XCTAssertNotNil(try! self.client!.post(self.ghost.pelican.getAPIURL + "/getUpdates"))
 		}

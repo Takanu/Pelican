@@ -7,36 +7,64 @@
 
 import XCTest
 import Pelican
+import Vapor
 
 class TestMessageSending: XCTestCase {
 
-	/// The template to be operated with.
-	var ghost = try! GhostPelican()
 	
 	override func setUp() {
 		
-		// Build a new template
-		ghost = try! GhostPelican()
 	}
     
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
+	override func tearDown() {
+		// Put teardown code here. This method is called after the invocation of each test method in the class.
+		super.tearDown()
+	}
 
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+	func testExample() {
+		// This is an example of a functional test case.
+		// Use XCTAssert and related functions to verify your tests produce the correct results.
+		
+		func testPelicanSetup() throws {
 			
-			let file = Audio(url: "vibri.mp3", duration: 0)
-			let request = TelegramRequest.sendFile(file: file, chatID: <#T##Int#>, markup: <#T##MarkupType?#>)
-    }
-
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
+			class TestBot: ChatSession {
+				
+				// Do your setup here, this is when the session gets created.
+				override func postInit() {
+					
+					super.postInit()
+					
+					let start = RouteCommand(commands: "start") { update in
+						if update.content == "" || update.from == nil { return false }
+						
+						let audio = Audio(url: "ferriswheel.mp3")
+						self.send.file(audio, caption: "Hey check out this kool tuun.", markup: nil)
+						
+						return true
+					}
+					
+					routes.add(start)
+				}
+			}
+			
+			// Make sure you set up Pelican manually so you can assign it variables.
+			let config = try! Config()
+			let pelican = try! Pelican(config: config)
+			
+			// Add Builder
+			pelican.addBuilder(SessionBuilder(spawner: Spawn.perChatID(updateType: [.message], chatType: [.private]), idType: .chat, session: TestBot.self, setup: nil) )
+			
+			pelican.setPoll(interval: 1)
+			
+			// This defines what message types your bot can receive.
+			pelican.allowedUpdates = [.message, .callbackQuery, .inlineQuery, .chosenInlineResult]
+			pelican.timeout = 0
+			
+			// START IT UP!
+			try config.addProvider(pelican)
+			let drop = try Droplet(config)
+			try drop.run()
+		}
+	}
 
 }

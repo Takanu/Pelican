@@ -22,7 +22,7 @@ extension Pelican {
 			
 			do {
 				let fileForm = try cache.getFormEntry(forFile: request.content as! MessageFile)
-				request.form.merge(fileForm, uniquingKeysWith: { one, two in return one } )
+				request.form.merge(fileForm, uniquingKeysWith: { (current, _) in current } )
 				
 			} catch {
 				

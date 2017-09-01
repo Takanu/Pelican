@@ -9,59 +9,49 @@ import Foundation
 import Vapor
 import FluentProvider
 
-// This doesn't belong to any Telegram type, just a convenience class for enclosing PhotoSize
 
-final public class Photo: TelegramType, MessageContent {
+/**
+Represents one size of a photo sent from a message, a photo you want to send to a chat, or a file/sticker.
+*/
+final public class Photo: TelegramType, MessageFile {
+	
+	// STORAGE AND IDENTIFIERS
 	public var storage = Storage()
 	public var contentType: String = "photo" // MessageType conforming variable for Message class filtering.
-	public var method: String = "/sendPhoto" // SendType conforming variable for use when sent
-	public var photos: [PhotoSize] = []
+	public var method: String = "sendPhoto" // SendType conforming variable for use when sent
 	
-	public init(photos: [PhotoSize]) {
-		self.photos = photos
-	}
-	
-	// SendType conforming methods
-	public func getQuery() -> [String:NodeConvertible] {
-		let keys: [String:NodeConvertible] = [
-			"photo": photos.map( { $0.fileID	})]
-		
-		return keys
-	}
-	
-	// NodeRepresentable conforming methods
-	public required init(row: Row) throws {
-		if let photoRow = row["photos"] {
-			self.photos = try photoRow.array?.map( { try PhotoSize(row: $0) } ) ?? []
-		}
-	}
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("photos", photos)
-		
-		return row
-	}
-}
-
-
-
-/// THERES A PROBLEM HERE
-final public class PhotoSize: TelegramType {
-	public var storage = Storage()
-	
+	// FILE SOURCE
 	public var fileID: String?
 	public var url: String?
 	
-	public var width: Int // Photo width
-	public var height: Int // Photo height
-	public var fileSize: Int? // File size
+	// PARAMETERS
+	public var width: Int?
+	public var height: Int?
+	public var fileSize: Int?
 	
 	
-	public init(fileID: String, width: Int, height: Int) {
+	public init(fileID: String, width: Int? = nil, height: Int? = nil, fileSize: Int? = nil) {
 		self.fileID = fileID
 		self.width = width
 		self.height = height
+		self.fileSize = fileSize
+	}
+	
+	public init?(url: String, width: Int? = nil, height: Int? = nil, fileSize: Int? = nil) {
+		
+		if url.checkURLValidity(acceptedExtensions: ["png", "jpg"]) == false { return nil }
+		
+		self.url = url
+		self.width = width
+		self.height = height
+		self.fileSize = fileSize
+	}
+	
+	public func getQuery() -> [String : NodeConvertible] {
+		let keys: [String:NodeConvertible] = [
+			"photo": fileID]
+		
+		return keys
 	}
 	
 	// NodeRepresentable conforming methods

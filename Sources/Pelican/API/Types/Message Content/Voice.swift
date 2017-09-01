@@ -9,25 +9,40 @@ import Foundation
 import Vapor
 import FluentProvider
 
+/**
+Represents a Voice type, which will appear as if it was a user-recorded voice message if sent.
+*/
 final public class Voice: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
 	public var storage = Storage()
 	public var contentType: String = "voice" // MessageType conforming variable for Message class filtering.
-	public var method: String = "/sendVoice" // SendType conforming variable for use when sent
+	public var method: String = "sendVoice" // SendType conforming variable for use when sent
 	
 	// FILE SOURCE
 	public var fileID: String?
 	public var url: String?
 	
 	// PARAMETERS
-	public var duration: Int
+	public var duration: Int?
 	public var mimeType: String?
 	public var fileSize: Int?
 	
-	public init(fileID: String, duration: Int) {
+	public init(fileID: String, duration: Int? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
 		self.fileID = fileID
 		self.duration = duration
+		self.mimeType = mimeType
+		self.fileSize = fileSize
+	}
+	
+	public init?(url: String, duration: Int? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
+		
+		if url.checkURLValidity(acceptedExtensions: ["ogg"]) == false { return nil }
+		
+		self.url = url
+		self.duration = duration
+		self.mimeType = mimeType
+		self.fileSize = fileSize
 	}
 	
 	// SendType conforming methods to send itself to Telegram under the provided method.

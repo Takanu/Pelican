@@ -17,7 +17,7 @@ final public class Audio: TelegramType, MessageFile {
 	// STORAGE AND IDENTIFIERS
 	public var storage = Storage()
 	public var contentType: String = "audio"
-	public var method: String = "/sendAudio"
+	public var method: String = "sendAudio"
 	
 	// FILE SOURCE
 	public var fileID: String? // Unique identifier for the file
@@ -25,7 +25,7 @@ final public class Audio: TelegramType, MessageFile {
 	
 	// PARAMETERS
 	/// Duration of the audio in seconds as defined by the sender.
-	public var duration: Int
+	public var duration: Int?
 	/// Performer of the audio as defined by the sender or by audio tags
 	public var performer: String?
 	/// Title of the audio as defined by the sender or by audio tags.
@@ -50,8 +50,13 @@ final public class Audio: TelegramType, MessageFile {
 	/**
 	Initialises an Audio object based on a URL and any optional parameters.  The URL can be defined either as a local source relative to the Public/ folder
 	of your app (eg. `karaoke/jack-1.png`) or as a remote source using an HTTP link.
+	
+	- warning: The URL must link to a MP3 formatted file, this is the only file type that can be sent using this type.
 	*/
-	public init(url: String, duration: Int = 0, performer: String? = nil, title: String? = nil, mimeType: String? = nil, fileSize: Int? = 0) {
+	public init?(url: String, duration: Int = 0, performer: String? = nil, title: String? = nil, mimeType: String? = nil, fileSize: Int? = 0) {
+		
+		if url.checkURLValidity(acceptedExtensions: ["mp3"]) == false { return nil }
+		
 		self.url = url
 		self.duration = duration
 		self.performer = performer

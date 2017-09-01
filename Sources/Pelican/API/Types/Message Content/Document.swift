@@ -17,7 +17,7 @@ final public class Document: TelegramType, MessageFile {
 	// STORAGE AND IDENTIFIERS
 	public var storage = Storage()
 	public var contentType: String = "document"
-	public var method: String = "/sendDocument" 
+	public var method: String = "sendDocument" 
 	
 	// FILE SOURCE
 	public var fileID: String?
@@ -25,7 +25,7 @@ final public class Document: TelegramType, MessageFile {
 	
 	// PARAMETERS
 	/// Document thumbnail.
-	public var thumb: PhotoSize?
+	public var thumb: Photo?
 	/// Original filename.
 	public var fileName: String?
 	/// MIME type of the file.
@@ -34,8 +34,23 @@ final public class Document: TelegramType, MessageFile {
 	public var fileSize: String?
 	
 	
-	public init(fileID: String) {
+	public init(fileID: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: String? = nil) {
 		self.fileID = fileID
+		self.thumb = thumb
+		self.fileName = fileName
+		self.mimeType = mimeType
+		self.fileSize = fileSize
+	}
+	
+	public init?(url: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: String? = nil) {
+		
+		if url.checkURLValidity(acceptedExtensions: []) == false { return nil }
+		
+		self.url = url
+		self.thumb = thumb
+		self.fileName = fileName
+		self.mimeType = mimeType
+		self.fileSize = fileSize
 	}
 	
 	// SendType conforming methods
@@ -50,7 +65,7 @@ final public class Document: TelegramType, MessageFile {
 	public required init(row: Row) throws {
 		fileID = try row.get("file_id")
 		if let thumbRow = row["thumb"] {
-			self.thumb = try .init(row: Row(thumbRow)) as PhotoSize
+			self.thumb = try .init(row: Row(thumbRow)) as Photo
 		}
 		fileName = try row.get("file_name")
 		mimeType = try row.get("mime_type")

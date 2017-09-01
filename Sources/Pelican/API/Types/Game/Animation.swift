@@ -15,7 +15,7 @@ final public class Animation: Model {
 	public var storage = Storage()
 	
 	public var fileID: String      // Unique file identifier.
-	public var thumb: PhotoSize?   // Animation thumbnail as defined by the sender.
+	public var thumb: Photo?   // Animation thumbnail as defined by the sender.
 	public var fileName: String?   // Original animation filename as defined by the sender.
 	public var mimeType: String?   // MIME type of the file as defined by sender.
 	public var fileSize: Int?      // File size.

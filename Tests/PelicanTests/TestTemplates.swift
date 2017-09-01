@@ -29,7 +29,6 @@ class GhostPelican {
 		token = (config["pelican", "token"]?.string!)!
 		
 		pelican.setPoll(interval: 1)
-		pelican.cycleDebug = true
 		
 		try config.addProvider(pelican)
 		drop = try Droplet(config)

@@ -37,7 +37,6 @@ class BotSetup: TestCase {
 		pelican.addBuilder(SessionBuilder(spawner: Spawn.perChatID(updateType: [.message], chatType: [.private]), idType: .chat, session: TestBot.self, setup: nil) )
 		
 		pelican.setPoll(interval: 1)
-		pelican.cycleDebug = true
 		
 		// This defines what message types your bot can receive.
 		pelican.allowedUpdates = [.message, .callbackQuery, .inlineQuery, .chosenInlineResult]

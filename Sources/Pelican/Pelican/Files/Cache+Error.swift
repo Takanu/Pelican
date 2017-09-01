@@ -13,6 +13,7 @@ enum CacheError: String, Error {
 	case WrongType = "The file could not be added because it has the wrong type."
 	case LocalNotFound = "The local resource you attempted to upload could not be found."
 	case RemoteNotFound = "The remote resource you attempted to upload could not be found."
+	case NoBytes = "The resource could not be obtained."
 }
 
 enum CacheFormError: String, Error {

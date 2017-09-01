@@ -12,9 +12,9 @@ import FluentProvider
 final public class UserProfilePhotos: Model {
 	public var storage = Storage()
 	public var totalCount: Int
-	public var photos: [[PhotoSize]] = []
+	public var photos: [[Photo]] = []
 	
-	public init(photoSets: [PhotoSize]...) {
+	public init(photoSets: [Photo]...) {
 		for photo in photoSets {
 			photos.append(photo)
 		}

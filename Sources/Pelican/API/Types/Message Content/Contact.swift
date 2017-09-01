@@ -10,18 +10,23 @@ import Vapor
 import FluentProvider
 
 final public class Contact: TelegramType, MessageContent {
+	
+	// STORAGE AND IDENTIFIERS
 	public var storage = Storage()
 	public var contentType: String = "contact" // MessageType conforming variable for Message class filtering.
-	public var method: String = "/sendContact" // SendType conforming variable for use when sent
+	public var method: String = "sendContact" // SendType conforming variable for use when sent
 	
+	// PARAMETERS
 	public var phoneNumber: String
 	public var firstName: String
 	public var lastName: String?
 	public var userID: Int?
 	
-	public init(phoneNumber: String, firstName: String) {
+	public init(phoneNumber: String, firstName: String, lastName: String? = nil, userID: Int? = nil) {
 		self.phoneNumber = phoneNumber
 		self.firstName = firstName
+		self.lastName = lastName
+		self.userID = userID
 	}
 	
 	// SendType conforming methods to send itself to Telegram under the provided method.

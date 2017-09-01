@@ -9,13 +9,20 @@ import Foundation
 import Vapor
 import FluentProvider
 
+/**
+Represents a real-world location, that when sent as the contents of a message, is represented by a map preview.
+*/
 final public class Location: TelegramType, MessageContent, Model {
+	
+	// STORAGE AND IDENTIFIERS
 	public var storage = Storage()
 	public var contentType: String = "location" // MessageType conforming variable for Message class filtering.
-	public var method: String = "/sendLocation" // SendType conforming variable for use when sent
+	public var method: String = "sendLocation" // SendType conforming variable for use when sent
 	
+	// PARAMETERS
 	public var latitude: Float
 	public var longitude: Float
+	
 	
 	public init(latitude: Float, longitude: Float) {
 		self.latitude = latitude

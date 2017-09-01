@@ -39,9 +39,9 @@ public class TGSend {
 	/**
 	Sends and uploads a file as a message to the chat linked to this session, using a `FileLink`
 	*/
-	public func file(_ link: MessageFile, caption: String, markup: MarkupType?, replyID: Int = 0, disableNtf: Bool = false, callback: ReceiveUpload? = nil) {
+	public func file(_ file: MessageFile, caption: String, markup: MarkupType?, replyID: Int = 0, disableNtf: Bool = false, callback: ReceiveUpload? = nil) {
 		
-		//let request = TelegramRequest.uploadFile(link: link, callback: callback, chatID: chatID, markup: markup, caption: caption, disableNtf: disableNtf, replyMessageID: replyID)
-		//_ = tag.sendRequest(request)
+		let request = TelegramRequest.sendFile(file: file, callback: nil, chatID: chatID, markup: markup, caption: caption, disableNtf: disableNtf, replyMessageID: replyID)
+		_ = tag.sendRequest(request)
 	}
 }

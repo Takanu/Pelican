@@ -15,6 +15,26 @@ An extension used to switch from snake to camel case and back again
 extension String {
 	
 	/**
+	Checks that the given URL for MessageFile types is either a valid internal or remote source.
+	*/
+	func checkURLValidity(acceptedExtensions: [String]) -> Bool {
+		
+		// Check that the file has a valid file-extension.
+		if acceptedExtensions.count > 0 {
+			if self.components(separatedBy: ".").last == nil { return false }
+		
+		
+			let ext = self.components(separatedBy: ".").last!
+			if acceptedExtensions.contains(ext) == false { return false }
+		
+			return true
+		}
+		
+		// Add checks for remote/internal paths and path consistency.
+		return true
+	}
+	
+	/**
 	Converts a string that has snake case formatting to a camel case format.
 	*/
 	var snakeToCamelCase: String {

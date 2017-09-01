@@ -312,6 +312,9 @@ public final class Pelican: Vapor.Provider {
 		
 		// Setup the logger.
 		PLog.console = drop.log
+		
+		// Setup the cache
+		try! cache.setBundlePath(drop.config.workDir + "/Public")
 	}
 
 	
