@@ -20,5 +20,7 @@ public enum BuilderCollision: String {
 	case include
 	/// Used when you wish for the session to execute the update.
 	case execute
+	/// Used when you wish to both pass the session to other sessions that can accept the update, and allow it to try and execute on it.
+	case all
 }
 

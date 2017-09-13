@@ -44,7 +44,11 @@ extension Pelican {
 									 fragment: nil)
 		
 		let vaporRequest = Request(method: .post, uri: uri)
-		vaporRequest.formData = request.form
+		
+		// If we have a message file, add the form data (doing this regardless will break normal requests)
+		if request.content is MessageFile {
+			vaporRequest.formData = request.form
+		}
 		
 		
 		// Attempt to send it and get a TelegramResponse from it.

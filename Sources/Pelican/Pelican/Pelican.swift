@@ -644,12 +644,12 @@ public final class Pelican: Vapor.Provider {
 						
 						let response = capture.collision!(self, update)
 						
-						if response == .include {
+						if response == .include || response == .all {
 							let session = capture.getSession(bot: self, update: update)!
 							update.linkedSessions.append(session)
 						}
 						
-						else if response == .execute {
+						if response == .execute || response == .all {
 							executables.append(capture)
 						}
 					}

@@ -58,7 +58,7 @@ public struct SessionTag: Equatable {
 	Sends a TelegramRequest to Pelican, to be sent as a bot API request.
 	- returns: A response from Telegram.
 	*/
-	func sendRequest(_ request: TelegramRequest) -> TelegramResponse {
+	public func sendRequest(_ request: TelegramRequest) -> TelegramResponse {
 		
 		return sendRequestCallback(request)
 	}
@@ -66,7 +66,7 @@ public struct SessionTag: Equatable {
 	/**
 	Sends an event request to Pelican, to perform a certain operation on the Session this tag belongs to.
 	*/
-	func sendEvent(type: SessionEventType, action: SessionEventAction) {
+	public func sendEvent(type: SessionEventType, action: SessionEventAction) {
 		
 		let event = SessionEvent(tag: self, type: type, action: action)
 		sendEventCallback(event)

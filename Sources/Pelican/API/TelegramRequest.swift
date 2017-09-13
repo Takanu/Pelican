@@ -81,10 +81,9 @@ public class TelegramRequest {
 		
 	}
 	
+	// Already has equivalents in Request+Answer, unsure if this is still needed.
 	
-	//////////////////////////////////////////////////////////////////////////////////
-	//// TELEGRAM CALLBACK METHOD IMPLEMENTATIONS
-	
+	/*
 	
 	// Send answers to callback queries sent from inline keyboards.
 	// The answer will be displayed to the user as a notification at the top of the chat screen or as an alert.
@@ -105,6 +104,7 @@ public class TelegramRequest {
 		content = text as Any
 		
 	}
+	
 	
 	// Use this method to send answers to an inline query. On success, True is returned.
 	// No more than 50 results per query are allowed.
@@ -139,6 +139,7 @@ public class TelegramRequest {
 		content = results as Any
 		
 	}
+	*/
 	
 }
 

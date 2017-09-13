@@ -102,7 +102,7 @@ public class ScheduleEvent: Equatable {
 	/**
 	Creates a Schedule Event using an array of durations as the basis for the execution time.
 	*/
-	init(delay: [Duration], action: @escaping () -> ()) {
+	public init(delay: [Duration], action: @escaping () -> ()) {
 		
 		// Set the basic properties
 		self.delay = delay
@@ -121,7 +121,7 @@ public class ScheduleEvent: Equatable {
 	/**
 	Creates a Schedule Event using an numerical delay value, in Unix Time as the basis for the execution time.
 	*/
-	init(delayUnixTime: Double, action: @escaping () -> ()) {
+	public init(delayUnixTime: Double, action: @escaping () -> ()) {
 		
 		// Set the basic properties
 		self.action = action
@@ -135,7 +135,7 @@ public class ScheduleEvent: Equatable {
 	/**
 	Creates a Schedule Event using a specified date as the execution time.
 	*/
-	init(atDate: Date, action: @escaping () -> ()) {
+	public init(atDate: Date, action: @escaping () -> ()) {
 		
 		// Set the basic properties
 		self.executeTime = atDate
@@ -164,7 +164,7 @@ public class ScheduleEvent: Equatable {
 	Based on the current time, generate an accurate execution time for the event.  This
 	only works if the event has a delay `Duration` set.
 	*/
-	func generateExecutionTime() -> Date? {
+	public func generateExecutionTime() -> Date? {
 		
 		if self.delay == nil { return nil }
 		

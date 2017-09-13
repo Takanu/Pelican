@@ -56,7 +56,7 @@ extension TelegramRequest {
 	Use this method to send answers to an inline query. On success, True is returned.
 	No more than 50 results per query are allowed.
 	*/
-	public static func answerInlineQuery(queryID: Int, results: [InlineResult], cacheTime: Int = 0, isPersonal: Bool = false, nextOffset: String?, switchPM: String?, switchPMParam: String?) -> TelegramRequest {
+	public static func answerInlineQuery(queryID: String, results: [InlineResult], cacheTime: Int = 0, isPersonal: Bool = false, nextOffset: String?, switchPM: String?, switchPMParam: String?) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		

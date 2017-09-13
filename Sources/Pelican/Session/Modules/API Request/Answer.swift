@@ -34,7 +34,7 @@ public class TGAnswer {
 	/**
 	???
 	*/
-	public func inlineQuery(queryID: Int, results: [InlineResult], cacheTime: Int = 0, isPersonal: Bool = false, nextOffset: String?, switchPM: String?, switchPMParam: String?) {
+	public func inlineQuery(queryID: String, results: [InlineResult], cacheTime: Int = 0, isPersonal: Bool = false, nextOffset: String?, switchPM: String?, switchPMParam: String?) {
 		
 		let request = TelegramRequest.answerInlineQuery(queryID: queryID, results: results, cacheTime: cacheTime, isPersonal: isPersonal, nextOffset: nextOffset, switchPM: switchPM, switchPMParam: switchPMParam)
 		_ = tag.sendRequest(request)

@@ -89,6 +89,9 @@ public class Prompt: ReceiveUpload, Equatable {
 	public var getUsersIdle: [User] {
 		return target.filter( { T in usersPressed.contains(where: { P in T.tgID == P.tgID} ) == false } )
 	}
+	
+	/// Whether or not the prompt has met it's completion requirements.
+	public var hasCompleted: Bool { return completed }
 	/// Defines whether or not the prompt is in a finished state.
 	public var hasFinished: Bool { return finished }
 	

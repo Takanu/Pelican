@@ -17,21 +17,21 @@ public class ChatSessionQueue {
 	
 	/// DATA
 	/// The chat ID of the session this queue belongs to.
-	var chatID: Int
+	public var chatID: Int
 	/// A callback to the Pelican `sendRequest` method, enabling the class to send it's own requests.
-	var tag: SessionTag
+	public var tag: SessionTag
 	
 	// CALLBACKS
 	/// A callback to Schedule, to add an event to the queue
-	var addEvent: (ScheduleEvent) -> ()
-	var removeEvent: (ScheduleEvent) -> ()
+	public var addEvent: (ScheduleEvent) -> ()
+	public var removeEvent: (ScheduleEvent) -> ()
 	
 	
 	/** 
 	Copies of the ScheduleEvents that are generated to submit to the schedule, in case this class needs to remove
 	any events already in the schedule.
 	*/
-	var eventHistory: [ScheduleEvent] = []
+	public var eventHistory: [ScheduleEvent] = []
 	
 	/// The point at which the last addition to the queue is set to play, relative to the current time value.
 	var lastEventTime: Double = 0
@@ -126,25 +126,12 @@ public class ChatSessionQueue {
 		eventHistory.append(event)
 	}
 	
+	/**
+	Used to internally bump the queue stack timer, to ensure that when actions are queued they never overlap each other.
 	
-	/// Properly calculates a wait time to send a message based on a pause and the previous dialog length.
-	public func dialog(delay: Int, dialog: String, markup: MarkupType? = nil) {
-		
-		let viewTime = calculateReadTime(text: dialog)
-		
-		// Calculate what kind of delay we're using
-		let execTime = bumpEventTime(delay: (viewTime + delay).seconds, viewTime: 0.seconds)
-		
-		let event = ScheduleEvent(delayUnixTime: execTime) {
-			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: dialog, replyMarkup: markup	)
-			_ = self.tag.sendRequest(request)
-		}
-		
-		addEvent(event)
-		eventHistory.append(event)
-	}
-	
-	func bumpEventTime(delay: Duration, viewTime: Duration) -> Double {
+	Only use this for custom functions that extend Queue, all default queue action functions already make use of this.
+	*/
+	public func bumpEventTime(delay: Duration, viewTime: Duration) -> Double {
 		
 		// Calculate what kind of delay we're using
 		var execTime = lastEventTime + lastEventViewTime
@@ -165,15 +152,6 @@ public class ChatSessionQueue {
 		lastEventViewTime = viewTime.unixTime
 		
 		return execTime
-	}
-	
-	/** Calculates a read time for dialog-specific queue functions */
-	func calculateReadTime(text: String) -> Int {
-		let wordsPerMinute = 250
-		
-		let wordCount = text.components(separatedBy: NSCharacterSet.whitespaces).count
-		let readTime = Int(ceil(Float(wordCount) / Float(wordsPerMinute / 60)))
-		return Int(readTime)
 	}
 	
 	/**
