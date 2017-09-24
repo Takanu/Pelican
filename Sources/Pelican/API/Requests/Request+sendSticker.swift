@@ -15,14 +15,10 @@ extension TelegramRequest {
 	## Function Description
 	Use this method to send .webp stickers. On success, the sent Message is returned.
 	*/
-	public static func sendSticker(chatID: Int, sticker: FileLink, disableNtf: Bool? = nil,
+	public static func sendSticker(chatID: Int, sticker: Sticker, disableNtf: Bool? = nil,
 	  replyMessageID: Int? = nil, replyMarkup: MarkupType? = nil) -> TelegramRequest? {
 		
 		let request = TelegramRequest()
-		
-		guard FileLink.UploadLocation.stored("") == sticker.location else {
-			pelicanPrint("only sending with id UploadLocation is supported."); return nil
-		}
 		
 		request.query = [
 			"chat_id": chatID,

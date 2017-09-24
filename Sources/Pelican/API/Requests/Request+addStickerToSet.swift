@@ -14,7 +14,7 @@ extension TelegramRequest {
 	## Function Description
 	Use this method to create new sticker set owned by a user. The bot will be able to edit the created sticker set. Returns True on success.
 	*/
-	public static func addStickerToSet(userID: Int, name: String, pngSticker: FileLink, emojis: String, maskPosition: MaskPosition? = nil, callback: ReceiveUpload? = nil) -> TelegramRequest {
+	public static func addStickerToSet(userID: Int, name: String, pngSticker: Sticker, emojis: String, maskPosition: MaskPosition? = nil, callback: ReceiveUpload? = nil) -> TelegramRequest? {
 		
 		let request = TelegramRequest()
 		
@@ -28,13 +28,12 @@ extension TelegramRequest {
 			request.query["mask_position"] = try! maskPosition.makeRow()
 		}
 		
-		switch pngSticker.location {
-		case .stored(let id):
-			request.query["png_sticker"] = id
-			
-		default:
-			request.content = link as Any
+		guard let fileID = pngSticker.fileID else {
+			return nil
 		}
+		
+		request.query["png_sticker"] = fileID
+		request.content = pngSticker
 		
 		// Set the Request, Method and Content
 		request.methodName = "addStickerToSet"

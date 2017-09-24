@@ -14,7 +14,7 @@ extension TelegramRequest {
 	## Function Description
 	Use this method to create new sticker set owned by a user. The bot will be able to edit the created sticker set. Returns True on success.
 	*/
-	public static func createNewStickerSet(userID: Int, name: String, title: String, sticker: FileLink, emojis: String, containsMasks: Bool? = nil, maskPosition: MaskPosition? = nil, callback: ReceiveUpload? = nil) -> TelegramRequest? {
+	public static func createNewStickerSet(userID: Int, name: String, title: String, sticker: Sticker, emojis: String, containsMasks: Bool? = nil, maskPosition: MaskPosition? = nil, callback: ReceiveUpload? = nil) -> TelegramRequest? {
 		
 		let request = TelegramRequest()
 		
@@ -25,13 +25,11 @@ extension TelegramRequest {
 			"emojis": emojis
 		]
 		
-		switch sticker.location {
-		case .stored(let id):
-			request.query["png_sticker"] = id
-			
-		default:
+		guard let fileID = sticker.fileID else {
 			pelicanPrint("only sending with id UploadLocation is supported."); return nil
 		}
+		
+		request.query["png_sticker"] = fileID
 		
 		if let containsMasks = containsMasks {
 			request.query["contains_masks"] = containsMasks
