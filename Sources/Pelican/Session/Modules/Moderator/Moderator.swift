@@ -153,9 +153,8 @@ public class SessionModerator {
 	}
 	
 	/**
-	Blacklists the Session ID, which does the following:
-	- Closes the Session and any associated ScheduleEvents
-	- Adds the session to the Moderator blacklist, preventing the ID from being able to make updates that
+	Blacklists the Session ID, which closes the Session and any associated ScheduleEvents, and adds the session
+	to the Moderator blacklist, preventing the ID from being able to make updates that
 	the bot can interpret or that could propogate a new, active session.
 	
 	This continues until the ID is removed from the blacklist.
@@ -164,7 +163,7 @@ public class SessionModerator {
 	to be used by another operation at or near the timeframe where this occurs.
 	*/
 	public func blacklist() {
-		
+		PLog.info("Adding to blacklist - \(tag.getBuilderID)")
 		tag.sendEvent(type: .blacklist, action: .blacklist)
 	}
 	

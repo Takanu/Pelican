@@ -17,7 +17,9 @@ commands, and as long as one of them matches the update content the action will 
 public class RouteCommand: Route {
 	
 	public var id: Int = 0
+	public var name: String = ""
 	public var action: (Update) -> (Bool)
+	public var enabled: Bool = true
 	
 	
 	/// The commands to listen for in a message.  Only one has to be found in the set for the action to execute.

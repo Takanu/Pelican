@@ -11,29 +11,6 @@ import Vapor
 
 
 /**
-Defines convenience iteration and string extraction methods for various enumeration types, such as UpdateType.
-*/
-public protocol CasedEnum : Hashable {
-	
-	func string() -> String
-}
-
-extension CasedEnum {
-	static func cases() -> AnySequence<Self> {
-		typealias S = Self
-		return AnySequence { () -> AnyIterator<S> in
-			var raw = 0
-			return AnyIterator {
-				let current : Self = withUnsafePointer(to: &raw) { $0.withMemoryRebound(to: S.self, capacity: 1) { $0.pointee } }
-				guard current.hashValue == raw else { return nil }
-				raw += 1
-				return current
-			}
-		}
-	}
-}
-
-/**
 Encapsulates a single update received from a Telegram bot.
 */
 public class Update {
@@ -155,12 +132,12 @@ public class Update {
 	public func matches(_ pattern: String, types: [String]) -> Bool {
 		
 		if pattern == content {
-			print("Match found C: .\n\(pattern) - \(content)")
+			//print("Match found C: .\n\(pattern) - \(content)")
 			return true
 		}
 		
 		else {
-			print("Match not found.\n\(pattern) - \(content)")
+			//print("Match not found.\n\(pattern) - \(content)")
 			return false
 		}
 		

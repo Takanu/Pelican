@@ -134,17 +134,19 @@ public class ChatSessionQueue {
 	public func bumpEventTime(delay: Duration, viewTime: Duration) -> Double {
 		
 		// Calculate what kind of delay we're using
-		var execTime = lastEventTime + lastEventViewTime
+		var execTime = lastEventTime
 		
-		// If we have a last event view time that is shorter than the delay, extend the execTime by this.
+		// If we have a last event view time that is longer than the delay, extend the execTime by this.
 		if (lastEventViewTime - delay.unixTime) > 0 {
-			execTime += lastEventViewTime - delay.unixTime
+			execTime += lastEventViewTime
 		}
 		
 		// Otherwise just add the delay directly
 		else {
 			execTime += delay.unixTime
 		}
+		
+		//print("Event time bumped - (delay \(delay) | viewTime \(viewTime)) (LETime- \(lastEventTime) | LEViewTime - \(lastEventViewTime)) \(execTime) seconds, ")
 		
 		
 		// Set the new last timer values
@@ -166,6 +168,8 @@ public class ChatSessionQueue {
 	public func clear() {
 		lastEventTime = 0
 		lastEventViewTime = 0
+		
+		//print("Event queue cleared.")
 		
 		for event in eventHistory {
 			_ = removeEvent(event)

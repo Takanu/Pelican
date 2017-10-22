@@ -23,8 +23,18 @@ public protocol Route: class {
 	*/
 	var id: Int { get set }
 	
+	/// An optional name for the route, that can be used to fetch a route from the controller once set using subscripts.
+	var name: String { get set }
+	
 	/// The action the route will execute if successful
 	var action: (Update) -> (Bool) { get }
+	
+	/**
+	Whether or not the route is enabled.  If disabled, the RouteController will ignore it when finding
+	a route to pass an update to.
+	*/
+	var enabled: Bool { get set }
+	
 	
 	/**
 	Accepts an update for a route to try and handle, based on it's own criteria.

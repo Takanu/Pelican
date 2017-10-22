@@ -63,7 +63,7 @@ extension MessageFile {
 }
 
 /**
-Defines a type that encapsulates a request from a user, through Telegram.
+Defines a type that encapsulates a request from a user, through a standard Telegram API type (eg.  Message, InlineQuery, CallbackQuery).
 */
 public protocol UpdateModel {
 	

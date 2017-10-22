@@ -495,14 +495,20 @@ public class Prompt: ReceiveUpload, Equatable {
 		
 		var rowIndex = 0
 		for row in lhs.inline.keyboard {
+			
 			let secondRow = rhs.inline.keyboard[rowIndex]
 			
+			if row.count != secondRow.count { return false }
+			
 			var buttonIndex = 0
+			
 			for button in row {
+				
 				let secondButton = secondRow[buttonIndex]
 				if button == secondButton {
 					return false
 				}
+				
 				buttonIndex += 1
 			}
 			rowIndex += 1

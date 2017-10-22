@@ -41,8 +41,7 @@ public class Timeout {
 	
 	
 	/**
-	Enable timeouts for the session, which removes the session from the update pool if
-	
+	Enable timeouts for the session, which removes the session from the update pool if no updates are received by it within a given timeframe.
 	*/
 	public func set(updateTypes: [UpdateType], duration: Duration, action: (() -> ())?) {
 		

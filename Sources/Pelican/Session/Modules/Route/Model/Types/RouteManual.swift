@@ -14,7 +14,9 @@ Lets you define your own routing function for incoming updates.
 public class RouteManual: Route {
 	
 	public var id: Int = 0
+	public var name: String = ""
 	public var action: (Update) -> (Bool)
+	public var enabled: Bool = true
 	
 	/// The commands to listen for in a message.  Only one has to be found in the set for the action to execute.
 	public var handler: (Update) -> (Bool)

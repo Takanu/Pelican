@@ -93,6 +93,7 @@ open class ChatSession: Session {
 		
 	}
 	
+	/// Closes the session, deinitialising all modules and removing itself from the associated SessionBuilder.
 	open func close() {
 		
 		self.queue.clear()

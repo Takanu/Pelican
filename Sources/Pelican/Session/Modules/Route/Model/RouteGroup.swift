@@ -34,6 +34,7 @@ class RouteGroup {
 		if enabled == false { return false }
 		
 		for route in collection {
+			if route.enabled == false { continue }
 			if route.handle(update) == true { return true }
 		}
 		

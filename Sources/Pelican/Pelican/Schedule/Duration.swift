@@ -91,7 +91,7 @@ extension Duration {
 	}
 	
 	/**
-	Returns the raw numerical value stored as a duration in the enumerator, as a double (mainly for internal comparisons).
+	Returns the raw numerical value stored as a duration in the enumerator, as a double (mainly for internal comparisons), do not use this for scheduling.
 	*/
 	public var rawValue: Double {
 		

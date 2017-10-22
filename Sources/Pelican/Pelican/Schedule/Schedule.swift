@@ -37,6 +37,8 @@ public class Schedule {
 	*/
 	func add(_ event: ScheduleEvent) {
 		
+		//print("Adding Event - Created at \(event.creationTime) with execution time of \(event.executeTime)")
+		
 		if let index = queue.index(where: { $0.executeTime.timeIntervalSince1970 > event.executeTime.timeIntervalSince1970 } ) {
 			queue.insert(event, at: index)
 		}
@@ -111,7 +113,7 @@ public class ScheduleEvent: Equatable {
 		// Calculate the execution time based on the delay provided
 		var shift = 0.0
 		for duration in self.delay! {
-			shift += duration.rawValue
+			shift += duration.unixTime
 		}
 		
 		self.executeTime = creationTime.addingTimeInterval(shift)
@@ -128,7 +130,6 @@ public class ScheduleEvent: Equatable {
 		
 		// Append the action delay
 		self.executeTime = creationTime.addingTimeInterval(delayUnixTime)
-		print(self.executeTime)
 	}
 	
 	

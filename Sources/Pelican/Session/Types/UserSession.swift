@@ -45,6 +45,12 @@ open class UserSession: Session {
 	/// Stores what Moderator-controlled permissions the User Session has.
 	public var mod: SessionModerator
 	
+	/// Handles timeout conditions.
+	public var timeout: Timeout
+	
+	/// Handles flood conditions.
+	public var flood: Flood
+	
 	/// Stores a link to the schedule, that allows events to be executed at a later date.
 	public var schedule: Schedule
 	
@@ -62,7 +68,11 @@ open class UserSession: Session {
 		self.info = update.from!
 		self.userID = update.from!.tgID
 		self.routes = RouteController()
+		
 		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
+		self.timeout = Timeout(tag: tag, schedule: bot.schedule)
+		self.flood = Flood()
+		
 		self.schedule = bot.schedule
 		
 		self.answer = TGAnswer(tag: tag)
@@ -73,16 +83,23 @@ open class UserSession: Session {
 		
 	}
 	
-	
+	/// Closes the session, deinitialising all modules and removing itself from the associated SessionBuilder.
 	open func close() {
 		
+		self.timeout.close()
 	}
 	
 	
 	public func update(_ update: Update) {
 		
+		// Bump the timeout controller first so if flood or another process closes the Session, a new timeout event will not be added.
+		timeout.bump(update)
+		
 		// This needs revising, whatever...
-		_ = routes.handle(update: update)
+		let handled = routes.handle(update: update)
+		
+		// Bump the flood controller after
+		flood.bump(update)
 		
 	}
 }

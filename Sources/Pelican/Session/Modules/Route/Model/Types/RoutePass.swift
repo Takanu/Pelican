@@ -17,7 +17,9 @@ given action.
 public class RoutePass: Route {
 	
 	public var id: Int = 0
+	public var name: String = ""
 	public var action: (Update) -> (Bool)
+	public var enabled: Bool = true
 	
 	/// The update types the update can potentially be in order for the action to be executed.
 	public var updateTypes: [UpdateType] = []

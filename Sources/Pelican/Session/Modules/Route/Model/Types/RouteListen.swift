@@ -17,7 +17,9 @@ Used to specifically route specific update content like "Yes" or "$200" to actio
 public class RouteListen: Route {
 	
 	public var id: Int = 0
+	public var name: String = ""
 	public var action: (Update) -> (Bool)
+	public var enabled: Bool = true
 	
 	/**
 	The pattern that the update content is compared against, to decide whether or not to use it.

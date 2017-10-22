@@ -54,6 +54,7 @@ public class PromptController {
 	- parameter upload: A specific file to be sent as the contents of the message belonging to this prompt.
 	- parameter update: (Optional) The closure that is executed every time the prompt receives a callback query.
 	*/
+	@available(*, deprecated, message: "Prompts are unreliable, clunky and likely to cause memory leaks - use a combination of custom Route types and functions instead.")
 	public func createPrompt(name: String, inline: MarkupInline, text: String, file: MessageFile?, update: ((Prompt) -> ())? ) -> Prompt {
 		let prompt = Prompt(controller: self, name: name, inline: inline, text: text, file: file, update: update)
 		prompt.controller = self

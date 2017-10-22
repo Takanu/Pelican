@@ -93,7 +93,7 @@ final public class Message: TelegramType, UpdateModel {
 	public var caption: String? // Caption for the document, photo or video, 0-200 characters.
 	
 	// Status Message Info
-	// This should be condensed into a single entity using an enumerator, as a status message can only represent one of these things
+	// This should be condensed into a single entity using an enumerator, as a status message can only represent one of these things, right?
 	
 	public var newChatMembers: [User]?             // A status message specifying information about new users added to the group.
 	public var leftChatMember: User?               // A status message specifying information about a user who left the group.
@@ -108,7 +108,7 @@ final public class Message: TelegramType, UpdateModel {
 	public var pinnedMessage: Message?             // Specified message was pinned?
 	
 	
-	init(id: Int, date: Int, chat:Chat) {
+	public init(id: Int, date: Int, chat:Chat) {
 		self.tgID = id
 		self.date = date
 		self.chat = chat

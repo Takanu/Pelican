@@ -30,14 +30,43 @@ public class RouteController {
 	/// The last ID assigned to a route.  Unlike Builder IDs, these are assigned sequentially to prevent an overlap.
 	var lastID: Int = 0
 	
+	/// If false, the route controller for this session will drop any updates received that have no update content.
+	public var handleEmptyContent: Bool = true
+	/// If false, the route controller for this session will drop any updates received that have no user assigned to them.
+	public var handleEmptyUser: Bool = false
+	
 	init() { }
+	
+	/// Returns the first route found that matches the given name, or nil if none were found.  Will also search collections for a route that matches the given name.
+	subscript(name: String) -> Route? {
+		
+		for route in collection {
+			if route.name == name {
+				return route
+			}
+		}
+		
+		for group in groups {
+			for route in group.collection {
+				if route.name == name {
+					return route
+				}
+			}
+		}
+		
+		return nil
+	}
 	
 	/**
 	Attempts to find and execute a route for the given user request, should only ever be accessed by ChatSession.
 	*/
 	func handle(update: Update) -> Bool {
 		
+		if update.content == "" && handleEmptyContent == false { return false }
+		if update.from == nil && handleEmptyUser == false { return false }
+		
 		for route in collection {
+			if route.enabled == false { continue }
 			if route.handle(update) == true { return true }
 		}
 		
