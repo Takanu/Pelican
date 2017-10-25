@@ -8,6 +8,7 @@
 
 import Foundation
 import Vapor
+import Dispatch // Must be specified for Linux support
 
 // This needs re-factoring ASAP.
 

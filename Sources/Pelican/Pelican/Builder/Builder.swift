@@ -52,6 +52,8 @@ public class SessionBuilder {
 	/// The sessions that have been spawned by the builder and are currently active.
 	var sessions: [Int:Session] = [:]
 	
+	public var getSessionCount: Int { return sessions.count }
+	
 	
 	/**
 	Creates a SessionBuilder, responsible for automatically generating different session types.
