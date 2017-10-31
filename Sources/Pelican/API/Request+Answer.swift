@@ -7,8 +7,8 @@
 //
 
 import Foundation
-import FluentProvider
 import Vapor
+import FluentProvider
 import HTTP
 import FormData
 import Multipart
