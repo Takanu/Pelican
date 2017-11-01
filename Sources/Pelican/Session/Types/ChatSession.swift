@@ -98,6 +98,8 @@ open class ChatSession: Session {
 		
 		self.queue.clear()
 		self.timeout.close()
+		self.queue.clear()
+		self.tag.sendEvent(type: .other, action: .remove)
 		// Need something for prompt, do it with the refactor
 	}
 	

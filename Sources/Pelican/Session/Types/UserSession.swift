@@ -87,6 +87,7 @@ open class UserSession: Session {
 	open func close() {
 		
 		self.timeout.close()
+		self.tag.sendEvent(type: .other, action: .remove)
 	}
 	
 	
