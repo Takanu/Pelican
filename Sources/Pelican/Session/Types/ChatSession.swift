@@ -93,14 +93,10 @@ open class ChatSession: Session {
 		
 	}
 	
-	/// Closes the session, deinitialising all modules and removing itself from the associated SessionBuilder.
-	open func close() {
-		
+	open func cleanup() {
 		self.queue.clear()
 		self.timeout.close()
 		self.queue.clear()
-		self.tag.sendEvent(type: .other, action: .remove)
-		// Need something for prompt, do it with the refactor
 	}
 	
 	

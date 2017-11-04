@@ -34,9 +34,9 @@ public protocol Session {
 	/** Performs any post-initialiser setup, like setting initial routes. */
 	func postInit()
 	
-	/** Performs any functions required to prepare the Session for removal from the Builder, which can occur when a Session or one
-	of it's delegates requests Pelican to remove it. */
-	func close()
+	/** TEMP NAME, PLEASE CHANGE ME.  Performs any functions required to prepare the Session for removal from the Builder, which can occur when a Session or one
+	of it's delegates requests Pelican to remove it.  This function should never send the closure event itself, use this to clean up any custom types before the Session is removed.*/
+	func cleanup()
 	
 	/** Receives updates from Pelican to be used to find matching Routes and Prompts (in ChatSessions only).  Returns SessionRequests that
 	Pelican uses to make requests to Telegram with. */
@@ -45,6 +45,11 @@ public protocol Session {
 }
 
 extension Session {
+	
+	/** Closes the session, deinitialising all modules and removing itself from the associated SessionBuilder. */
+	public func close() {
+		self.tag.sendEvent(type: .other, action: .remove)
+	}
 	
 	// Receives a message from the TelegramBot to check whether in the current state anything can be done with it
 	public func update(_ update: Update) {

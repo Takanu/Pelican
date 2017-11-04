@@ -160,7 +160,7 @@ public class SessionBuilder {
 		if tag.getBuilderID != self.id { return }
 		
 		if let session = sessions[tag.getSessionID] {
-			session.close()
+			session.cleanup()
 			sessions.removeValue(forKey: tag.getSessionID)
 			print("SESSION REMOVED - \(tag.getSessionID)")
 		}

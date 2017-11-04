@@ -7,7 +7,7 @@
 
 import Foundation
 import Vapor
-
+import TLS
 
 extension Pelican {
 	/**
@@ -27,10 +27,18 @@ extension Pelican {
 			} catch {
 				
 				PLog.error(String(describing: error))
-				
+				//Swift Compiler Warning Group
 			}
 		}
 		
+		// Ensure the query text is correctly formatted, as Foundation with Vapor requires some odd formatting workarounds.
+		var queryText = ""
+		if clientType == "foundation" {
+			queryText = try! request.query.makeNode(in: nil).formURLEncoded().makeString().removingPercentEncoding!
+		}
+		else {
+			queryText = try! request.query.makeNode(in: nil).formURLEncoded().makeString()
+		}
 		
 		// Build a new request with the correct URI and fetch the other data from the Session Request
 		// The query function tower is due to a bug where assigning the query as a node forces URL encoding, which URLComponent already applies.
@@ -40,7 +48,7 @@ extension Pelican {
 									 hostname: "api.telegram.org",
 									 port: nil,
 									 path: "/bot" + apiKey + "/" + request.methodName,
-									 query: try! request.query.makeNode(in: nil).formURLEncoded().makeString().removingPercentEncoding,
+									 query: queryText,
 									 fragment: nil)
 		
 		let vaporRequest = Request(method: .post, uri: uri)
@@ -51,15 +59,16 @@ extension Pelican {
 		}
 		
 		
-		// Attempt to send it and get a TelegramResponse from it.
 		PLog.verbose("Telegram Request - (\(vaporRequest))")
-		let response = try! client!.respond(to: vaporRequest)
-		PLog.verbose("Telegram Response - (\(response))")
+		var response: Response? = nil
 		
-		let tgResponse = TelegramResponse(response: response)
+		response = connectToClient(request: vaporRequest, attempts: 0)
+		
+		PLog.verbose("Telegram Response - (\(String(describing: response!)))")
+		let tgResponse = TelegramResponse(response: response!)
 		return tgResponse
-		
 	}
+	
 	
 	/**
 	Handles a specific event sent from a Session.

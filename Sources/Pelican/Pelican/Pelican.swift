@@ -6,6 +6,7 @@ import FluentProvider
 import HTTP
 import FormData
 import Multipart
+import TLS
 
 protocol TelegramParameter: NodeConvertible, JSONConvertible {
   func getQueryParameter() -> String
@@ -119,7 +120,7 @@ enum TGVaporError: String, Error {
 A deprecated internal type used to enable models to switch between node-type conversion for response purposes, 
 and that for databasing purposes.
 */
-public enum TGContext: Context {
+public enum TGContext: Vapor.Context {
   case response
   case db
 }
@@ -175,8 +176,14 @@ public final class Pelican: Vapor.Provider {
   var apiKey: String
 	/// The combination of the API request URL and your API token.
   var apiURL: String
+	/// The droplet powering the server
+	var drop: Droplet?
 	/// Client Connection with Vapor, to Telegram.
 	var client: ClientProtocol?
+	/// The type of client being used by the app
+	var clientType: String = ""
+	/// The TLS context being used?
+	var context: TLS.Context? = nil
 	/// Defines an object to be used for custom data, to be used purely for cloning into newly-created ChatSessions.  DO NOT EDIT CONTENTS.
   private var customData: NSCopying?
 	
@@ -238,13 +245,13 @@ public final class Pelican: Vapor.Provider {
 	
 	
 	// Boots the provider?
-	public func boot(_ config: Config) throws {
+	public func boot(_ config: Vapor.Config) throws {
 		print("*shrug")
 	}
 	
 	
   // Provider conforming functions
-  public init(config: Config) throws {
+  public init(config: Vapor.Config) throws {
 		
 		// Obtain the token from pelican.json
     guard let token = config["pelican", "token"]?.string else {
@@ -277,10 +284,15 @@ public final class Pelican: Vapor.Provider {
 		//try! cache.setBundlePath(Droplet().config.publicDir)
 		
 		// Ensure that the Foundation Engine is being used.
+		
 		let engine = config["droplet", "client"]?.string ?? ""
-		if engine != "foundation" {
-			print("Hey, sorry but you'll need to use the Foundation Client instead of the Engine Client.  I've tried being friends with it but it's just too stubborn.  Ill remove this once the Engine Client starts working with it <3")
-			throw TGVaporError.EngineSucks
+		if engine == "foundation" {
+			self.clientType = "foundation"
+			//print("Hey, sorry but you'll need to use the Foundation Client instead of the Engine Client.  I've tried being friends with it but it's just too stubborn.  Ill remove this once the Engine Client starts working with it <3")
+			//throw TGVaporError.EngineSucks
+		}
+		else {
+			self.clientType = "engine"
 		}
   }
 	
@@ -307,8 +319,22 @@ public final class Pelican: Vapor.Provider {
   /// Perform correct droplet configuration here.
   public func boot(_ drop: Droplet) {
 		
+		// Get the config
+		let config = drop.config
+		try! config.resolveClient()  // idk what this does...
+		context = try! TLS.Context(.client)
+		self.drop = drop
+		
 		// Setup the client used to send and get requests.
-		self.client = try! drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(FoundationClient.defaultTLSContext()), proxy: drop.client.defaultProxy)
+		let engine = config["droplet", "client"]?.string ?? ""
+		if engine == "foundation" {
+			self.client = try! drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(context!), proxy: .none)
+			//self.client = try! drop.client.make
+		}
+		
+		else {
+			self.client = try! drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(context!), proxy: .none)
+		}
 		
 		// Setup the logger.
 		PLog.console = drop.log
@@ -370,23 +396,26 @@ public final class Pelican: Vapor.Provider {
     let query = makeUpdateQuery()
 		PLog.verbose("Contacting Telegram for Updates...")
 		
-		var response: Response
+		var response: Response? = nil
+		let vaporRequest = Request(method: .post, uri: apiURL + "/getUpdates")
+		//print(vaporRequest)
 		
 		do {
 			// Build a new request with the correct URI and fetch the other data from the Session Request
-			let vaporRequest = Request(method: .post, uri: apiURL + "/getUpdates")
-			
 			vaporRequest.query = try query.makeNode(in: nil)
 			vaporRequest.headers = [HeaderKey.connection: "keep-alive"]
-			response = try client!.respond(to: vaporRequest)
+			
+			response = connectToClient(request: vaporRequest, attempts: 0)
 			
 		} catch {
 			print(error)
 			print(TGReqError.NoResponse.rawValue)
 			return nil
 		}
+		
+		//print(response)
 
-		let updateResult = self.filterUpdateResponse(response: response.json!)
+		let updateResult = self.filterUpdateResponse(response: response!.json!)
 		if updateResult != nil {
 			return updateResult
 		}

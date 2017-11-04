@@ -151,6 +151,7 @@ public class ScheduleEvent: Equatable {
 			if lhs.delay!.elementsEqual(rhs.delay!) &&
 				 lhs.creationTime == rhs.creationTime &&
 			   lhs.executeTime == rhs.executeTime { return true }
+			
 		}
 		
 		else if lhs.delay == nil && rhs.delay == nil  &&

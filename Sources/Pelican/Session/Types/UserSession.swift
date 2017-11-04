@@ -83,11 +83,8 @@ open class UserSession: Session {
 		
 	}
 	
-	/// Closes the session, deinitialising all modules and removing itself from the associated SessionBuilder.
-	open func close() {
-		
+	open func cleanup() {
 		self.timeout.close()
-		self.tag.sendEvent(type: .other, action: .remove)
 	}
 	
 	
