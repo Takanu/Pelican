@@ -8,7 +8,7 @@ If you’ve never heard of [Telegram](telegram.org) it’s an awesome non-profit
 
 * An open sticker platform
 * 30,000 member groups
-* You can access your chats easily from any device
+* The ability to access your chats easily from any device
 * 1.5GB file transfers
 * A cool HTML5 game platform
 * Apps For Literally Everything (Tablets, Desktop, Smartwatches)
