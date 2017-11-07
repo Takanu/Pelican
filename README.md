@@ -6,11 +6,11 @@ Hi 2-3 people that somehow both like Telegram, Swift and Vapor!   This is a Prov
 If you’ve never heard of [Telegram](telegram.org) it’s an awesome non-profit, secure messaging service that offers so many cool features that it’s kind of hard to list them all but i’ll try:
 
 
-* Open Stickers Platform 
-* 5000 Member Groups 
-* Access Chats From Any Device 
-* 1.5GB File Transfer 
-* HTML5 Game Platform 
+* An open sticker platform
+* 30,000 member groups
+* You can access your chats easily from any device
+* 1.5GB file transfers
+* A cool HTML5 game platform
 * Apps For Literally Everything (Tablets, Desktop, Smartwatches)
 * The fact that you can talk to someone without giving out your phone number through the magic of usernames like [t.me/takanu](t.me/takanu) (hey thats me).
 * Channels where you can publish content to an unlimited number of followers
@@ -22,7 +22,6 @@ So, what does Pelican do currently?
 - Modular Session System for generating active objects to contain updates within a chat-based, user-based or custom update scope.
 - Modular Routing System for matching incoming update contents to bot or session functionality.
 - In-Built Moderator, Flood, Timeout and Queue systems
-- Inline message containers ("Prompts") for inline message response and update management
-- A bunch of other cool stuff!
+- A bunch of other cool stuff
 
-The code has extensive documentation to help you use it, and I will include up-to-date tests and demo code soon.  If you have any questions, feel free to message me on GitHub or on Telegram at t.me/takanu.
+The code has extensive API documentation to help you use it, and I will include up-to-date tests and demo code soon.  If you have any questions, feel free to message me on GitHub or on Telegram at t.me/takanu.
