@@ -679,9 +679,9 @@ public protocol InputMessageContent: Model {
 final public class InputMessageText: InputMessageContent {
 	public var storage = Storage()
 	
-  var text: String // Text of the message to be sent.  1-4096 characters.
-  var parseMode: String? // Send Markdown or HTML, if you want Telegram apps to show bold, italic, fixed-width text or inline URLs in your bot's message.
-  var disableWebPreview: Bool? // Disables link previews for links in the sent message.
+  public var text: String // Text of the message to be sent.  1-4096 characters.
+  public var parseMode: String? // Send Markdown or HTML, if you want Telegram apps to show bold, italic, fixed-width text or inline URLs in your bot's message.
+  public var disableWebPreview: Bool? // Disables link previews for links in the sent message.
   
   init(text: String, parseMode: String?, disableWebPreview: Bool?) {
     self.text = text
@@ -710,8 +710,8 @@ final public class InputMessageText: InputMessageContent {
 final public class InputMessageLocation: InputMessageContent {
 	public var storage = Storage()
 	
-  var latitude: Float // Latitude of the venue in degrees.
-  var longitude: Float // Longitude of the venue in degrees.
+  public var latitude: Float // Latitude of the venue in degrees.
+  public var longitude: Float // Longitude of the venue in degrees.
   
   init(latitude: Float, longitude: Float) {
     self.latitude = latitude
@@ -738,11 +738,11 @@ final public class InputMessageLocation: InputMessageContent {
 final public class InputMessageVenue: InputMessageContent {
 	public var storage = Storage()
 	
-  var latitude: Float // Latitude of the venue in degrees.
-  var longitude: Float // Longitude of the venue in degrees.
-  var title: String // Name of the venue.
-  var address: String // Address of the venue.
-  var foursquareID: String? // Foursquare identifier of the venue, if known.
+  public var latitude: Float // Latitude of the venue in degrees.
+  public var longitude: Float // Longitude of the venue in degrees.
+  public var title: String // Name of the venue.
+  public var address: String // Address of the venue.
+  public var foursquareID: String? // Foursquare identifier of the venue, if known.
   
 	init() {
     self.latitude = 0
@@ -775,9 +775,9 @@ final public class InputMessageVenue: InputMessageContent {
 final public class InputMessageContact: InputMessageContent {
 	public var storage = Storage()
 	
-  var phoneNumber: String // Contact's phone number.
-  var firstName: String // Contact's first name.
-  var lastName: String // Contact's last name.
+  public var phoneNumber: String // Contact's phone number.
+  public var firstName: String // Contact's first name.
+  public var lastName: String // Contact's last name.
   
 	init() {
     self.phoneNumber = ""
