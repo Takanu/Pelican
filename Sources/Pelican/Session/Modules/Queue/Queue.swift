@@ -62,6 +62,7 @@ public class ChatSessionQueue {
 	- parameter name: A name for the action, that can be used to search for and edit the action later on.
 	- parameter action: The closure to be executed when the queue executes this action.
 	*/
+	@discardableResult
 	public func action(delay: Duration, viewTime: Duration, action: @escaping () -> ()) -> ScheduleEvent {
 		
 		// Calculate what kind of delay we're using

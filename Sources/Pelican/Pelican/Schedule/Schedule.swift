@@ -95,7 +95,9 @@ Defines a single scheduled item for the Pelican Schedule to execute, at the defi
 public class ScheduleEvent: Equatable {
 	
 	var delay: [Duration]?
+	public var getcreationTime: Date { return creationTime }
 	var creationTime = Date()
+	public var getExecuteTime: Date { return executeTime }
 	var executeTime: Date
 	
 	var action: () -> ()

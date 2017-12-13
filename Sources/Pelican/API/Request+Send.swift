@@ -36,7 +36,7 @@ extension TelegramRequest {
 		
 		// Check whether any other query needs to be added
 		if replyMarkup != nil {
-			print(replyMarkup!.getQuery())
+			//print(replyMarkup!.getQuery())
 			request.query["reply_markup"] = replyMarkup!.getQuery()
 		}
 
@@ -117,27 +117,56 @@ extension TelegramRequest {
 		
 		let request = TelegramRequest()
 		
-		// Create the form data and assign some initial values
-		request.form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
-		
-		// Check whether any other query needs to be added as form data.
-		let captionTypes = ["audio", "photo", "video", "document", "voice"]
-		
-		if caption != "" && captionTypes.contains(file.contentType) {
-			request.form["caption"] = Field(name: "caption", filename: nil, part: Part(headers: [:], body: caption.bytes))
+		// If have a File ID, add it here.
+		if file.fileID != nil {
+			request.query["chat_id"] = chatID
+			request.query[file.contentType] = file.fileID!
+			
+			// Check whether any other query needs to be added as form data.
+			let captionTypes = ["audio", "photo", "video", "document", "voice"]
+			
+			if caption != "" && captionTypes.contains(file.contentType) {
+				request.query["caption"] = caption
+			}
+			
+			if markup != nil {
+				request.query["reply_markup"] =  markup!.getQuery()
+			}
+			
+			if replyMessageID != 0 {
+				request.query["reply_to_message_id"] = replyMessageID
+			}
+			
+			if disableNtf != false {
+				request.query["disable_notification"] = disableNtf
+			}
 		}
 		
-		if markup != nil {
-			request.form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: try! markup!.makeRow().converted(to: JSON.self).makeBytes()))
+		else {
+			// Create the form data and assign some initial values
+			request.form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
+			
+			// Check whether any other query needs to be added as form data.
+			let captionTypes = ["audio", "photo", "video", "document", "voice"]
+			
+			if caption != "" && captionTypes.contains(file.contentType) {
+				request.form["caption"] = Field(name: "caption", filename: nil, part: Part(headers: [:], body: caption.bytes))
+			}
+			
+			if markup != nil {
+				request.form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: try! markup!.makeRow().converted(to: JSON.self).makeBytes()))
+			}
+			
+			if replyMessageID != 0 {
+				request.form["reply_to_message_id"] = Field(name: "reply_to_message_id", filename: nil, part: Part(headers: [:], body: String(replyMessageID).bytes))
+			}
+			
+			if disableNtf != false {
+				request.form["disable_notification"] = Field(name: "disable_notification", filename: nil, part: Part(headers: [:], body: String(disableNtf).bytes))
+			}
 		}
 		
-		if replyMessageID != 0 {
-			request.form["reply_to_message_id"] = Field(name: "reply_to_message_id", filename: nil, part: Part(headers: [:], body: String(replyMessageID).bytes))
-		}
 		
-		if disableNtf != false {
-			request.form["disable_notification"] = Field(name: "disable_notification", filename: nil, part: Part(headers: [:], body: String(disableNtf).bytes))
-		}
 		
 		// Set the Request, Method and Content
 		request.methodName = file.method

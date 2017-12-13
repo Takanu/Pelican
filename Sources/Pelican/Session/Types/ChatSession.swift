@@ -67,7 +67,6 @@ open class ChatSession: Session {
 	public var timeStarted = Date()
 	
 	
-	
 	// Setup the session by passing a function that modifies itself with the required commands.
 	public required init(bot: Pelican, tag: SessionTag, update: Update) {
 		
@@ -96,7 +95,6 @@ open class ChatSession: Session {
 	open func cleanup() {
 		self.queue.clear()
 		self.timeout.close()
-		self.queue.clear()
 	}
 	
 	

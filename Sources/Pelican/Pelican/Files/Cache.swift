@@ -129,10 +129,11 @@ public class CacheManager {
 
 	- returns: A form data entry with all the information necessary to send or re-link the file in a message, or nil if this was not possible.
 	*/
-	func getFormEntry(forFile file: MessageFile) throws -> [String:FormData.Field] {
+	func getFormEntry(forFile file: MessageFile) throws -> [String:FormData.Field]? {
 		
 		if file.fileID != nil {
-			
+			//return [file.contentType: Field(name: file.contentType, filename: file.fileID!, part: Part(headers: [HeaderKey.contentType:"text/html"], body: file.fileID!.bytes) )]
+			return nil
 		}
 		
 		else if file.url != nil {

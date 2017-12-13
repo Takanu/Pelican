@@ -58,7 +58,7 @@ extension TelegramRequest {
 		
 		request.query = [
 			"chat_id":chatID,
-			"text": caption,
+			"caption": caption,
 		]
 		
 		// Check whether any other query needs to be added

@@ -8,6 +8,8 @@
 import Foundation
 import Vapor
 import TLS
+import FormData
+import Multipart
 
 extension Pelican {
 	/**
@@ -17,15 +19,16 @@ extension Pelican {
 	*/
 	func sendRequest(_ request: TelegramRequest) -> TelegramResponse {
 		
-		// If we have a message file, we need to handle this separately
+		// If we have a message file, we need to handle this separately through the cache system.
 		if request.content is MessageFile {
 			
 			do {
-				let fileForm = try cache.getFormEntry(forFile: request.content as! MessageFile)
-				request.form.merge(fileForm, uniquingKeysWith: { (current, _) in current } )
-				
+				if let fileForm = try cache.getFormEntry(forFile: request.content as! MessageFile) {
+					request.form.merge(fileForm, uniquingKeysWith: { (current, _) in current } )
+				}
+					
 			} catch {
-				
+					
 				PLog.error(String(describing: error))
 				//Swift Compiler Warning Group
 			}
@@ -55,7 +58,11 @@ extension Pelican {
 		
 		// If we have a message file, add the form data (doing this regardless will break normal requests)
 		if request.content is MessageFile {
-			vaporRequest.formData = request.form
+			let file = request.content as! MessageFile
+			
+			if file.fileID == nil {
+				vaporRequest.formData = request.form
+			}
 		}
 		
 		
@@ -63,6 +70,7 @@ extension Pelican {
 		var response: Response? = nil
 		
 		response = connectToClient(request: vaporRequest, attempts: 0)
+		//print(response)
 		
 		PLog.verbose("Telegram Response - (\(String(describing: response!)))")
 		let tgResponse = TelegramResponse(response: response!)

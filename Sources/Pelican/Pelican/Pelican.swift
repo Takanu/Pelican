@@ -55,7 +55,7 @@ private class UpdateQueue {
 			queue.async(execute: self.operation!)
 		}
 			
-			// Otherwise use the built delay time.
+		// Otherwise use the built delay time.
 		else {
 			PLog.verbose("Update loop executing at \(DispatchWallTime.now() + delayTime)")
 			queue.asyncAfter(wallDeadline: .now() + delayTime, execute: self.operation!)
@@ -417,6 +417,10 @@ public final class Pelican: Vapor.Provider {
 		
 		// If we have a response, try and build an update list from it.
 		if response != nil {
+			if response!.status != .ok { return nil }
+			
+			print(response)
+			
 			let updateResult = self.filterUpdateResponse(response: response!.json!)
 			if updateResult != nil {
 				return updateResult
@@ -425,34 +429,6 @@ public final class Pelican: Vapor.Provider {
 		
 		return nil
 
-		
-//		// Until Vapor can perform the very basic concept of making repeated client requests without hanging, this is being used.
-//		var request = URLRequest(url: URL(string: apiURL + "/getUpdates" + "?offset=\(offset)")!)
-//		request.httpMethod = "GET"
-//		request.httpShouldHandleCookies = false
-//		let session = URLSession.shared
-//
-//		// Build the task
-//		session.dataTask(with: request) { data, response, error in
-//
-//			if error != nil {
-//				self.updateQueue!.queueNext()
-//				return
-//			}
-//			
-//			else {
-//				let json = try! JSON.init(bytes: data!.makeBytes())
-//				//print(json)
-//
-//				let updateResult = self.filterUpdateResponse(response: json)
-//				if updateResult != nil {
-//					updates = updateResult!
-//					self.filterUpdates(updates: updates)
-//					self.updateQueue!.queueNext()
-//				}
-//			}
-//
-//		}.resume()
 	}
 	
 	public func filterUpdateResponse(response: JSON) -> [Update]? {
