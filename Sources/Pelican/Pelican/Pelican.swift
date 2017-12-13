@@ -419,7 +419,7 @@ public final class Pelican: Vapor.Provider {
 		if response != nil {
 			if response!.status != .ok { return nil }
 			
-			print(response)
+			//print(response)
 			
 			let updateResult = self.filterUpdateResponse(response: response!.json!)
 			if updateResult != nil {
