@@ -15,24 +15,53 @@ extension SessionRequests {
 	Sends a text-based message to the chat linked to this session.
 	*/
 	@discardableResult
-	public func sendMessage(_ message: String, markup: MarkupType?, chatID: Int, parseMode: MessageParseMode = .markdown, replyID: Int = 0, useWebPreview: Bool = false, disableNotification: Bool = false) -> Message {
+	public func sendMessage(_ message: String, markup: MarkupType?, chatID: Int, parseMode: MessageParseMode = .markdown, replyID: Int = 0, useWebPreview: Bool = false, disableNotification: Bool = false) -> Message? {
 		
-		let request = TelegramRequest.sendMessage(chatID: chatID, text: message, replyMarkup: markup, parseMode: parseMode, disableWebPreview: useWebPreview, disableNotification: disableNotification, replyMessageID: replyID)
+		let request = TelegramRequest.sendMessage(chatID: chatID, text: message, markup: markup, parseMode: parseMode, disableWebPreview: useWebPreview, disableNotification: disableNotification, replyMessageID: replyID)
 		let response = tag.sendRequest(request)
 		
-		return try! Message(row: Row(response.data!))
+		if response != nil {
+			if response!.success == true {
+				
+				do {
+					let decoder = JSONDecoder()
+					return try decoder.decode(Message.self, from: response!.data!)
+				} catch {
+					PLog.error(error.localizedDescription)
+				}
+			}
+		}
+		
+		return nil
 	}
 	
 	/**
 	Sends and uploads a file as a message to the chat linked to this session, using a `FileLink`
 	*/
 	@discardableResult
-	public func sendFile(_ file: MessageFile, caption: String, markup: MarkupType?, chatID: Int, replyID: Int = 0, disableNotification: Bool = false) -> Message {
+	public func sendFile(_ file: MessageFile, caption: String, markup: MarkupType?, chatID: Int, replyID: Int = 0, disableNotification: Bool = false) -> Message? {
 		
 		let request = TelegramRequest.sendFile(file: file, callback: nil, chatID: chatID, markup: markup, caption: caption, disableNotification: disableNotification, replyMessageID: replyID)
-		let response = tag.sendRequest(request)
 		
-		return try! Message(row: Row(response.data!))
+		if request == nil {
+			return nil
+		}
+		
+		let response = tag.sendRequest(request!)
+		
+		if response != nil {
+			if response!.success == true {
+				
+				do {
+					let decoder = JSONDecoder()
+					return try decoder.decode(Message.self, from: response!.data!)
+				} catch {
+					PLog.error(error.localizedDescription)
+				}
+			}
+		}
+		
+		return nil
 	}
 	
 	/**

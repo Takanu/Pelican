@@ -56,7 +56,7 @@ extension TelegramRequest {
 	Use this method to send answers to an inline query. On success, True is returned.
 	No more than 50 results per query are allowed.
 	*/
-	public static func answerInlineQuery(queryID: String, results: [InlineResult], cacheTime: Int = 0, isPersonal: Bool = false, nextOffset: String?, switchPM: String?, switchPMParam: String?) -> TelegramRequest {
+	public static func answerInlineQuery(queryID: String, results: [InlineResult], cacheTime: Int = 0, isPersonal: Bool = false, nextOffset: String?, switchPM: String?, switchPMParam: String?) -> TelegramRequest? {
 		
 		let request = TelegramRequest()
 		
@@ -64,17 +64,12 @@ extension TelegramRequest {
 			"inline_query_id": queryID
 		]
 		
-		// Convert the InlineResult objects into a JSON array
-		var resultQuery: [Row] = []
-		for result in results {
-			var row = try! result.makeRow() as Row
-			try! row.removeNullEntries()
-			resultQuery.append(row)
-		}
-		
 		// Then serialise it as a query entry
-		//query["results"] = try! resultQuery.makeJSON().serialize().toString()
-		request.query["results"] = try! resultQuery.converted(to: JSON.self, in: nil).serialize().makeString()
+		if let jsonData = TelegramRequest.encodeDataToUTF8(results) {
+			request.query["results"] = jsonData
+		} else {
+			return nil
+		}
 		
 		// Check whether any other query needs to be added
 		if cacheTime != 300 { request.query["cache_time"] = cacheTime }

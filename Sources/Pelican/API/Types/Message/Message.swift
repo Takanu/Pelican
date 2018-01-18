@@ -201,7 +201,10 @@ final public class Message: Codable, UpdateModel {
 		// Try to find if there's media content here...
 		let mediaKeys = values.allKeys
 		
-		if mediaKeys.count == 0 { return }
+		if mediaKeys.count == 0 {
+			type = .text
+			return
+		}
 		
 		if mediaKeys.contains(.audio) {
 			type = .audio(try values.decode(Audio.self, forKey: .audio))

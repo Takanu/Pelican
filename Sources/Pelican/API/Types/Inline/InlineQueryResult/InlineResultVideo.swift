@@ -27,7 +27,7 @@ struct InlineResultVideo: InlineResult {
 	public var content: InputMessageContent?
 	
 	/// Inline keyboard attached to the message
-	public var replyMarkup: MarkupInline?
+	public var markup: MarkupInline?
 	
 	
 	
@@ -66,16 +66,18 @@ struct InlineResultVideo: InlineResult {
 		case type
 		case id
 		case content = "input_message_content"
-		case replyMarkup = "reply_markup"
+		case markup = "reply_markup"
 		
 		case url = "video_url"
 		case fileID = "video_file_id"
 		case title
+		case description
 		case caption
 		
 		case width = "video_width"
 		case height = "video_height"
 		case duration = "video_duration"
+		case mimeType = "mime_type"
 		case thumbURL = "thumb_url"
 	}
 	

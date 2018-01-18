@@ -175,7 +175,7 @@ public final class Pelican: Vapor.Provider {
 	/// The API key assigned to your bot.  PLEASE DO NOT ASSIGN IT HERE, ADD IT TO A JSON FILE INSIDE config/pelican.json as a "token".
   var apiKey: String
 	/// The Payment key assigned to your bot.  To assign the key, add it to the JSON file inside config/pelican.json as "payment_token".
-	var paymentKey: String
+	var paymentKey: String?
 	/// The combination of the API request URL and your API token.
   var apiURL: String
 	/// The droplet powering the server
@@ -446,138 +446,84 @@ public final class Pelican: Vapor.Provider {
     // Iterate through the collected messages
     for i in 0..<messageCount {
       let update_id = response["result", i, "update_id"]?.int ?? -1
-
+			let responseSlice = response["result", i]!
 
       // This is just a plain old message
       if allowedUpdates.contains(UpdateType.message) {
-        if (response["result", i, "message"]) != nil {
-
-					// Find and build a node based on the search.
-					guard let messageNode = response.makeNode(in: nil)["result", i, "message"] else {
-            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? Message(row: Row(messageNode)) else {
-            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-
-					// Check that the update should be used before adding it.
-					if mod.checkBlacklist(chatID: message.chat.tgID) == false {
-						if mod.checkBlacklist(userID: message.from!.tgID) == false {
-							updates.append(Update(withData: message as UpdateModel, node: messageNode))
-						}
+        if (responseSlice["message"]) != nil {
+					
+					let update = unwrapIncomingUpdate(json: responseSlice["message"]!,
+																						dataType: Message.self,
+																						updateType: .message)
+					
+					if update != nil {
+						updates.append(update!)
 					}
         }
       }
 
-			/*
       // This is if a message was edited
       if allowedUpdates.contains(UpdateType.editedMessage) {
-        if (response.data["result", i, "edited_message"]) != nil {
-          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "edited_message"] else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? Message(row: Row(messageNode)) else {
-						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						offset = update_id + 1
-						continue
+        if (responseSlice["edited_message"]) != nil {
+					let update = unwrapIncomingUpdate(json: responseSlice["edited_message"]!,
+																						dataType: Message.self,
+																						updateType: .editedMessage)
+					
+					if update != nil {
+						updates.append(update!)
 					}
-
-					updates.append(Update(withData: message as UpdateModel, node: messageNode))
         }
       }
 
       // This is for a channel post
       if allowedUpdates.contains(UpdateType.channelPost) {
-        if (response.data["result", i, "channel_post"]) != nil {
-          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "channel_post"] else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? Message(row: Row(messageNode)) else {
-						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						offset = update_id + 1
-						continue
+        if (responseSlice["channel_post"]) != nil {
+					let update = unwrapIncomingUpdate(json: responseSlice["channel_post"]!,
+																						dataType: Message.self,
+																						updateType: .channelPost)
+					
+					if update != nil {
+						updates.append(update!)
 					}
-
-          updates.append(Update(withData: message as UpdateModel, node: messageNode))
         }
       }
 
       // This is for an edited channel post
       if allowedUpdates.contains(UpdateType.editedChannelPost) {
-        if (response.data["result", i, "edited_channel_post"]) != nil {
-          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "edited_channel_post"] else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? Message(row: Row(messageNode)) else {
-						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						offset = update_id + 1
-						continue
+        if (responseSlice["edited_channel_post"]) != nil {
+					let update = unwrapIncomingUpdate(json: responseSlice["edited_channel_post"]!,
+																						dataType: Message.self,
+																						updateType: .editedChannelPost)
+					
+					if update != nil {
+						updates.append(update!)
 					}
-
-          updates.append(Update(withData: message as UpdateModel, node: messageNode))
         }
       }
-			*/
 
       // COME BACK TO THESE LATER
       // This type is for when someone tries to search something in the message box for this bot
       if allowedUpdates.contains(UpdateType.inlineQuery) {
-        if (response["result", i, "inline_query"]) != nil {
-          guard let messageNode = response.makeNode(in: nil)["result", i, "inline_query"] else {
-            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						//print("inline_query")
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? InlineQuery(row: Row(messageNode)) else {
-						//drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						//print("inline_query")
-						offset = update_id + 1
-						continue
-					}
-
-					// Check that the update should be used before adding it.
-					if mod.checkBlacklist(userID: message.from.tgID) == false {
-						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+        if (responseSlice["inline_query"]) != nil {
+					let update = unwrapIncomingUpdate(json: responseSlice["inline_query"]!,
+																						dataType: Message.self,
+																						updateType: .inlineQuery)
+					
+					if update != nil {
+						updates.append(update!)
 					}
         }
       }
 
       // This type is for when someone has selected an search result from the inline query
       if allowedUpdates.contains(UpdateType.chosenInlineResult) {
-        if (response["result", i, "chosen_inline_result"]) != nil {
-          guard let messageNode = response.makeNode(in: nil)["result", i, "chosen_inline_result"] else {
-            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						//print("Chosen Inline Result")
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? ChosenInlineResult(row: Row(messageNode)) else {
-						//drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						//print("Chosen Inline Result")
-						offset = update_id + 1
-						continue
-					}
-
-					// Check that the update should be used before adding it.
-					if mod.checkBlacklist(userID: message.from.tgID) == false {
-						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+        if (responseSlice["chosen_inline_result"]) != nil {
+					let update = unwrapIncomingUpdate(json: responseSlice["chosen_inline_result"]!,
+																						dataType: Message.self,
+																						updateType: .chosenInlineResult)
+					
+					if update != nil {
+						updates.append(update!)
 					}
         }
       }
@@ -585,23 +531,12 @@ public final class Pelican: Vapor.Provider {
       /// Callback Query handling (receiving button presses for inline buttons with callback data)
       if allowedUpdates.contains(UpdateType.callbackQuery) {
         if (response["result", i, "callback_query"]) != nil {
-          guard let messageNode = response.makeNode(in: nil)["result", i, "callback_query"] else {
-            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						//print("Callback Query")
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? CallbackQuery(row: Row(messageNode)) else {
-						//drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						//print("Callback Query")
-						offset = update_id + 1
-						continue
-					}
-
-					// Check that the update should be used before adding it.
-					if mod.checkBlacklist(userID: message.from.tgID) == false {
-						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+					let update = unwrapIncomingUpdate(json: responseSlice["callback_query"]!,
+																						dataType: Message.self,
+																						updateType: .callbackQuery)
+					
+					if update != nil {
+						updates.append(update!)
 					}
         }
       }
@@ -612,7 +547,42 @@ public final class Pelican: Vapor.Provider {
     return updates
   }
 	
-	
+	/**
+	Attempts to unwrap a slice of the response to the desired type, returning it as an Update.
+	*/
+	internal func unwrapIncomingUpdate<T: UpdateModel>(json: JSON, dataType: T.Type, updateType: UpdateType) -> Update? {
+		
+		// Setup the decoder
+		let data = Data.init(bytes: json.bytes!)
+		let decoder = JSONDecoder()
+		
+		// Attempt to decode
+		do {
+			let result = try decoder.decode(dataType, from: data)
+			let update = Update(withData: result, json: json, type: updateType)
+			
+			// Check that the update isn't on any blacklists.
+			if update.chat != nil {
+				if mod.checkBlacklist(chatID: update.chat!.tgID) == true {
+					return nil
+				}
+			}
+			
+			if update.from != nil {
+				if mod.checkBlacklist(chatID: update.from!.tgID) == true {
+					return nil
+				}
+			}
+			
+			// Now we can return
+			return update
+			
+			
+		} catch {
+			PLog.error("Error decoding message from updates - \(error)")
+			return nil
+		}
+	}
 	
   /**
 	Used by the in-built long polling solution to match updates to sessions.

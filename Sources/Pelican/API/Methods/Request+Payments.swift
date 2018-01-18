@@ -14,14 +14,14 @@ extension TelegramRequest {
 	- parameter prices: An array of costs involved in the transaction (eg. product price, taxes, discounts).
 	*/
 	static public func sendInvoice(title: String,
-													description: String,
-													payload: String,
-													providerToken: String,
-													startParameter: String,
-													currency: String,
-													prices: [String: Int],
-													chatID: String) -> TelegramRequest {
-		
+																 description: String,
+																 payload: String,
+																 providerToken: String,
+																 startParameter: String,
+																 currency: String,
+																 prices: [String: Int],
+																 chatID: String) {
+		print("hi")
 	}
 	
 	/**
@@ -29,12 +29,12 @@ extension TelegramRequest {
 	Use this method to reply to shipping queries. On success, True is returned.
 	*/
 	static public func answerShippingQuery(shippingQueryID: String,
-																	acceptShippingAddress: Bool,
-																	shippingOptionsFIXME: [String]?,
-																	errorMessage: String?) -> TelegramRequest {
+																				 acceptShippingAddress: Bool,
+																				 shippingOptionsFIXME: [String]?,
+																				 errorMessage: String?) {
 		
 		
-		
+		print("hi")
 	}
 	
 	/**
@@ -43,9 +43,9 @@ extension TelegramRequest {
 	- note: The Bot API must receive an answer within 10 seconds after the pre-checkout query was sent.
 	*/
 	static public func answerPreCheckoutQuery(preCheckoutQueryID: String,
-																		 acceptPaymentQuery: Bool,
-																		 errorMessage: String?) -> TelegramRequest {
-		
+																						acceptPaymentQuery: Bool,
+																						errorMessage: String?) {
+		print("hi")
 	}
 	
 }

@@ -24,7 +24,7 @@ extension TelegramRequest {
 	## API Description
 	Use this method to edit text and game messages sent by the bot or via the bot (for inline bots). On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
 	*/
-	public static func editMessageText(chatID: Int?, messageID: Int?, inlineMessageID: Int?, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .markdown, disableWebPreview: Bool = false) -> TelegramRequest {
+	public static func editMessageText(chatID: Int?, messageID: Int?, inlineMessageID: Int?, text: String, markup: MarkupType?, parseMode: MessageParseMode = .markdown, disableWebPreview: Bool = false) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -34,7 +34,13 @@ extension TelegramRequest {
 		
 		// Check whether any other query needs to be added
 		request.query["text"] = text
-		if replyMarkup != nil { request.query["reply_markup"] = replyMarkup!.getQuery() }
+		
+		if markup != nil {
+			if let text = TelegramRequest.encodeDataToUTF8(markup!) {
+				request.query["reply_markup"] = text
+			}
+		}
+		
 		if parseMode != .none { request.query["parse_mode"] = parseMode.rawValue }
 		
 		// Set the query
@@ -52,7 +58,7 @@ extension TelegramRequest {
 	Use this method to edit captions of messages sent by the bot or via the bot (for inline bots). On success, 
 	if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
 	*/
-	public static func editMessageCaption(chatID: Int, messageID: Int = 0, caption: String, replyMarkup: MarkupType?) -> TelegramRequest {
+	public static func editMessageCaption(chatID: Int, messageID: Int = 0, caption: String, markup: MarkupType?) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -63,7 +69,12 @@ extension TelegramRequest {
 		
 		// Check whether any other query needs to be added
 		if messageID != 0 { request.query["message_id"] = messageID }
-		if replyMarkup != nil { request.query["reply_markup"] = replyMarkup!.getQuery() }
+		
+		if markup != nil {
+			if let text = TelegramRequest.encodeDataToUTF8(markup!) {
+				request.query["reply_markup"] = text
+			}
+		}
 		
 		// Set the query
 		request.methodName = "editMessageCaption"
@@ -80,7 +91,7 @@ extension TelegramRequest {
 	Use this method to edit only the reply markup of messages sent by the bot or via the bot (for inline bots). On success, 
 	if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
 	*/
-	public static func editMessageReplyMarkup(chatID: Int, messageID: Int = 0, inlineMessageID: Int = 0, replyMarkup: MarkupType?) -> TelegramRequest {
+	public static func editMessageReplyMarkup(chatID: Int, messageID: Int = 0, inlineMessageID: Int = 0, markup: MarkupType?) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -91,11 +102,16 @@ extension TelegramRequest {
 		// Check whether any other query needs to be added
 		if messageID != 0 { request.query["message_id"] = messageID }
 		if inlineMessageID != 0 { request.query["inline_message_id"] = inlineMessageID }
-		if replyMarkup != nil { request.query["reply_markup"] = replyMarkup!.getQuery() }
+		
+		if markup != nil {
+			if let text = TelegramRequest.encodeDataToUTF8(markup!) {
+				request.query["reply_markup"] = text
+			}
+		}
 		
 		// Set the query
 		request.methodName = "editMessageReplyMarkup"
-		request.content = replyMarkup as Any
+		request.content = markup as Any
 		
 		return request
 		

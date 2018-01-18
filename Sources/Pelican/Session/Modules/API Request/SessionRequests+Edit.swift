@@ -12,27 +12,27 @@ extension SessionRequests {
 	/**
 	Edits a text based message.
 	*/
-	public func editMessage(_ message: String, messageID: Int?, inlineMessageID: Int?, replyMarkup: MarkupType?, chatID: Int, parseMode: MessageParseMode = .markdown, disableWebPreview: Bool = false) {
+	public func editMessage(_ message: String, messageID: Int?, inlineMessageID: Int?, markup: MarkupType?, chatID: Int, parseMode: MessageParseMode = .markdown, disableWebPreview: Bool = false) {
 		
-		let request = TelegramRequest.editMessageText(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, text: message, replyMarkup: replyMarkup, parseMode: parseMode, disableWebPreview: disableWebPreview)
+		let request = TelegramRequest.editMessageText(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, text: message, markup: markup, parseMode: parseMode, disableWebPreview: disableWebPreview)
 		_ = tag.sendRequest(request)
 	}
 	
 	/**
 	Edits the caption on a media/file based message.
 	*/
-	public func editCaption(messageID: Int = 0, caption: String, replyMarkup: MarkupType?, chatID: Int) {
+	public func editCaption(messageID: Int = 0, caption: String, markup: MarkupType?, chatID: Int) {
 		
-		let request = TelegramRequest.editMessageCaption(chatID: chatID, messageID: messageID, caption: caption, replyMarkup: replyMarkup)
+		let request = TelegramRequest.editMessageCaption(chatID: chatID, messageID: messageID, caption: caption, markup: markup)
 		_ = tag.sendRequest(request)
 	}
 	
 	/**
 	Edits the inline markup options assigned to any type of message/
 	*/
-	public func editReplyMarkup(_ replyMarkup: MarkupType?, messageID: Int = 0, inlineMessageID: Int = 0, chatID: Int) {
+	public func editReplyMarkup(_ markup: MarkupType?, messageID: Int = 0, inlineMessageID: Int = 0, chatID: Int) {
 		
-		let request = TelegramRequest.editMessageReplyMarkup(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, replyMarkup: replyMarkup)
+		let request = TelegramRequest.editMessageReplyMarkup(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, markup: markup)
 		_ = tag.sendRequest(request)
 	}
 	

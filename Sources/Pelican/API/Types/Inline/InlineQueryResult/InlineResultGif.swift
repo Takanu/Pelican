@@ -24,7 +24,7 @@ struct InlineResultGIF: InlineResult {
 	var content: InputMessageContent?
 	
 	// Inline keyboard attached to the message
-	var replyMarkup: MarkupInline?
+	var markup: MarkupInline?
 	
 	/// The title of the inline result.
 	var title: String?
@@ -59,7 +59,7 @@ struct InlineResultGIF: InlineResult {
 		case type
 		case id
 		case content = "input_message_content"
-		case replyMarkup = "reply_markup"
+		case markup = "reply_markup"
 		case title
 		
 		case url = "mpeg4_url"

@@ -23,7 +23,7 @@ extension TelegramRequest {
 	## API Description
 	Sends a message.  Must contain a chat ID, message text and an optional MarkupType.
 	*/
-	public static func sendMessage(chatID: Int, text: String, replyMarkup: MarkupType?, parseMode: MessageParseMode = .markdown, disableWebPreview: Bool = false, disableNotification: Bool = false, replyMessageID: Int = 0) -> TelegramRequest {
+	public static func sendMessage(chatID: Int, text: String, markup: MarkupType?, parseMode: MessageParseMode = .markdown, disableWebPreview: Bool = false, disableNotification: Bool = false, replyMessageID: Int = 0) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -35,11 +35,11 @@ extension TelegramRequest {
 		]
 		
 		// Check whether any other query needs to be added
-		if replyMarkup != nil {
-			//print(replyMarkup!.getQuery())
-			request.query["reply_markup"] = replyMarkup!.getQuery()
+		if markup != nil {
+			if let text = TelegramRequest.encodeDataToUTF8(markup!) {
+				request.query["reply_markup"] = text
+			}
 		}
-
 		
 		if parseMode != .none { request.query["parse_mode"] = parseMode.rawValue }
 		if replyMessageID != 0 { request.query["reply_to_message_id"] = replyMessageID }
@@ -58,7 +58,7 @@ extension TelegramRequest {
 	## Builder Description
 	Sends a file based on the given "SendType", which defines both the ID of the file and 
 	*/
-	public func sendFile(chatID: Int, file: SendType, replyMarkup: MarkupType?, caption: String = "", disableNotification: Bool = false, replyMessageID: Int = 0) {
+	public func sendFile(chatID: Int, file: SendType, markup: MarkupType?, caption: String = "", disableNotification: Bool = false, replyMessageID: Int = 0) {
 		
 		query = [
 			"chat_id":chatID
@@ -69,7 +69,7 @@ extension TelegramRequest {
 		if caption != "" && captionTypes.index(of: file.messageTypeName) != nil { query["caption"] = caption }
 		
 		// Check whether any other query needs to be added
-		if replyMarkup != nil { query["reply_markup"] = replyMarkup!.getQuery() }
+		if markup != nil { query["reply_markup"] = markup!.getQuery() }
 		if replyMessageID != 0 { query["reply_to_message_id"] = replyMessageID }
 		if disableNotification != false { query["disable_notification"] = disableNotification }
 		
@@ -97,7 +97,7 @@ extension TelegramRequest {
 	- parameter caption: Provide an optional caption that will sit below the uploaded file in a Telegram chat.  Note that this only works with Audio,
 	Photo, Video, Document and Voice message file types - you wont see a caption appear with any other uploaded file type.
 	*/
-	public static func sendFile(file: MessageFile, callback: ReceiveUpload? = nil, chatID: Int, markup: MarkupType?, caption: String = "", disableNotification: Bool = false, replyMessageID: Int = 0) -> TelegramRequest {
+	public static func sendFile(file: MessageFile, callback: ReceiveUpload? = nil, chatID: Int, markup: MarkupType?, caption: String = "", disableNotification: Bool = false, replyMessageID: Int = 0) -> TelegramRequest? {
 		
 		
 		// The PhotoSize/Photo model stopped working, this can't be used until later.
@@ -107,7 +107,7 @@ extension TelegramRequest {
 		let search = cache.find(upload: link, bot: self)
 		if search != nil {
 		print("SENDING...")
-		let message = sendFile(chatID: chatID, file: search!, replyMarkup: markup, caption: caption, disableNotification: disableNotification, replyMessageID: replyMessageID)
+		let message = sendFile(chatID: chatID, file: search!, markup: markup, caption: caption, disableNotification: disableNotification, replyMessageID: replyMessageID)
 		if callback != nil {
 		callback!.receiveMessage(message: message!)
 		}
@@ -130,7 +130,9 @@ extension TelegramRequest {
 			}
 			
 			if markup != nil {
-				request.query["reply_markup"] =  markup!.getQuery()
+				if let markupText = TelegramRequest.encodeDataToUTF8(markup!) {
+					request.query["reply_markup"] = markupText
+				}
 			}
 			
 			if replyMessageID != 0 {
@@ -154,7 +156,9 @@ extension TelegramRequest {
 			}
 			
 			if markup != nil {
-				request.form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: try! markup!.makeRow().converted(to: JSON.self).makeBytes()))
+				if let text = TelegramRequest.encodeDataToUTF8(markup!) {
+					request.form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: text.makeBytes()))
+				}
 			}
 			
 			if replyMessageID != 0 {
@@ -194,7 +198,7 @@ extension TelegramRequest {
 	}
 	
 	/* Use this method to send a game. On success, the sent Message is returned. */
-	public static func sendGame(chatID: Int, gameName: String, replyMarkup: MarkupType?, disableNotification: Bool = false, replyMessageID: Int = 0) -> TelegramRequest {
+	public static func sendGame(chatID: Int, gameName: String, markup: MarkupType?, disableNotification: Bool = false, replyMessageID: Int = 0) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -204,7 +208,12 @@ extension TelegramRequest {
 		]
 		
 		// Check whether any other query needs to be added
-		if replyMarkup != nil { request.query["reply_markup"] = replyMarkup!.getQuery() }
+		if markup != nil {
+			if let markupText = TelegramRequest.encodeDataToUTF8(markup!) {
+				request.query["reply_markup"] = markupText
+			}
+		}
+		
 		if replyMessageID != 0 { request.query["reply_to_message_id"] = replyMessageID }
 		if disableNotification != false { request.query["disable_notification"] = disableNotification }
 		

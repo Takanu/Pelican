@@ -21,17 +21,38 @@ public class TelegramRequest {
 	
 	/// The name of the method to be used with the request, to build a URL at a later date.
 	var methodName: String = ""
+	
 	/// An optional field for the content that's included to define what the content of the request is, if in a String format.
 	var content: Any?
+	
 	/// The query dictionary to be used as arguments for the request
 	var query: [String:NodeConvertible] = [:]
+	
 	/// Form content to be added to the request.  As a general rule, pick the query or the form content.
 	var form: [String:FormData.Field] = [:]
 	
 	public var getMethodName: String { return methodName }
 	
-	
 	init() {}
+	
+	/**
+	Convenience function for encoding data from an API type to Data.
+	- parameter data: The instance you wish to convert into JSON data.
+	- returns: The converted type if true, or nil if not.
+	- note: The function will log an error to `PLog` if it didn't succeed.
+	*/
+	static public func encodeDataToUTF8(_ data: Encodable) -> String? {
+		var jsonData = Data()
+		
+		do {
+			jsonData = try JSONSerialization.data(withJSONObject: data, options: .prettyPrinted)
+		} catch {
+			PLog.error("Telegram Request Serialisation Error - \(error)")
+			return nil
+		}
+		
+		return String(data: jsonData, encoding: .utf8)
+	}
 
 	
 	// Forwards a message of any kind.  On success, the sent Message is returned.

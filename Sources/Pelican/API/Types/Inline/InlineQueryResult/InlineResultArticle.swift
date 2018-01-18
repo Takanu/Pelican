@@ -22,7 +22,7 @@ final public class InlineResultArticle: InlineResult {
 	public var content: InputMessageContent?
 	
 	/// Inline keyboard attached to the message
-	public var replyMarkup: MarkupInline?
+	public var markup: MarkupInline?
 	
 	
 	/// URL of the result.
@@ -53,7 +53,7 @@ final public class InlineResultArticle: InlineResult {
 		case type
 		case tgID = "id"
 		case content = "input_message_content"
-		case replyMarkup = "reply_markup"
+		case markup = "reply_markup"
 		
 		case url
 		case title
@@ -76,7 +76,7 @@ final public class InlineResultArticle: InlineResult {
 																																				 disableWebPreview: nil
 		))
 		
-		self.replyMarkup = markup
+		self.markup = markup
 		self.description = description
 	}
 	
@@ -97,7 +97,7 @@ final public class InlineResultArticle: InlineResult {
 		self.content = nil
 		self.title = title
 		self.description = description
-		self.replyMarkup = markup
+		self.markup = markup
 		self.url = url
 		
 		self.hideURL = hideURL

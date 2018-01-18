@@ -19,7 +19,7 @@ public struct InlineResultGame: InlineResult {
 	public var id: String
 	
 	/// Inline keyboard attached to the message
-	public var replyMarkup: MarkupInline?
+	public var markup: MarkupInline?
 	
 	/// Short name of the game.
 	public var name: String
@@ -28,7 +28,7 @@ public struct InlineResultGame: InlineResult {
 	enum CodingKeys: String, CodingKey {
 		case type
 		case id
-		case replyMarkup = "reply_markup"
+		case markup = "reply_markup"
 		case name
 	}
 	

@@ -24,6 +24,8 @@ extension SessionRequests {
 	public func answerInlineQuery(queryID: String, results: [InlineResult], cacheTime: Int = 0, isPersonal: Bool = false, nextOffset: String?, switchPM: String?, switchPMParam: String?) {
 		
 		let request = TelegramRequest.answerInlineQuery(queryID: queryID, results: results, cacheTime: cacheTime, isPersonal: isPersonal, nextOffset: nextOffset, switchPM: switchPM, switchPMParam: switchPMParam)
-		_ = tag.sendRequest(request)
+		if request != nil {
+			_ = tag.sendRequest(request!)
+		}
 	}
 }

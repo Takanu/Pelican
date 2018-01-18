@@ -17,7 +17,7 @@ extension Pelican {
 	- note: At some point this will also collect and use content sent back from Telegram in a way that makes sense,
 	but I haven't thought that far yet.
 	*/
-	func sendRequest(_ request: TelegramRequest) -> TelegramResponse {
+	func sendRequest(_ request: TelegramRequest) -> TelegramResponse? {
 		
 		// If we have a message file, we need to handle this separately through the cache system.
 		if request.content is MessageFile {
@@ -74,6 +74,24 @@ extension Pelican {
 		
 		PLog.verbose("Telegram Response - (\(String(describing: response!)))")
 		let tgResponse = TelegramResponse(response: response!)
+		
+		if tgResponse != nil  {
+			if tgResponse!.success == false {
+				let error = """
+				Pelican Client Error - Request was unsuccessful.
+				\"\(tgResponse!.errorCode) - \(tgResponse!.errorDescription)\"
+				
+				Request:
+				----------
+				\(request)
+				"""
+				
+				PLog.error(error)
+			}
+		} else {
+			PLog.error("Pelican Client Error - Unable to create TelegramResponse for the following request:\n\n\(request)")
+		}
+		
 		return tgResponse
 	}
 	

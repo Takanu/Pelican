@@ -9,7 +9,6 @@
 import Foundation
 import Vapor
 
-
 /**
 Encapsulates a single update received from a Telegram bot.
 */
@@ -22,7 +21,7 @@ public class Update {
 	/// The data package contained in the update as a UpdateModel type.
 	public var data: UpdateModel
 	/// The data package contained in the update as a Node, which you can either access through subscripting the type or directly.
-	public var node: Node
+	public var json: JSON
 	/// The time the update was received by Pelican.
 	public var time = Date()
 	
@@ -50,16 +49,15 @@ public class Update {
 	
 	
 	
-	init(withData data: UpdateModel, node: Node) {
+	init(withData data: UpdateModel, json: JSON, type: UpdateType) {
 		
 		self.data = data
-		self.node = node
+		self.json = json
+		self.type = type
 		
 		
 		// Need to ensure the type can be interpreted as other types (edited messages, channel posts)
 		if data is Message {
-			
-			self.type = .message
 			
 			let message = data as! Message
 			self.id = message.tgID
@@ -73,8 +71,6 @@ public class Update {
 			
 		else if data is CallbackQuery {
 			
-			self.type = .callbackQuery
-			
 			let query = data as! CallbackQuery
 			self.id = Int(query.id)!
 			self.from = query.from
@@ -85,8 +81,6 @@ public class Update {
 			
 		else if data is InlineQuery {
 			
-			self.type = .inlineQuery
-			
 			let query = data as! InlineQuery
 			self.id = Int(query.id)!
 			self.content = query.query
@@ -95,8 +89,6 @@ public class Update {
 		}
 			
 		else {
-			
-			self.type = .chosenInlineResult
 			
 			let result = data as! ChosenInlineResult
 			self.id = Int(result.resultID)!

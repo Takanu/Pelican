@@ -22,7 +22,7 @@ struct InlineResultAudio: InlineResult {
 	var content: InputMessageContent?
 	
 	// Inline keyboard attached to the message
-	var replyMarkup: MarkupInline?
+	var markup: MarkupInline?
 	
 	
 	
@@ -50,10 +50,10 @@ struct InlineResultAudio: InlineResult {
 		case type
 		case id
 		case content = "input_message_content"
-		case replyMarkup = "reply_markup"
+		case markup = "reply_markup"
 		
 		case url = "audio_url"
-		case file_id = "audio_file_id"
+		case fileID = "audio_file_id"
 		
 		case caption
 		case title

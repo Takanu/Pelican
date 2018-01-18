@@ -95,7 +95,7 @@ public class ChatSessionQueue {
 		
 		let event = ScheduleEvent(delayUnixTime: execTime) {
 			
-			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: message, replyMarkup: markup	)
+			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: message, markup: markup	)
 			_ = self.tag.sendRequest(request)
 		}
 		
@@ -119,7 +119,7 @@ public class ChatSessionQueue {
 		
 		let event = ScheduleEvent(delayUnixTime: execTime) {
 			
-			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: message, replyMarkup: markup, parseMode: parseMode, disableWebPreview: useWebPreview, disableNotification: disableNotification, replyMessageID: replyID)
+			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: message, markup: markup, parseMode: parseMode, disableWebPreview: useWebPreview, disableNotification: disableNotification, replyMessageID: replyID)
 			_ = self.tag.sendRequest(request)
 		}
 		

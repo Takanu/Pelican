@@ -27,7 +27,7 @@ struct InlineResultSticker: InlineResult {
 	public var content: InputMessageContent?
 	
 	/// Inline keyboard attached to the message
-	public var replyMarkup: MarkupInline?
+	public var markup: MarkupInline?
 	
 	
 	
@@ -39,7 +39,7 @@ struct InlineResultSticker: InlineResult {
 		case type
 		case id
 		case content = "input_message_content"
-		case replyMarkup = "reply_markup"
+		case markup = "reply_markup"
 		
 		case fileID = "sticker_file_id"
 	}

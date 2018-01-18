@@ -24,7 +24,7 @@ public struct InlineResultVenue: InlineResult {
 	public var content: InputMessageContent?
 	
 	/// Inline keyboard attached to the message
-	public var replyMarkup: MarkupInline?
+	public var markup: MarkupInline?
 	
 	
 	
@@ -59,7 +59,7 @@ public struct InlineResultVenue: InlineResult {
 		case type
 		case id
 		case content = "input_message_content"
-		case replyMarkup = "reply_markup"
+		case markup = "reply_markup"
 		
 		case title
 		case address
