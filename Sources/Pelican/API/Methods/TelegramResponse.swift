@@ -62,7 +62,13 @@ public class TelegramResponse {
 		
 		// If it was, set the result.
 		else {
-			self.data = Data.init(bytes: json["result"]!.bytes!)
+			do {
+				self.data = Data.init(bytes: try json["result"]!.makeBytes().array)
+			} catch {
+				PLog.error("Telegram Response Creation Error - \(error)")
+				return nil
+			}
+			
 		}
 	}
 }

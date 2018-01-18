@@ -167,36 +167,36 @@ final public class Message: Codable, UpdateModel {
 		let values = try decoder.container(keyedBy: CodingKeys.self)
 		
 		tgID = try values.decode(Int.self, forKey: .tgID)
-		from = try values.decode(User.self, forKey: .from)
+		from = try values.decodeIfPresent(User.self, forKey: .from)
 		date = try values.decode(Int.self, forKey: .date)
 		chat = try values.decode(Chat.self, forKey: .chat)
 		
-		forwardFrom = try values.decode(User.self, forKey: .forwardFrom)
-		forwardFromChat = try values.decode(Chat.self, forKey: .forwardFromChat)
-		forwardedFromMessageID = try values.decode(Int.self, forKey: .forwardedFromMessageID)
-		forwardDate = try values.decode(Int.self, forKey: .forwardDate)
-		replyToMessage = try values.decode(Message.self, forKey: .replyToMessage)
-		editDate = try values.decode(Int.self, forKey: .editDate)
+		forwardFrom = try values.decodeIfPresent(User.self, forKey: .forwardFrom)
+		forwardFromChat = try values.decodeIfPresent(Chat.self, forKey: .forwardFromChat)
+		forwardedFromMessageID = try values.decodeIfPresent(Int.self, forKey: .forwardedFromMessageID)
+		forwardDate = try values.decodeIfPresent(Int.self, forKey: .forwardDate)
+		replyToMessage = try values.decodeIfPresent(Message.self, forKey: .replyToMessage)
+		editDate = try values.decodeIfPresent(Int.self, forKey: .editDate)
 		
-		text = try values.decode(String.self, forKey: .text)
-		entities = try values.decode([MessageEntity].self, forKey: .entities)
-		caption = try values.decode(String.self, forKey: .caption)
-		captionEntities = try values.decode([MessageEntity].self, forKey: .captionEntities)
+		text = try values.decodeIfPresent(String.self, forKey: .text)
+		entities = try values.decodeIfPresent([MessageEntity].self, forKey: .entities)
+		caption = try values.decodeIfPresent(String.self, forKey: .caption)
+		captionEntities = try values.decodeIfPresent([MessageEntity].self, forKey: .captionEntities)
 		
-		newChatMembers = try values.decode([User].self, forKey: .newChatMembers)
-		leftChatMember = try values.decode(User.self, forKey: .leftChatMember)
-		newChatTitle = try values.decode(String.self, forKey: .newChatTitle)
-		newChatPhoto = try values.decode([Photo].self, forKey: .newChatPhoto)
-		deleteChatPhoto = try values.decode(Bool.self, forKey: .deleteChatPhoto)
-		groupChatCreated = try values.decode(Bool.self, forKey: .groupChatCreated)
-		supergroupChatCreated = try values.decode(Bool.self, forKey: .supergroupChatCreated)
-		channelChatCreated = try values.decode(Bool.self, forKey: .channelChatCreated)
-		migrateToChatID = try values.decode(Int.self, forKey: .migrateToChatID)
-		migrateFromChatID = try values.decode(Int.self, forKey: .migrateFromChatID)
-		pinnedMessage = try values.decode(Message.self, forKey: .pinnedMessage)
+		newChatMembers = try values.decodeIfPresent([User].self, forKey: .newChatMembers)
+		leftChatMember = try values.decodeIfPresent(User.self, forKey: .leftChatMember)
+		newChatTitle = try values.decodeIfPresent(String.self, forKey: .newChatTitle)
+		newChatPhoto = try values.decodeIfPresent([Photo].self, forKey: .newChatPhoto)
+		deleteChatPhoto = try values.decodeIfPresent(Bool.self, forKey: .deleteChatPhoto) ?? false
+		groupChatCreated = try values.decodeIfPresent(Bool.self, forKey: .groupChatCreated) ?? false
+		supergroupChatCreated = try values.decodeIfPresent(Bool.self, forKey: .supergroupChatCreated) ?? false
+		channelChatCreated = try values.decodeIfPresent(Bool.self, forKey: .channelChatCreated) ?? false
+		migrateToChatID = try values.decodeIfPresent(Int.self, forKey: .migrateToChatID)
+		migrateFromChatID = try values.decodeIfPresent(Int.self, forKey: .migrateFromChatID)
+		pinnedMessage = try values.decodeIfPresent(Message.self, forKey: .pinnedMessage)
 		
-		invoice = try values.decode(Invoice.self, forKey: .invoice)
-		successfulPayment = try values.decode(SuccessfulPayment.self, forKey: .successfulPayment)
+		invoice = try values.decodeIfPresent(Invoice.self, forKey: .invoice)
+		successfulPayment = try values.decodeIfPresent(SuccessfulPayment.self, forKey: .successfulPayment)
 		
 		// Try to find if there's media content here...
 		let mediaKeys = values.allKeys
@@ -259,35 +259,35 @@ final public class Message: Codable, UpdateModel {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		
 		try container.encode(tgID, forKey: .tgID)
-		try container.encode(from, forKey: .from)
+		try container.encodeIfPresent(from, forKey: .from)
 		try container.encode(date, forKey: .date)
 		try container.encode(chat, forKey: .chat)
 		
-		try container.encode(forwardFrom, forKey: .forwardFrom)
-		try container.encode(forwardFromChat, forKey: .forwardFromChat)
-		try container.encode(forwardedFromMessageID, forKey: .forwardedFromMessageID)
-		try container.encode(forwardDate, forKey: .forwardDate)
-		try container.encode(replyToMessage, forKey: .replyToMessage)
-		try container.encode(editDate, forKey: .editDate)
+		try container.encodeIfPresent(forwardFrom, forKey: .forwardFrom)
+		try container.encodeIfPresent(forwardFromChat, forKey: .forwardFromChat)
+		try container.encodeIfPresent(forwardedFromMessageID, forKey: .forwardedFromMessageID)
+		try container.encodeIfPresent(forwardDate, forKey: .forwardDate)
+		try container.encodeIfPresent(replyToMessage, forKey: .replyToMessage)
+		try container.encodeIfPresent(editDate, forKey: .editDate)
 		
-		try container.encode(entities, forKey: .entities)
-		try container.encode(caption, forKey: .caption)
-		try container.encode(captionEntities, forKey: .captionEntities)
+		try container.encodeIfPresent(entities, forKey: .entities)
+		try container.encodeIfPresent(caption, forKey: .caption)
+		try container.encodeIfPresent(captionEntities, forKey: .captionEntities)
 		
-		try container.encode(newChatMembers, forKey: .newChatMembers)
-		try container.encode(leftChatMember, forKey: .leftChatMember)
-		try container.encode(newChatTitle, forKey: .newChatTitle)
-		try container.encode(newChatPhoto, forKey: .newChatPhoto)
+		try container.encodeIfPresent(newChatMembers, forKey: .newChatMembers)
+		try container.encodeIfPresent(leftChatMember, forKey: .leftChatMember)
+		try container.encodeIfPresent(newChatTitle, forKey: .newChatTitle)
+		try container.encodeIfPresent(newChatPhoto, forKey: .newChatPhoto)
 		try container.encode(deleteChatPhoto, forKey: .deleteChatPhoto)
 		try container.encode(groupChatCreated, forKey: .groupChatCreated)
 		try container.encode(supergroupChatCreated, forKey: .supergroupChatCreated)
 		try container.encode(channelChatCreated, forKey: .channelChatCreated)
-		try container.encode(migrateToChatID, forKey: .migrateToChatID)
-		try container.encode(migrateFromChatID, forKey: .migrateFromChatID)
-		try container.encode(pinnedMessage, forKey: .pinnedMessage)
+		try container.encodeIfPresent(migrateToChatID, forKey: .migrateToChatID)
+		try container.encodeIfPresent(migrateFromChatID, forKey: .migrateFromChatID)
+		try container.encodeIfPresent(pinnedMessage, forKey: .pinnedMessage)
 		
-		try container.encode(invoice, forKey: .invoice)
-		try container.encode(successfulPayment, forKey: .successfulPayment)
+		try container.encodeIfPresent(invoice, forKey: .invoice)
+		try container.encodeIfPresent(successfulPayment, forKey: .successfulPayment)
 		
 		switch type {
 		case .audio(let file):
@@ -313,7 +313,7 @@ final public class Message: Codable, UpdateModel {
 		case .voice(let file):
 			try container.encode(file, forKey: .voice)
 		default:
-			try container.encode(text, forKey: .text)
+			try container.encodeIfPresent(text, forKey: .text)
 		}
 		
 	}

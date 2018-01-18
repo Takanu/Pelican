@@ -553,7 +553,7 @@ public final class Pelican: Vapor.Provider {
 	internal func unwrapIncomingUpdate<T: UpdateModel>(json: JSON, dataType: T.Type, updateType: UpdateType) -> Update? {
 		
 		// Setup the decoder
-		let data = Data.init(bytes: json.bytes!)
+		let data = Data.init(bytes: try! json.makeBytes().array)
 		let decoder = JSONDecoder()
 		
 		// Attempt to decode
@@ -579,7 +579,7 @@ public final class Pelican: Vapor.Provider {
 			
 			
 		} catch {
-			PLog.error("Error decoding message from updates - \(error)")
+			PLog.error("Pelican Error (Decoding message from updates) - \n\n\(error)\n")
 			return nil
 		}
 	}

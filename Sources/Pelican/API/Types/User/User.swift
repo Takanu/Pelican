@@ -49,4 +49,19 @@ final public class User: Codable {
 		self.firstName = firstName
 	}
 	
+	public init(from decoder: Decoder) throws {
+		let values = try decoder.container(keyedBy: CodingKeys.self)
+		
+		tgID = try values.decode(Int.self, forKey: .tgID)
+		isBot = Bool(truncating: try values.decode(Int.self, forKey: .isBot) as NSNumber)
+		firstName = try values.decode(String.self, forKey: .firstName)
+		lastName = try values.decodeIfPresent(String.self, forKey: .lastName)
+		username = try values.decodeIfPresent(String.self, forKey: .username)
+		languageCode = try values.decodeIfPresent(String.self, forKey: .languageCode)
+	}
+	
+	
+	
+	
+	
 }

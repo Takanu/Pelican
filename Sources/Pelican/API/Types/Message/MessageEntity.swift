@@ -60,17 +60,16 @@ final public class MessageEntity: Codable {
 		self.length = length
 	}
 	
-	/**
 	public init(from decoder: Decoder) throws {
 		let values = try decoder.container(keyedBy: CodingKeys.self)
 		
 		let typeString = try values.decode(String.self, forKey: .type)
 		type = MessageEntityType(rawValue: typeString.snakeToCamelCase) ?? .unknown
 	
-		offset = try values.decode(Int.self, forKey: .type)
+		offset = try values.decode(Int.self, forKey: .offset)
 		length = try values.decode(Int.self, forKey: .length)
-		url = try values.decode(String.self, forKey: .url)
-		user = try values.decode(User.self, forKey: .user)
+		url = try values.decodeIfPresent(String.self, forKey: .url)
+		user = try values.decodeIfPresent(User.self, forKey: .user)
 	}
 	
 	public func encode(to encoder: Encoder) throws {
@@ -79,10 +78,9 @@ final public class MessageEntity: Codable {
 		try container.encode(type.rawValue, forKey: .type)
 		try container.encode(offset, forKey: .offset)
 		try container.encode(length, forKey: .length)
-		try container.encode(url, forKey: .url)
-		try container.encode(user, forKey: .user)
+		try container.encodeIfPresent(url, forKey: .url)
+		try container.encodeIfPresent(user, forKey: .user)
 	}
-	*/
 	
 	/**
 	Extracts the piece of text it represents from the message body.

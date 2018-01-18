@@ -27,7 +27,7 @@ extension SessionRequests {
 					let decoder = JSONDecoder()
 					return try decoder.decode(Message.self, from: response!.data!)
 				} catch {
-					PLog.error(error.localizedDescription)
+					PLog.error("Pelican Response Decode Error (sendMessage:) - \(error) - \(error.localizedDescription)")
 				}
 			}
 		}
@@ -56,7 +56,7 @@ extension SessionRequests {
 					let decoder = JSONDecoder()
 					return try decoder.decode(Message.self, from: response!.data!)
 				} catch {
-					PLog.error(error.localizedDescription)
+					PLog.error("Pelican Response Decode Error (sendFile:) - \(error) - \(error.localizedDescription)")
 				}
 			}
 		}
