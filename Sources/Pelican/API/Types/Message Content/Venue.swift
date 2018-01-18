@@ -15,15 +15,30 @@ Represents a different type of location, for venue-like venuing.
 final public class Venue: TelegramType, MessageContent {
 	
 	// STORAGE AND IDENTIFIERS
-	public var storage = Storage()
-	public var contentType: String = "venue" // MessageType conforming variable for Message class filtering.
-	public var method: String = "sendVenue" // SendType conforming variable for use when sent
+	public var contentType: String = "venue"
+	public var method: String = "sendVenue"
 	
 	// PARAMETERS
+	/// The location of the venue.
 	public var location: Location
+	
+	/// Location title.
 	public var title: String
+	
+	/// Address of the venue.
 	public var address: String
+	
+	/// Foursquare identifier of the venue if known.
 	public var foursquareID: String?
+	
+	
+	/// Coding keys to map values when Encoding and Decoding.
+	enum CodingKeys: String, CodingKey {
+		case location
+		case title
+		case address
+		case foursquareID = "foursquare_id"
+	}
 	
 	public init(location: Location, title: String, address: String, foursquareID: String? = nil) {
 		self.location = location
@@ -42,23 +57,5 @@ final public class Venue: TelegramType, MessageContent {
 		
 		if foursquareID != nil { keys["foursquare_id"] = foursquareID }
 		return keys
-	}
-	
-	// NodeRepresentable conforming methods
-	public required init(row: Row) throws {
-		location = try row.get("location")
-		title = try row.get("title")
-		address = try row.get("address")
-		foursquareID = try row.get("foursquare_id")
-	}
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("location", location)
-		try row.set("title", title)
-		try row.set("address", address)
-		try row.set("foursquare_id", foursquareID)
-		
-		return row
 	}
 }

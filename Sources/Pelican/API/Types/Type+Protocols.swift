@@ -14,9 +14,12 @@ import FluentProvider
 For any model that replicates the Telegram API, it must inherit fron this to be designed to build queries and be converted from responses
 in a way that Telegram understands.
 */
-protocol TelegramType: Model {
+protocol TelegramType {
 	
 }
+
+
+
 
 // All types that conform to this protocol are able to convert itself into a aet of query information
 protocol TelegramQuery: NodeConvertible, JSONConvertible {
@@ -24,15 +27,19 @@ protocol TelegramQuery: NodeConvertible, JSONConvertible {
 }
 
 // Defines a type that can send unique content types inside a message.
-public protocol MessageContent {
+public protocol MessageContent: Codable {
 	
 	/// What API type the type that uses this protocol is imitating.
 	var contentType: String { get }
+	
 	/// The method used when the Telegram API call is made.
   var method: String { get }
-	/// Whats used to extract the required information
+	
+	/// Used to enable any method sending this message content to access the information it needs to deliver it, omitting any custom properties.
   func getQuery() -> [String:NodeConvertible]
 }
+
+
 
 /**
 Defines a type of Message content that is represented by a fileID (in which case the content has been uploaded before),
@@ -41,6 +48,12 @@ and/or a URL (the location of the resource to be uploaded).
 All types that conform to this protocol should also provide initialisers that accept a URL instead of a fileID
 */
 public protocol MessageFile: MessageContent {
+	
+	/// The content type it represents, used by Telegram to interpret what is being sent.
+	var contentType: String { get }
+	
+	/// The method that will be used to send this content type.
+	var method: String { get }
 	
 	/// The Telegram File ID, obtained when a file is uploaded to the bot either by the bot itself, or by a user interacting with it.
 	var fileID: String? { get set }
@@ -61,6 +74,8 @@ extension MessageFile {
 		return true
 	}
 }
+
+
 
 /**
 Defines a type that encapsulates a request from a user, through a standard Telegram API type (eg.  Message, InlineQuery, CallbackQuery).

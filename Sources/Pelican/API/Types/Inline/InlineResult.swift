@@ -1,0 +1,16 @@
+
+import Foundation
+import Vapor
+import FluentProvider
+
+/**
+Used for a result/your response of an inline query.
+ */
+public protocol InlineResult: Codable {
+	
+	/// Defines the type of the result being given.
+	var type: String { get }
+}
+
+
+

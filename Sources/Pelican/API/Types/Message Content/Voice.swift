@@ -15,18 +15,32 @@ Represents a Voice type, which will appear as if it was a user-recorded voice me
 final public class Voice: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
-	public var storage = Storage()
-	public var contentType: String = "voice" // MessageType conforming variable for Message class filtering.
-	public var method: String = "sendVoice" // SendType conforming variable for use when sent
+	public var contentType: String = "voice"
+	public var method: String = "sendVoice"
 	
 	// FILE SOURCE
 	public var fileID: String?
 	public var url: String?
 	
 	// PARAMETERS
+	/// The duration of the voice note, in seconds.
 	public var duration: Int?
+	
+	/// The mime type of the voice file.
 	public var mimeType: String?
+	
+	/// The file size.
 	public var fileSize: Int?
+	
+	/// Coding keys to map values when Encoding and Decoding.
+	enum CodingKeys: String, CodingKey {
+		case fileID = "file_id"
+		case url
+		
+		case duration
+		case mimeType = "mime_type"
+		case fileSize = "file_size"
+	}
 	
 	public init(fileID: String, duration: Int? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
 		self.fileID = fileID
@@ -53,23 +67,5 @@ final public class Voice: TelegramType, MessageFile {
 		if duration != 0 { keys["duration"] = duration }
 		
 		return keys
-	}
-	
-	// NodeRepresentable conforming methods
-	public required init(row: Row) throws {
-		fileID = try row.get("file_id")
-		duration = try row.get("duration")
-		mimeType = try row.get("mime_type")
-		fileSize = try row.get("file_size")
-	}
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("file_id", fileID)
-		try row.set("duration", duration)
-		try row.set("mime_type", mimeType)
-		try row.set("file_size", fileSize)
-		
-		return row
 	}
 }

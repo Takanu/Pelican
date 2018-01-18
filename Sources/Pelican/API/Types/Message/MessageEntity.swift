@@ -10,7 +10,7 @@ import Vapor
 import FluentProvider
 
 /// Represents one special entity in a text message, such as a hashtag, username or URL.
-public enum MessageEntityType: String {
+public enum MessageEntityType: String, Codable {
 	
 	case mention
 	case hashtag
@@ -24,15 +24,34 @@ public enum MessageEntityType: String {
 	case italic
 	case code
 	case pre
+	
+	case unknown
 }
 
-final public class MessageEntity: Model {
-	public var storage = Storage()
-	public var type: MessageEntityType // Type of the entity.  Can be a mention, hashtag, bot command, URL, email, special text formatting or a text mention.
-	public var offset: Int // Offset in UTF-16 code units to the start of the entity.
-	public var length: Int // Length of the entity in UTF-16 code units.
-	public var url: String? // For text links only, will be opened when the user taps on it.
-	public var user: User? // For text mentions only, the mentioned user.
+final public class MessageEntity: Codable {
+	
+	/// Type of the entity.  Can be a mention, hashtag, bot command, URL, email, special text formatting or a text mention.
+	public var type: MessageEntityType
+	
+	/// Offset in UTF-16 code units to the start of the entity.
+	public var offset: Int
+	
+	/// Length of the entity in UTF-16 code units.
+	public var length: Int
+	
+	// For text links only, will be opened when the user taps on it.
+	public var url: String?
+	
+	// For text mentions only, the mentioned user.
+	public var user: User?
+	
+	enum CodingKeys: String, CodingKey {
+		case type
+		case offset
+		case length
+		case url
+		case user
+	}
 	
 	
 	public init(type: MessageEntityType, offset: Int, length: Int) {
@@ -40,6 +59,30 @@ final public class MessageEntity: Model {
 		self.offset = offset
 		self.length = length
 	}
+	
+	/**
+	public init(from decoder: Decoder) throws {
+		let values = try decoder.container(keyedBy: CodingKeys.self)
+		
+		let typeString = try values.decode(String.self, forKey: .type)
+		type = MessageEntityType(rawValue: typeString.snakeToCamelCase) ?? .unknown
+	
+		offset = try values.decode(Int.self, forKey: .type)
+		length = try values.decode(Int.self, forKey: .length)
+		url = try values.decode(String.self, forKey: .url)
+		user = try values.decode(User.self, forKey: .user)
+	}
+	
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		
+		try container.encode(type.rawValue, forKey: .type)
+		try container.encode(offset, forKey: .offset)
+		try container.encode(length, forKey: .length)
+		try container.encode(url, forKey: .url)
+		try container.encode(user, forKey: .user)
+	}
+	*/
 	
 	/**
 	Extracts the piece of text it represents from the message body.
@@ -59,25 +102,5 @@ final public class MessageEntity: Model {
 		
 		return String(finalString)
 		
-	}
-	
-	// NodeRepresentable conforming methods
-	public required init(row: Row) throws {
-		type = MessageEntityType(rawValue: row["type"]!.string!.snakeToCamelCase)!
-		offset = try row.get("offset")
-		length = try row.get("length")
-		url = try row.get("url")
-		user = try row.get("user")
-	}
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("type", type)
-		try row.set("offset", offset)
-		try row.set("length", length)
-		try row.set("url", url)
-		try row.set("user", user)
-		
-		return row
 	}
 }

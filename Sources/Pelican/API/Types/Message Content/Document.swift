@@ -15,7 +15,6 @@ Represents a generic file type, typically not covered by other Telegram file typ
 final public class Document: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
-	public var storage = Storage()
 	public var contentType: String = "document"
 	public var method: String = "sendDocument" 
 	
@@ -26,12 +25,26 @@ final public class Document: TelegramType, MessageFile {
 	// PARAMETERS
 	/// Document thumbnail.
 	public var thumb: Photo?
+	
 	/// Original filename.
 	public var fileName: String?
+	
 	/// MIME type of the file.
 	public var mimeType: String?
+	
 	/// File size.
 	public var fileSize: String?
+	
+	/// Coding keys to map values when Encoding and Decoding.
+	enum CodingKeys: String, CodingKey {
+		case fileID = "file_id"
+		case url
+		
+		case thumb = "thumb"
+		case fileName = "file_name"
+		case mimeType = "mime_type"
+		case fileSize = "file_size"
+	}
 	
 	
 	public init(fileID: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: String? = nil) {
@@ -59,28 +72,6 @@ final public class Document: TelegramType, MessageFile {
 			"document": fileID]
 		
 		return keys
-	}
-	
-	// NodeRepresentable conforming methods
-	public required init(row: Row) throws {
-		fileID = try row.get("file_id")
-		if let thumbRow = row["thumb"] {
-			self.thumb = try .init(row: Row(thumbRow)) as Photo
-		}
-		fileName = try row.get("file_name")
-		mimeType = try row.get("mime_type")
-		fileSize = try row.get("file_size")
-	}
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("file_id", fileID)
-		try row.set("thumb", thumb)
-		try row.set("file_name", fileName)
-		try row.set("mime_type", mimeType)
-		try row.set("file_size", fileSize)
-		
-		return row
 	}
 	
 }

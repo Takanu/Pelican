@@ -132,8 +132,7 @@ public class CacheManager {
 	func getFormEntry(forFile file: MessageFile) throws -> [String:FormData.Field]? {
 		
 		if file.fileID != nil {
-			//return [file.contentType: Field(name: file.contentType, filename: file.fileID!, part: Part(headers: [HeaderKey.contentType:"text/html"], body: file.fileID!.bytes) )]
-			return nil
+			return [file.contentType: Field(name: file.contentType, filename: file.fileID!, part: Part(headers: [HeaderKey.contentType:"text/html"], body: file.fileID!.bytes) )]
 		}
 		
 		else if file.url != nil {

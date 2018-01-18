@@ -112,14 +112,14 @@ public class ChatSessionQueue {
 	- parameter message: The text message you wish to send.
 	- parameter markup: If any special message functions should be applied.
 	*/
-	public func messageEx(delay: Duration, viewTime: Duration, message: String, markup: MarkupType? = nil, parseMode: MessageParseMode = .none, replyID: Int = 0, webPreview: Bool = false, disableNtf: Bool = false) {
+	public func messageEx(delay: Duration, viewTime: Duration, message: String, markup: MarkupType? = nil, parseMode: MessageParseMode = .none, replyID: Int = 0, useWebPreview: Bool = false, disableNotification: Bool = false) {
 		
 		// Calculate what kind of delay we're using
 		let execTime = bumpEventTime(delay: delay, viewTime: viewTime)
 		
 		let event = ScheduleEvent(delayUnixTime: execTime) {
 			
-			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: message, replyMarkup: markup, parseMode: parseMode, disableWebPreview: webPreview, disableNtf: disableNtf, replyMessageID: replyID)
+			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: message, replyMarkup: markup, parseMode: parseMode, disableWebPreview: useWebPreview, disableNotification: disableNotification, replyMessageID: replyID)
 			_ = self.tag.sendRequest(request)
 		}
 		

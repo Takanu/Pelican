@@ -15,25 +15,43 @@ Represents an audio file to be treated as music by the Telegram clients.
 final public class Audio: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
-	public var storage = Storage()
+	/// The content type it represents, used by Telegram to interpret what is being sent.
 	public var contentType: String = "audio"
+	
+	/// The method that will be used to send this content type.
 	public var method: String = "sendAudio"
 	
 	// FILE SOURCE
-	public var fileID: String? // Unique identifier for the file
+	public var fileID: String?
 	public var url: String?
 	
 	// PARAMETERS
 	/// Duration of the audio in seconds as defined by the sender.
 	public var duration: Int?
+	
 	/// Performer of the audio as defined by the sender or by audio tags
 	public var performer: String?
+	
 	/// Title of the audio as defined by the sender or by audio tags.
 	public var title: String?
+	
 	/// MIME type of the file as defined by the sender.
 	public var mimeType: String?
+	
 	/// File size of the audio file.  Only specify if you reeeeally have to.
 	public var fileSize: Int?
+	
+	/// Coding keys to map values when Encoding and Decoding.
+	enum CodingKeys: String, CodingKey {
+		case fileID = "file_id"
+		case url
+		
+		case duration
+		case performer
+		case title
+		case mimeType = "mime_type"
+		case fileSize = "file_size"
+	}
 	
 	/**
 	Initialises an Audio object based on a Telegram File ID and any optional parameters.
@@ -75,28 +93,6 @@ final public class Audio: TelegramType, MessageFile {
 		if title != nil { keys["title"] = title }
 		
 		return keys
-	}
-	
-	// Model conforming methods
-	public required init(row: Row) throws {
-		fileID = try row.get("file_id")
-		duration = try row.get("duration")
-		performer = try row.get("performer")
-		title = try row.get("title")
-		mimeType = try row.get("mime_type")
-		fileSize = try row.get("file_size")
-	}
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("file_id", fileID)
-		try row.set("duration", duration)
-		try row.set("performer", performer)
-		try row.set("title", title)
-		try row.set("mime_type", mimeType)
-		try row.set("file_size", fileSize)
-		
-		return row
 	}
 	
 }

@@ -157,12 +157,12 @@ public class SessionBuilder {
 	*/
 	func removeSession(tag: SessionTag) {
 		
-		if tag.getBuilderID != self.id { return }
+		if tag.builderID != self.id { return }
 		
-		if let session = sessions[tag.getSessionID] {
+		if let session = sessions[tag.id] {
 			session.cleanup()
-			sessions.removeValue(forKey: tag.getSessionID)
-			print("SESSION REMOVED - \(tag.getSessionID)")
+			sessions.removeValue(forKey: tag.id)
+			print("SESSION REMOVED - \(tag.id)")
 		}
 	}
 	

@@ -174,6 +174,8 @@ public final class Pelican: Vapor.Provider {
   var cache: CacheManager
 	/// The API key assigned to your bot.  PLEASE DO NOT ASSIGN IT HERE, ADD IT TO A JSON FILE INSIDE config/pelican.json as a "token".
   var apiKey: String
+	/// The Payment key assigned to your bot.  To assign the key, add it to the JSON file inside config/pelican.json as "payment_token".
+	var paymentKey: String
 	/// The combination of the API request URL and your API token.
   var apiURL: String
 	/// The droplet powering the server
@@ -349,13 +351,13 @@ public final class Pelican: Vapor.Provider {
 	this becomes the length of time it takes after handling a set of updates to request more from Telegram,
 	until the timeout amount is reached.
 	*/
-  public func setPoll(interval: Int) {
+  public func setPollingInterval(_ interval: Int) {
 		updateQueue = UpdateQueue(interval: TimeInterval(interval)) {
 			
 			PLog.verbose("Update Starting...")
 			
       let updates = self.requestUpdates()
-			if updates != nil { self.filterUpdates(updates: updates!) }
+			if updates != nil { self.handleUpdates(updates!) }
 			self.updateQueue!.queueNext()
 			
 			PLog.verbose("Update Complete.")
@@ -616,7 +618,7 @@ public final class Pelican: Vapor.Provider {
 	Used by the in-built long polling solution to match updates to sessions.
 	### EDIT/REMOVE IN UPCOMING REFACTOR
 	*/
-	internal func filterUpdates(updates: [Update]) {
+	internal func handleUpdates(_ updates: [Update]) {
 		
     // Check the global timer for any scheduled events
     globalTimer += pollInterval

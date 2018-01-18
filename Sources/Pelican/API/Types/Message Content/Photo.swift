@@ -16,18 +16,33 @@ Represents one size of a photo sent from a message, a photo you want to send to 
 final public class Photo: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
-	public var storage = Storage()
-	public var contentType: String = "photo" // MessageType conforming variable for Message class filtering.
-	public var method: String = "sendPhoto" // SendType conforming variable for use when sent
+	public var contentType: String = "photo"
+	public var method: String = "sendPhoto"
 	
 	// FILE SOURCE
 	public var fileID: String?
 	public var url: String?
 	
 	// PARAMETERS
+	/// The width of the photo in pixels.
 	public var width: Int?
+	
+	/// Height of the photo in pixels.
 	public var height: Int?
+	
+	/// The file size of the photo.
 	public var fileSize: Int?
+	
+	
+	/// Coding keys to map values when Encoding and Decoding.
+	enum CodingKeys: String, CodingKey {
+		case fileID = "file_id"
+		case url
+		
+		case width
+		case height
+		case fileSize = "file_size"
+	}
 	
 	
 	public init(fileID: String, width: Int? = nil, height: Int? = nil, fileSize: Int? = nil) {
@@ -52,23 +67,5 @@ final public class Photo: TelegramType, MessageFile {
 			"photo": fileID]
 		
 		return keys
-	}
-	
-	// NodeRepresentable conforming methods
-	public required init(row: Row) throws {
-		fileID = try row.get("file_id")
-		width = try row.get("width")
-		height = try row.get("height")
-		fileSize = try row.get("file_size")
-	}
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("file_id", fileID)
-		try row.set("width", width)
-		try row.set("height", height)
-		try row.set("file_size", fileSize)
-		
-		return row
 	}
 }

@@ -12,15 +12,16 @@ import FluentProvider
 /**
 Represents a real-world location, that when sent as the contents of a message, is represented by a map preview.
 */
-final public class Location: TelegramType, MessageContent, Model {
+final public class Location: TelegramType, MessageContent {
 	
 	// STORAGE AND IDENTIFIERS
-	public var storage = Storage()
-	public var contentType: String = "location" // MessageType conforming variable for Message class filtering.
-	public var method: String = "sendLocation" // SendType conforming variable for use when sent
+	public var contentType: String = "location"
+	public var method: String = "sendLocation"
 	
 	// PARAMETERS
+	/// The latitude of the location.
 	public var latitude: Float
+	/// The longitude of the location.
 	public var longitude: Float
 	
 	
@@ -36,19 +37,5 @@ final public class Location: TelegramType, MessageContent, Model {
 			"latitude": latitude]
 		
 		return keys
-	}
-	
-	// Model conforming methods
-	public required init(row: Row) throws {
-		latitude = try row.get("latitude")
-		longitude = try row.get("longitude")
-	}
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("latitude", latitude)
-		try row.set("longitude", longitude)
-		
-		return row
 	}
 }

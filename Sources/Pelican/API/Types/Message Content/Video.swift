@@ -15,21 +15,44 @@ Represents a video file.  Go figure.
 final public class Video: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
-	public var storage = Storage()
-	public var contentType: String = "video" // MessageType conforming variable for Message class filtering.
-	public var method: String = "sendVideo" // SendType conforming variable for use when sent
+	public var contentType: String = "video"
+	public var method: String = "sendVideo"
 	
 	// FILE SOURCE
 	public var fileID: String?
 	public var url: String?
 	
 	// PARAMETERS
+	/// Width of the video in pixels.
 	public var width: Int?
+	
+	/// Height of the video in pixels.
 	public var height: Int?
+	
+	/// Duration of the video in seconds.
 	public var duration: Int?
+	
+	/// A thumbnail displayed for the video before it plays.
 	public var thumb: Photo?
+	
+	/// The mime type of the video.
 	public var mimeType: String?
+	
+	/// The file size of the video
 	public var fileSize: Int?
+	
+	/// Coding keys to map values when Encoding and Decoding.
+	enum CodingKeys: String, CodingKey {
+		case fileID = "file_id"
+		case url
+		
+		case width
+		case height
+		case duration
+		case thumb
+		case mimeType = "mime_type"
+		case fileSize = "file_size"
+	}
 	
 	
 	public init(fileID: String, width: Int? = nil, height: Int? = nil, duration: Int? = nil, thumb: Photo? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
@@ -66,31 +89,5 @@ final public class Video: TelegramType, MessageFile {
 		if height != 0 { keys["height"] = height }
 		
 		return keys
-	}
-	
-	// NodeRepresentable conforming methods
-	public required init(row: Row) throws {
-		fileID = try row.get("file_id")
-		width = try row.get("width")
-		height = try row.get("height")
-		duration = try row.get("duration")
-		if let thumbRow = row["thumb"] {
-			self.thumb = try .init(row: Row(thumbRow)) as Photo
-		}
-		mimeType = try row.get("mime_type")
-		fileSize = try row.get("file_size")
-	}
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("file_id", fileID)
-		try row.set("width", width)
-		try row.set("height", height)
-		try row.set("duration", duration)
-		try row.set("thumb", thumb)
-		try row.set("mime_type", mimeType)
-		try row.set("file_size", fileSize)
-		
-		return row
 	}
 }

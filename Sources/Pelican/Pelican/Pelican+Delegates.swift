@@ -93,12 +93,12 @@ extension Pelican {
 		// In a blacklist event, first make sure the Session ID type matches.  If not, return.
 		case .blacklist:
 			
-			switch event.tag.getSessionIDType {
+			switch event.tag.idType {
 				
 			case .chat:
-				mod.addToBlacklist(chatIDs: event.tag.getSessionID)
+				mod.addToBlacklist(chatIDs: event.tag.id)
 			case .user:
-				mod.addToBlacklist(userIDs: event.tag.getSessionID)
+				mod.addToBlacklist(userIDs: event.tag.id)
 			default:
 				return
 			}

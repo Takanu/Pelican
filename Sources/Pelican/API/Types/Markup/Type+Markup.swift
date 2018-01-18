@@ -9,7 +9,7 @@ import JSON
  alongside a message, such as creating a custom keyboard or forcing a userto reply to the sent 
  message.
  */
-public protocol MarkupType: Model {
+public protocol MarkupType {
   
 }
 
