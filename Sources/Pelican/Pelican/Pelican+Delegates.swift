@@ -65,18 +65,21 @@ extension Pelican {
 			}
 		}
 		
-		
-		PLog.verbose("Telegram Request - (\(vaporRequest))")
+		// Send the request and get a response back
+		PLog.verbose("Telegram Request:\n\n(\(vaporRequest))")
 		var response: Response? = nil
-		
 		response = connectToClient(request: vaporRequest, attempts: 0)
-		//print(response)
 		
-		PLog.verbose("Telegram Response - (\(String(describing: response!)))")
+		PLog.verbose("Telegram Response:\n\n(\(String(describing: response!)))")
 		let tgResponse = TelegramResponse(response: response!)
 		
+		
+		// Decide what to do next, given the response.
 		if tgResponse != nil  {
+			
+			// If the response didn't succeed, log the error.
 			if tgResponse!.success == false {
+				
 				let error = """
 				Pelican Client Error - Request was unsuccessful.
 				\"\(tgResponse!.errorCode) - \(tgResponse!.errorDescription)\"
@@ -87,8 +90,16 @@ extension Pelican {
 				"""
 				
 				PLog.error(error)
+				
+				
+				// Decide based on the error if we can attempt to send it again and succeed
+				
+				
 			}
-		} else {
+		}
+		
+		// If the response couldn't be created, log the error and return
+		else {
 			PLog.error("Pelican Client Error - Unable to create TelegramResponse for the following request:\n\n\(request)")
 		}
 		

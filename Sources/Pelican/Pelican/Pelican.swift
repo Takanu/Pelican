@@ -207,14 +207,16 @@ public final class Pelican: Vapor.Provider {
   public var offset: Int = 0
 	/// (Polling) The number of messages that can be received in any given update, between 1 and 100.
   public var limit: Int = 100
-	// (Polling) The length of time Pelican will hold onto an update connection with Telegram to wait for updates before disconnecting.
+	/// (Polling) The length of time Pelican will hold onto an update connection with Telegram to wait for updates before disconnecting.
   public var timeout: Int = 1
 	
 	/// Defines what update types the bot will receive.  Leave empty if all are allowed, or otherwise specify to optimise the bot.
   public var allowedUpdates: [UpdateType] = []
 	/// If true, the bot will ignore any historic messages it has received while it has been offline.
   public var ignoreInitialUpdates: Bool = true
+	/// Whether the bot has started and is running.
   private var started: Bool = false
+	/// Whether the bot has started and is running.
   public var hasStarted: Bool { return started }
 	
 	
