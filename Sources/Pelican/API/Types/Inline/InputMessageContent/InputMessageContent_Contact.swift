@@ -9,6 +9,9 @@ import Foundation
 
 final public class InputMessageContent_Contact: InputMessageContent_Any {
 	
+	// The type of the input content, used for Codable.
+	public static var type: InputMessageContentType = .contact
+	
 	// Contact's phone number.
 	public var phoneNumber: String
 	

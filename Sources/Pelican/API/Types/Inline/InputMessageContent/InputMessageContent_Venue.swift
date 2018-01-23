@@ -12,6 +12,9 @@ Represents the content of a venue message to be sent as the result of an inline 
 */
 final public class InputMessageContent_Venue: InputMessageContent_Any {
 	
+	// The type of the input content, used for Codable.
+	public static var type: InputMessageContentType = .venue
+	
 	/// Latitude of the venue in degrees.
 	public var latitude: Float
 	

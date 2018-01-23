@@ -43,6 +43,10 @@ final public class MarkupInline: MarkupType, Codable, Equatable {
 	
 	public var keyboard: [[MarkupInlineKey]] = []
 	
+	/// Coding keys to map values when Encoding and Decoding.
+	enum CodingKeys: String, CodingKey {
+		case keyboard = "inline_keyboard"
+	}
 	
 	
 	// Blank!

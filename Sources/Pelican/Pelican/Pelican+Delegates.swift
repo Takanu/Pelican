@@ -82,7 +82,7 @@ extension Pelican {
 				
 				let error = """
 				Pelican Client Error - Request was unsuccessful.
-				\"\(tgResponse!.errorCode) - \(tgResponse!.errorDescription)\"
+				\(tgResponse!.errorCode ?? "") - \(tgResponse!.errorDescription ?? "")
 				
 				Request:
 				----------

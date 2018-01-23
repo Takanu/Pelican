@@ -36,7 +36,7 @@ extension TelegramRequest {
 		request.query["text"] = text
 		
 		if markup != nil {
-			if let text = TelegramRequest.encodeDataToUTF8(markup!) {
+			if let text = TelegramRequest.encodeMarkupTypeToUTF8(markup!) {
 				request.query["reply_markup"] = text
 			}
 		}
@@ -71,7 +71,7 @@ extension TelegramRequest {
 		if messageID != 0 { request.query["message_id"] = messageID }
 		
 		if markup != nil {
-			if let text = TelegramRequest.encodeDataToUTF8(markup!) {
+			if let text = TelegramRequest.encodeMarkupTypeToUTF8(markup!) {
 				request.query["reply_markup"] = text
 			}
 		}
@@ -104,7 +104,7 @@ extension TelegramRequest {
 		if inlineMessageID != 0 { request.query["inline_message_id"] = inlineMessageID }
 		
 		if markup != nil {
-			if let text = TelegramRequest.encodeDataToUTF8(markup!) {
+			if let text = TelegramRequest.encodeMarkupTypeToUTF8(markup!) {
 				request.query["reply_markup"] = text
 			}
 		}

@@ -17,6 +17,9 @@ By default, this video will be sent by the user with an optional caption. Altern
 */
 struct InlineResultVideo: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .video
+	
 	/// Type of the result being given.
 	public var type: String = "video"
 	

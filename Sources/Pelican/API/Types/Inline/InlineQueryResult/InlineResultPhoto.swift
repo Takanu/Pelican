@@ -15,6 +15,9 @@ By default, this photo will be sent by the user with an optional caption. Altern
 */
 struct InlineResultPhoto: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .photo
+	
 	/// Type of the result being given.
 	public var type: String = "photo"
 	

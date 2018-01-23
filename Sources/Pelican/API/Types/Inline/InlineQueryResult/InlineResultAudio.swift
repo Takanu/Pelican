@@ -12,6 +12,9 @@ Represents either a link to a MP3 audio file stored on the Telegram servers, or 
 */
 struct InlineResultAudio: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .audio
+	
 	// Type of the result being given.
 	var type: String = "audio"
 	

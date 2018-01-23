@@ -17,6 +17,9 @@ Stickers can only ever be cached, you cannot currently define an external URL li
 */
 struct InlineResultSticker: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .sticker
+	
 	/// Type of the result being given.
 	public var type: String = "sticker"
 	

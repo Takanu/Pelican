@@ -12,6 +12,9 @@ Represents the content of a location message to be sent as the result of an inli
 */
 final public class InputMessageContent_Location: InputMessageContent_Any {
 	
+	// The type of the input content, used for Codable.
+	public static var type: InputMessageContentType = .location
+	
 	/// Latitude of the venue in degrees.
 	public var latitude: Float
 	

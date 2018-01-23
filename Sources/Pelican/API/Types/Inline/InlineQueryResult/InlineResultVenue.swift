@@ -14,6 +14,9 @@ Alternatively, you can use the `content` property to send a message with the spe
 */
 public struct InlineResultVenue: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .venue
+	
 	/// Type of the result being given.
 	public var type: String = "venue"
 	

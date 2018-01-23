@@ -36,7 +36,7 @@ extension TelegramRequest {
 		
 		// Check whether any other query needs to be added
 		if markup != nil {
-			if let text = TelegramRequest.encodeDataToUTF8(markup!) {
+			if let text = TelegramRequest.encodeMarkupTypeToUTF8(markup!) {
 				request.query["reply_markup"] = text
 			}
 		}
@@ -97,23 +97,13 @@ extension TelegramRequest {
 	- parameter caption: Provide an optional caption that will sit below the uploaded file in a Telegram chat.  Note that this only works with Audio,
 	Photo, Video, Document and Voice message file types - you wont see a caption appear with any other uploaded file type.
 	*/
-	public static func sendFile(file: MessageFile, callback: ReceiveUpload? = nil, chatID: Int, markup: MarkupType?, caption: String = "", disableNotification: Bool = false, replyMessageID: Int = 0) -> TelegramRequest? {
-		
-		
-		// The PhotoSize/Photo model stopped working, this can't be used until later.
-		/*
-		// Check to see if we need to upload this in the first place.
-		// If not, send the file using the link.
-		let search = cache.find(upload: link, bot: self)
-		if search != nil {
-		print("SENDING...")
-		let message = sendFile(chatID: chatID, file: search!, markup: markup, caption: caption, disableNotification: disableNotification, replyMessageID: replyMessageID)
-		if callback != nil {
-		callback!.receiveMessage(message: message!)
-		}
-		return
-		}
-		*/
+	public static func sendFile(file: MessageFile,
+															callback: ReceiveUpload? = nil,
+															chatID: Int,
+															markup: MarkupType?,
+															caption: String = "",
+															disableNotification: Bool = false,
+															replyMessageID: Int = 0) -> TelegramRequest? {
 		
 		let request = TelegramRequest()
 		
@@ -130,7 +120,7 @@ extension TelegramRequest {
 			}
 			
 			if markup != nil {
-				if let markupText = TelegramRequest.encodeDataToUTF8(markup!) {
+				if let markupText = TelegramRequest.encodeMarkupTypeToUTF8(markup!) {
 					request.query["reply_markup"] = markupText
 				}
 			}
@@ -156,7 +146,7 @@ extension TelegramRequest {
 			}
 			
 			if markup != nil {
-				if let text = TelegramRequest.encodeDataToUTF8(markup!) {
+				if let text = TelegramRequest.encodeMarkupTypeToUTF8(markup!) {
 					request.form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: text.makeBytes()))
 				}
 			}
@@ -209,7 +199,7 @@ extension TelegramRequest {
 		
 		// Check whether any other query needs to be added
 		if markup != nil {
-			if let markupText = TelegramRequest.encodeDataToUTF8(markup!) {
+			if let markupText = TelegramRequest.encodeMarkupTypeToUTF8(markup!) {
 				request.query["reply_markup"] = markupText
 			}
 		}

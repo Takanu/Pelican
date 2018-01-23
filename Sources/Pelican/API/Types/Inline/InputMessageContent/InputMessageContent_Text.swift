@@ -12,6 +12,9 @@ Represents the content of a text message to be sent as the result of an inline q
 */
 final public class InputMessageContent_Text: InputMessageContent_Any {
 	
+	// The type of the input content, used for Codable.
+	public static var type: InputMessageContentType = .text
+	
 	/// Text of the message to be sent.  1-4096 characters.
 	public var text: String
 	

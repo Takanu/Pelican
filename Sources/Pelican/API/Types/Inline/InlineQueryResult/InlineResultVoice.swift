@@ -15,6 +15,9 @@ By default, this voice recording will be sent by the user. Alternatively, you ca
 */
 struct InlineResultVoice: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .voice
+	
 	/// Type of the result being given.
 	public var type: String = "voice"
 	

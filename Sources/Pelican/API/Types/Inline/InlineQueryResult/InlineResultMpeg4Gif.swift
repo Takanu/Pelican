@@ -14,6 +14,9 @@ By default, this MP4 GIF will be sent by the user with an optional caption. Alte
 */
 struct InlineResultMpeg4GIF: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .mpeg4Gif
+	
 	/// Type of the result being given.
 	public var type: String = "mpeg4_gif"
 	

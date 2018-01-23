@@ -508,7 +508,7 @@ public final class Pelican: Vapor.Provider {
       if allowedUpdates.contains(UpdateType.inlineQuery) {
         if (responseSlice["inline_query"]) != nil {
 					let update = unwrapIncomingUpdate(json: responseSlice["inline_query"]!,
-																						dataType: Message.self,
+																						dataType: InlineQuery.self,
 																						updateType: .inlineQuery)
 					
 					if update != nil {
@@ -521,7 +521,7 @@ public final class Pelican: Vapor.Provider {
       if allowedUpdates.contains(UpdateType.chosenInlineResult) {
         if (responseSlice["chosen_inline_result"]) != nil {
 					let update = unwrapIncomingUpdate(json: responseSlice["chosen_inline_result"]!,
-																						dataType: Message.self,
+																						dataType: ChosenInlineResult.self,
 																						updateType: .chosenInlineResult)
 					
 					if update != nil {
@@ -534,7 +534,7 @@ public final class Pelican: Vapor.Provider {
       if allowedUpdates.contains(UpdateType.callbackQuery) {
         if (response["result", i, "callback_query"]) != nil {
 					let update = unwrapIncomingUpdate(json: responseSlice["callback_query"]!,
-																						dataType: Message.self,
+																						dataType: CallbackQuery.self,
 																						updateType: .callbackQuery)
 					
 					if update != nil {

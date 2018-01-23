@@ -64,12 +64,8 @@ extension TelegramRequest {
 			"inline_query_id": queryID
 		]
 		
-		// Then serialise it as a query entry
-		if let jsonData = TelegramRequest.encodeDataToUTF8(results) {
-			request.query["results"] = jsonData
-		} else {
-			return nil
-		}
+		let resultAny: [InlineResultAny] = results.map {T in return InlineResultAny(T) }
+		request.query["results"] = TelegramRequest.encodeDataToUTF8(resultAny)
 		
 		// Check whether any other query needs to be added
 		if cacheTime != 300 { request.query["cache_time"] = cacheTime }

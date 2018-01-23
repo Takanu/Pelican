@@ -14,6 +14,9 @@ By default, this GIF will be sent by the user with an optional caption. Alternat
 */
 struct InlineResultGIF: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .gif
+	
 	// Type of the result being given.
 	var type: String = "gif"
 	

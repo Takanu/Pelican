@@ -28,7 +28,15 @@ final public class MarkupForceReply: MarkupType, Codable {
 	**Targets:**
 	1) users that are @mentioned in the text of the Message object;
 	2) if the bot's message is a reply (has reply_to_message_id), sender of the original message.
-	
+	*/
+		
+	/// Coding keys to map values when Encoding and Decoding.
+	enum CodingKeys: String, CodingKey {
+		case forceReply = "force_reply"
+		case selective
+	}
+
+	/*
 	- parameter isSelective: If false, the reply interface will appear for all users.  If true however, the
 	reply interface will only appear for the targets you specify.
 	*/

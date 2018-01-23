@@ -17,6 +17,9 @@ By default, this file will be sent by the user with an optional caption. Alterna
 */
 struct InlineResultDocument: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .document
+	
 	/// Type of the result being given.
 	public var type: String = "document"
 	

@@ -12,19 +12,21 @@ Represents the content of a message to be sent as a result of an inline query.  
 */
 public class InputMessageContent: Codable {
 	
-	var type: InputMessageContentType
-	var base: InputMessageContent_Any
+	public var type: InputMessageContentType
+	public var base: InputMessageContent_Any
 	
 	// These values are only ever used to detect what content type is being held.
 	/// Coding keys to map values when Encoding and Decoding.
 	enum CodingKeys: String, CodingKey {
+		case type
+		case base
 		case phoneNumber = "phone_number"
 		case latitude
 		case text = "message_text"
 		case address
 	}
 	
-	init(content: InputMessageContent_Any) {
+	public init(content: InputMessageContent_Any) {
 		
 		base = content
 		
@@ -65,25 +67,10 @@ public class InputMessageContent: Codable {
 	}
 	
 	public func encode(to encoder: Encoder) throws {
-		
-		if type == .contact {
-			let content = base as! InputMessageContent_Contact
-			try content.encode(to: encoder)
-		}
-		
-		else if type == .venue {
-			let content = base as! InputMessageContent_Venue
-			try content.encode(to: encoder)
-		}
-		
-		else if type == .location {
-			let content = base as! InputMessageContent_Location
-			try content.encode(to: encoder)
-		}
-		
-		else {
-			let content = base as! InputMessageContent_Text
-			try content.encode(to: encoder)
-		}
+		try base.encode(to: encoder)
 	}
 }
+
+
+
+

@@ -12,6 +12,9 @@ Represents a game.
 */
 public struct InlineResultGame: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .game
+	
 	/// Type of the result being given.
 	public var type: String = "game"
 	

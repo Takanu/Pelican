@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum InputMessageContentType: String {
+public enum InputMessageContentType: String {
 	
 	case contact
 	case location

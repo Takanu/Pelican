@@ -14,6 +14,9 @@ Alternatively, you can use `content` property to send a message with the specifi
 */
 public struct InlineResultLocation: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .location
+	
 	/// Type of the result being given.
 	public var type: String = "location"
 	

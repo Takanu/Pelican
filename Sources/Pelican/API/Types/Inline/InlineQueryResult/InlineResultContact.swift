@@ -14,6 +14,9 @@ By default, this contact will be sent by the user.  Alternatively, you can use t
 */
 public struct InlineResultContact: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .contact
+	
 	/// Type of the result being given.
 	public var type: String = "contact"
 	

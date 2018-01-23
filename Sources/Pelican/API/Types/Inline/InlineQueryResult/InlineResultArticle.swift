@@ -12,6 +12,9 @@ Represents a link to an article or web page.  This type is also ideal for settin
 */
 final public class InlineResultArticle: InlineResult {
 	
+	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
+	public var metatype: InlineResultType = .article
+	
 	/// Type of the result being given.
 	public var type: String = "article"
 	

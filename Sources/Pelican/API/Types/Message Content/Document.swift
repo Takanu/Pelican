@@ -33,7 +33,7 @@ final public class Document: TelegramType, MessageFile {
 	public var mimeType: String?
 	
 	/// File size.
-	public var fileSize: String?
+	public var fileSize: Int?
 	
 	/// Coding keys to map values when Encoding and Decoding.
 	enum CodingKeys: String, CodingKey {
@@ -47,7 +47,7 @@ final public class Document: TelegramType, MessageFile {
 	}
 	
 	
-	public init(fileID: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: String? = nil) {
+	public init(fileID: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
 		self.fileID = fileID
 		self.thumb = thumb
 		self.fileName = fileName
@@ -55,7 +55,7 @@ final public class Document: TelegramType, MessageFile {
 		self.fileSize = fileSize
 	}
 	
-	public init?(url: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: String? = nil) {
+	public init?(url: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
 		
 		if url.checkURLValidity(acceptedExtensions: []) == false { return nil }
 		
