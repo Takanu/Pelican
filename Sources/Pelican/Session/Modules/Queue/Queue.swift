@@ -44,7 +44,7 @@ public class ChatSessionQueue {
 	/**
 	Initialises the Queue class with a Pelican-derived Schedule.
 	*/
-	init(chatID: Int, schedule: Schedule, tag: SessionTag) {
+	public init(chatID: Int, schedule: Schedule, tag: SessionTag) {
 		
 		self.chatID = chatID
 		self.tag = tag

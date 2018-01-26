@@ -13,7 +13,7 @@ A delegate for Telegram API methods.
 public class SessionRequests {
 	var tag: SessionTag
 	
-	init(tag: SessionTag) {
+	public init(tag: SessionTag) {
 		self.tag = tag
 	}
 	
