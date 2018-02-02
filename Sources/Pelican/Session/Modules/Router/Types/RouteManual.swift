@@ -44,7 +44,7 @@ public class RouteManual: Route {
 	
 	override public func handle(_ update: Update) -> Bool {
 		
-		let result = handle(update)
+		let result = handler(update)
 		
 		if result == true {
 			return passUpdate(update)

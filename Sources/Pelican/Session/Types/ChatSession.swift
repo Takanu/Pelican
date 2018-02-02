@@ -84,7 +84,7 @@ open class ChatSession: Session {
 	
 	open func cleanup() {
 		self.queue.clear()
-		self.baseRoute.clearAll()
+		self.baseRoute.close()
 		self.timeout.close()
 		self.flood.clearAll()
 	}

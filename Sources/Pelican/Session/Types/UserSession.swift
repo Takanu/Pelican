@@ -84,7 +84,7 @@ open class UserSession: Session {
 	}
 	
 	open func cleanup() {
-		self.baseRoute.clearAll()
+		self.baseRoute.close()
 		self.timeout.close()
 		self.flood.clearAll()
 	}

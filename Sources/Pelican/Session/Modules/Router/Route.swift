@@ -146,6 +146,17 @@ public class Route {
 		self.nextRoutes = []
 		self.fallbackRoute = nil
 	}
+	
+	/**
+	Closes the route system by ensuring all routes connected to it are cleared.
+	Providing no strong reference cycles are present, this will help ensure the Session closes.
+	*/
+	public func close() {
+		self.action = nil
+		self.fallbackRoute = nil
+		self.nextRoutes.forEach { T in T.close() }
+		self.nextRoutes = []
+	}
 }
 
 
