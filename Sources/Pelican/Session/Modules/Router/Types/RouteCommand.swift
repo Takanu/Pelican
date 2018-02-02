@@ -16,12 +16,6 @@ commands, and as long as one of them matches the update content the action will 
 */
 public class RouteCommand: Route {
 	
-	public var id: Int = 0
-	public var name: String = ""
-	public var action: (Update) -> (Bool)
-	public var enabled: Bool = true
-	
-	
 	/// The commands to listen for in a message.  Only one has to be found in the set for the action to execute.
 	public var commands: [String] = []
 	
@@ -32,16 +26,32 @@ public class RouteCommand: Route {
 	multiple are being included, with commas in-between them (`"start, settings, shop"`).
 	- parameter action: The function to be executed if the Route is able to handle an incoming update.
 	*/
-	public init(commands: String, action: @escaping (Update) -> (Bool)) {
+	public init(name: String, commands: String, action: @escaping (Update) -> (Bool)) {
 		
-		self.action = action
+		super.init(name: name, action: action)
 		
 		for command in commands.components(separatedBy: ",") {
 			self.commands.append(command.replacingOccurrences(of: " ", with: ""))
 		}
 	}
 	
-	public func handle(_ update: Update) -> Bool {
+	/**
+	Initialises a RouteCommand type, to link user message commands to additional routes.
+	
+	- parameter commands: The commands you wish the route to be bound to.  List them without a forward slash, and if
+	multiple are being included, with commas in-between them (`"start, settings, shop"`).
+	- parameter action: The function to be executed if the Route is able to handle an incoming update.
+	*/
+	public init(name: String, commands: String, routes: Route...) {
+		
+		super.init(name: name, routes: routes)
+		
+		for command in commands.components(separatedBy: ",") {
+			self.commands.append(command.replacingOccurrences(of: " ", with: ""))
+		}
+	}
+	
+	override public func handle(_ update: Update) -> Bool {
 		
 		// Return if the update is not a message
 		if update.type != .message { return false }
@@ -73,7 +83,7 @@ public class RouteCommand: Route {
 						
 						// If the command is included in the given list, execute the action.
 						if commands.contains(command) {
-							return action(update)
+							return passUpdate(update)
 						}
 					}
 				}
@@ -83,14 +93,11 @@ public class RouteCommand: Route {
 		return false
 	}
 	
-	public func compare(_ route: Route) -> Bool {
+	override public func compare(_ route: Route) -> Bool {
 		
 		// Check the types match
 		if route is RouteCommand {
 			let otherRoute = route as! RouteCommand
-			
-			// Check the ID
-			if self.id != otherRoute.id { return false }
 			
 			// Check the command contents
 			if self.commands.count == otherRoute.commands.count {
@@ -98,9 +105,10 @@ public class RouteCommand: Route {
 				for (i, type) in self.commands.enumerated() {
 					if type != otherRoute.commands[i] { return false }
 				}
-				
-				return true
 			}
+			
+			// Check the base Route class
+			return super.compare(otherRoute)
 		}
 		
 		return false

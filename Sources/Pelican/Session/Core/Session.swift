@@ -18,8 +18,8 @@ public protocol Session {
 	
 	
 	// DELEGATES AND CONTROLLERS
-	/// Handles and matches user requests to available bot functions based on user-defined patterns and behaviours.
-	var router: Router { get }
+	/// The initial route that all updates to this session will be sent to.  Routes are used to handle and matches user requests to available bot functions based on user-defined patterns and behaviours.
+	var baseRoute: Route { get }
 	
 	
 	// TIME AND ACTIVITY
@@ -54,7 +54,7 @@ extension Session {
 	public func update(_ update: Update) {
 		
 		// This needs revising, whatever...
-		_ = router.handleUpdate(update)
+		_ = baseRoute.handle(update)
 		
 	}
 	

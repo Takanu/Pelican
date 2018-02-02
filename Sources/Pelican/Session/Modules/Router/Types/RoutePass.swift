@@ -16,11 +16,6 @@ given action.
 */
 public class RoutePass: Route {
 	
-	public var id: Int = 0
-	public var name: String = ""
-	public var action: (Update) -> (Bool)
-	public var enabled: Bool = true
-	
 	/// The update types the update can potentially be in order for the action to be executed.
 	public var updateTypes: [UpdateType] = []
 	
@@ -31,29 +26,39 @@ public class RoutePass: Route {
 	- parameter updateTypes: The types of updates the route can consider for triggering an action.
 	- parameter action: The function to be executed if the Route is able to handle an incoming update.
 	*/
-	public init(updateTypes: [UpdateType], action: @escaping (Update) -> (Bool)) {
+	public init(name: String, updateTypes: [UpdateType], action: @escaping (Update) -> (Bool)) {
 		
-		self.action = action
+		super.init(name: name, action: action)
 		self.updateTypes = updateTypes
 	}
 	
-	public func handle(_ update: Update) -> Bool {
+	/**
+	Initialises a Route that will allow any Update matching specific Update types to trigger an action.
+	- parameter name: The name of the route.  This is used to check for equatibility with other routes, so ensure
+	you create unique names for routes you want to be considered separate entities.
+	- parameter updateTypes: The types of updates the route can consider for triggering an action.
+	- parameter action: The function to be executed if the Route is able to handle an incoming update.
+	*/
+	public init(name: String, updateTypes: [UpdateType], routes: Route...) {
+		
+		super.init(name: name, routes: routes)
+		self.updateTypes = updateTypes
+	}
+	
+	override public func handle(_ update: Update) -> Bool {
 		
 		if updateTypes.contains(update.type) == true {
-			return action(update)
+			return passUpdate(update)
 		}
 		
 		return false
 	}
 	
-	public func compare(_ route: Route) -> Bool {
+	override public func compare(_ route: Route) -> Bool {
 		
 		// Check the types match
 		if route is RoutePass {
 			let otherRoute = route as! RoutePass
-			
-			// Check the ID
-			if self.id != otherRoute.id { return false }
 			
 			// Check the type contents
 			if self.updateTypes.count == otherRoute.updateTypes.count {
@@ -62,8 +67,11 @@ public class RoutePass: Route {
 					if type != otherRoute.updateTypes[i] { return false }
 				}
 				
-				return true
+				
 			}
+			
+			// Check the base Route class
+			return super.compare(otherRoute)
 		}
 		
 		return false

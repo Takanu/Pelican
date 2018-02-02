@@ -32,12 +32,18 @@ public class Flood {
 	}
 	
 	/**
-	Uses an update to attempt bumping the hits on any monitors currently being used, where the
-	update is applicable to them.
+	Passes the update to all available monitors.
 	*/
-	public func bump(_ update: Update) {
+	public func handle(_ update: Update) {
 		
 		monitors.forEach( { $0.bump(update) } )
+	}
+	
+	/**
+	Clears all flood monitors currently being stored.
+	*/
+	public func clearAll() {
+		monitors.removeAll()
 	}
 }
 
@@ -47,9 +53,16 @@ Defines a set of rules that a FloodLimit class can check for.
 public class FloodMonitor: Equatable {
 	
 	// CRITERIA
+	/// The type of update to look for when incrementing the hit counter.
 	var type: [UpdateType] = []
+	
+	/// The number of hits currently received within the flood monitor's `duration`.
 	var hits: Int
+	
+	/// The length of time the flood monitor range lasts for.
 	var duration: Duration
+	
+	/// The action to be triggered should the monitor
 	var action: () -> ()
 	
 	// CURRENT STATE
@@ -81,7 +94,7 @@ public class FloodMonitor: Equatable {
 		// If so, check the times and hits
 		if Date().timeIntervalSince1970 > (currentTime.timeIntervalSince1970 + duration.rawValue) {
 			
-			reset()
+			resetTime()
 			return
 		}
 		
@@ -95,9 +108,9 @@ public class FloodMonitor: Equatable {
 	}
 	
 	/**
-	Resets all state variables
+	Resets all properties related to measuring hits and action triggering.
 	*/
-	public func reset() {
+	public func resetTime() {
 		
 		currentTime = Date()
 		currentHits = 0

@@ -21,17 +21,17 @@ open class UserSession: Session {
 	//  CORE INTERNAL VARIABLES
 	public var tag: SessionTag
 	
-	
 	/// The user information associated with this session.
 	public var info: User
+	
 	/// The ID of the user associated with this session.
 	public var userID: Int
-	/// The chat sessions the user is currently actively occupying.
-	public var chatSessions: [ChatSession] = []
-	/** A user-defined type assigned by Pelican on creation, used to cleanly associate custom functionality and
-	variables to an individual user session.
-	*/
 	
+	/// The chat sessions this user is currently actively occupying.
+	/// Not currently functional, undecided if it will be implemented
+	//public var chatSessions: [SessionTag] = []
+	
+
 	
 	// API REQUESTS
 	// Shortcuts for API requests.
@@ -40,7 +40,7 @@ open class UserSession: Session {
 	
 	// DELEGATES / CONTROLLERS
 	/// Handles and matches user requests to available bot functions.
-	public var router: Router
+	public var baseRoute: Route
 	
 	/// Stores what Moderator-controlled permissions the User Session has.
 	public var mod: SessionModerator
@@ -67,7 +67,7 @@ open class UserSession: Session {
 		
 		self.info = update.from!
 		self.userID = update.from!.tgID
-		self.router = Router()
+		self.baseRoute = Route(name: "base", routes: [])
 		
 		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
 		self.timeout = Timeout(tag: tag, schedule: bot.schedule)
@@ -84,7 +84,9 @@ open class UserSession: Session {
 	}
 	
 	open func cleanup() {
+		self.baseRoute.clearAll()
 		self.timeout.close()
+		self.flood.clearAll()
 	}
 	
 	
@@ -94,10 +96,10 @@ open class UserSession: Session {
 		timeout.bump(update)
 		
 		// This needs revising, whatever...
-		let handled = router.handleUpdate(update)
+		let handled = baseRoute.handle(update)
 		
 		// Bump the flood controller after
-		flood.bump(update)
+		flood.handle(update)
 		
 	}
 }

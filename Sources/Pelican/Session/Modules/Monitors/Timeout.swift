@@ -20,8 +20,10 @@ public class Timeout {
 	// CONTROLS
 	/// The types that will allow a timeout to get bumped.
 	var types: [UpdateType] = []
-	/// The length of time it takes for a timeout to occur if the timeout controller is not successfully bumped.
+	
+	/// The length of time it takes for a timeout to occur if the timeout controller is not successfully bumped.  If 0 seconds, a timeout will not be triggered.
 	var duration: Duration = 0.seconds
+	
 	/**
 	An optional action to be executed if the timeout occurs.
 	- note: The session will be removed from Pelican as soon as the action has finished executing, do not queue Schedule events using the session.
@@ -29,7 +31,10 @@ public class Timeout {
 	var action: (() -> ())?
 	
 	// CURRENT STATE
+	/// The last time the timeout time was bumped forwards.
 	var lastBump = Date()
+	
+	/// The last event that was scheduled to trigger a timeout.
 	var lastEvent: ScheduleEvent?
 	
 	
@@ -99,5 +104,19 @@ public class Timeout {
 		if lastEvent != nil {
 			schedule.remove(lastEvent!)
 		}
+		
+		reset()
+	}
+	
+	/**
+	Resets all Timeout properties to default values.
+	*/
+	public func reset() {
+		self.types = []
+		self.duration = 0.sec
+		self.action = nil
+		
+		self.lastBump = Date()
+		self.lastEvent = nil
 	}
 }

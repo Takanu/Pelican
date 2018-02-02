@@ -30,10 +30,13 @@ public class SessionBuilder {
 	
 	/// A function that checks an update to see whether or not it matches given criteria in that function, returning a non-nil value if true.
 	var spawner: (Update) -> Int?
+	
 	/// The type of identification the spawner function generates, which is then used to identify a Session.
 	var idType: SessionIDType
-	/// The session type that's created using the builder.
+	
+	/// The session type that the builder creates for handling updates.
 	var session: Session.Type
+	
 	/** An optional function type that can be used to initialise a Session type in a custom way, such as if it has any additional initialisation paramaters. 
 	If left empty, the default Session initialiser will be used. */
 	var setup: ((Pelican, SessionTag, Update) -> (Session))?
@@ -52,6 +55,7 @@ public class SessionBuilder {
 	/// The sessions that have been spawned by the builder and are currently active.
 	var sessions: [Int:Session] = [:]
 	
+	/// Returns the number of sessions being managed by the builder.
 	public var getSessionCount: Int { return sessions.count }
 	
 	
@@ -162,6 +166,7 @@ public class SessionBuilder {
 		if let session = sessions[tag.id] {
 			session.cleanup()
 			sessions.removeValue(forKey: tag.id)
+			
 			print("SESSION REMOVED - \(tag.id)")
 		}
 	}

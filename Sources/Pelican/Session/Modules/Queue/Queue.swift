@@ -18,12 +18,14 @@ public class ChatSessionQueue {
 	/// DATA
 	/// The chat ID of the session this queue belongs to.
 	public var chatID: Int
+	
 	/// A callback to the Pelican `sendRequest` method, enabling the class to send it's own requests.
 	public var tag: SessionTag
 	
 	// CALLBACKS
-	/// A callback to Schedule, to add an event to the queue
+	/// A callback to Schedule, to add an event to the queue.
 	public var addEvent: (ScheduleEvent) -> ()
+	
 	public var removeEvent: (ScheduleEvent) -> ()
 	
 	

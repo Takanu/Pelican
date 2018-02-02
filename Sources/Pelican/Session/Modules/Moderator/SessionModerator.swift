@@ -44,7 +44,7 @@ public class SessionModerator {
 	/**
 	Adds a title to this session.
 	*/
-	public func add(_ title: String) {
+	public func addTitle(_ title: String) {
 		
 		changeTitleCallback(tag.idType, title, [tag.id], false)
 	}
@@ -52,7 +52,7 @@ public class SessionModerator {
 	/**
 	Adds a title to the IDs of the users specified.
 	*/
-	public func addToUsers(title: String, users: User...) {
+	public func addTitleToUsers(title: String, users: User...) {
 		
 		changeTitleCallback(.user, title, users.map({$0.tgID}), false)
 	}
@@ -60,7 +60,7 @@ public class SessionModerator {
 	/**
 	Adds a title to the IDs of the chats specified.
 	*/
-	public func addToChats(title: String, chats: Chat...) {
+	public func addTitleToChats(title: String, chats: Chat...) {
 		
 		changeTitleCallback(.chat, title, chats.map({$0.tgID}), false)
 	}
@@ -68,7 +68,7 @@ public class SessionModerator {
 	/**
 	Removes a title from this session, if associated with it.
 	*/
-	public func remove(_ title: String) {
+	public func removeTitle(_ title: String) {
 		
 		changeTitleCallback(tag.idType, title, [tag.id], true)
 	}
@@ -76,7 +76,7 @@ public class SessionModerator {
 	/**
 	Adds a title to the IDs of the users specified.
 	*/
-	public func removeFromUsers(title: String, users: User...) {
+	public func removeTitleFromUsers(title: String, users: User...) {
 		
 		changeTitleCallback(.user, title, users.map({$0.tgID}), true)
 	}
@@ -84,7 +84,7 @@ public class SessionModerator {
 	/**
 	Adds a title to the IDs of the chats specified.
 	*/
-	public func removeFromChats(title: String, chats: Chat...) {
+	public func removeTitleFromChats(title: String, chats: Chat...) {
 		
 		changeTitleCallback(.chat, title, chats.map({$0.tgID}), true)
 	}

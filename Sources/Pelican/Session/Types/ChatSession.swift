@@ -41,7 +41,7 @@ open class ChatSession: Session {
 	public var queue: ChatSessionQueue
 	
 	/// Handles and matches user requests to available bot functions.
-	public var router: Router
+	public var baseRoute: Route
 	
 	/// Stores what Moderator-controlled titles the Chat Session has.
 	public var mod: SessionModerator
@@ -69,7 +69,7 @@ open class ChatSession: Session {
 		self.chatID = update.chat!.tgID
 		
 		self.queue = ChatSessionQueue(chatID: update.chat!.tgID, schedule: bot.schedule, tag: self.tag)
-		self.router = Router()
+		self.baseRoute = Route(name: "base", routes: [])
 		
 		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
 		self.timeout = Timeout(tag: self.tag, schedule: bot.schedule)
@@ -84,7 +84,9 @@ open class ChatSession: Session {
 	
 	open func cleanup() {
 		self.queue.clear()
+		self.baseRoute.clearAll()
 		self.timeout.close()
+		self.flood.clearAll()
 	}
 	
 	
@@ -95,10 +97,10 @@ open class ChatSession: Session {
 		timeout.bump(update)
 		
 		// This needs revising, whatever...
-		_ = router.handleUpdate(update)
+		_ = baseRoute.handle(update)
 		
-		// Bump the flood controller after
-		flood.bump(update)
+		// Pass the update to the flood controller to be handled.
+		flood.handle(update)
 		
 	}
 }
