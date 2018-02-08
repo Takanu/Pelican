@@ -96,7 +96,7 @@ open class UserSession: Session {
 		timeout.bump(update)
 		
 		// This needs revising, whatever...
-		let handled = baseRoute.handle(update)
+		_ = baseRoute.handle(update)
 		
 		// Bump the flood controller after
 		flood.handle(update)

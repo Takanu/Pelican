@@ -26,7 +26,7 @@ public class RoutePass: Route {
 	- parameter updateTypes: The types of updates the route can consider for triggering an action.
 	- parameter action: The function to be executed if the Route is able to handle an incoming update.
 	*/
-	public init(name: String, updateTypes: [UpdateType], action: @escaping (Update) -> (Bool)) {
+	public init(name: String = "", updateTypes: [UpdateType], action: @escaping (Update) -> (Bool)) {
 		
 		super.init(name: name, action: action)
 		self.updateTypes = updateTypes
@@ -39,7 +39,7 @@ public class RoutePass: Route {
 	- parameter updateTypes: The types of updates the route can consider for triggering an action.
 	- parameter action: The function to be executed if the Route is able to handle an incoming update.
 	*/
-	public init(name: String, updateTypes: [UpdateType], routes: Route...) {
+	public init(name: String = "", updateTypes: [UpdateType], routes: Route...) {
 		
 		super.init(name: name, routes: routes)
 		self.updateTypes = updateTypes

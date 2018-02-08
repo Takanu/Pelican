@@ -23,7 +23,7 @@ public class RouteManual: Route {
 	- parameter handler: The custom handler to use to define whether an Update can trigger a Route action.  Return true if the update should be used by the route, false if not.
 	- parameter action: The function to be executed if the Route is able to handle an incoming update, verified by the handler function.
 	*/
-	public init(name: String, handler: @escaping (Update) -> (Bool), action: @escaping (Update) -> (Bool)) {
+	public init(name: String = "", handler: @escaping (Update) -> (Bool), action: @escaping (Update) -> (Bool)) {
 		
 		self.handler = handler
 		super.init(name: name, action: action)
@@ -36,7 +36,7 @@ public class RouteManual: Route {
 	- parameter handler: The custom handler to use to define whether an Update can trigger a Route action.  Return true if the update should be used by the route, false if not.
 	- parameter routes: The routes that an update will be propagated to if the handler function returns true.
 	*/
-	public init(name: String, handler: @escaping (Update) -> (Bool), routes: Route...) {
+	public init(name: String = "", handler: @escaping (Update) -> (Bool), routes: Route...) {
 		
 		self.handler = handler
 		super.init(name: name, routes: routes)
@@ -49,7 +49,7 @@ public class RouteManual: Route {
 		if result == true {
 			return passUpdate(update)
 		} else {
-			return result
+			return false
 		}
 
 	}

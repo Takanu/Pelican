@@ -14,58 +14,30 @@ The base class for filtering incoming updates either to functions or other route
 
 This base route class will handle all updates and perform no filtering, for pre-built Routes that do filter and cover all common use-cases, see `RoutePass`, `RouteCommand`, `RouteListen` and `RouteManual`.
 */
-public class Route {
+open class Route {
 	
 	/// The name of the route instance.  This must be assigned on initialisation to allow for fetching nested routed in subscripts.
-	var name: String
+	public var name: String
 	
 	/// The action the route will execute if successful
-	var action: ( (Update) -> (Bool) )?
+	public var action: ( (Update) -> (Bool) )?
 	
 	/**
 	Whether or not the route is enabled.  If disabled, the RouteController will ignore it when finding
 	a route to pass an update to.
 	*/
-	var enabled: Bool = true
+	public var enabled: Bool = true
 	
 	/// The routes to pass the request to next, if no action has been set or if the action fails.
-	var nextRoutes: [Route] = []
+	public var nextRoutes: [Route] = []
 	
 	/// The route to use if all other routes or actions are unable to handle the update.
-	var fallbackRoute: Route?
-	
-	
-	
-	/**
-	Allows you to access routes that are linked to other routes
-	*/
-	subscript(names: [String]) -> Route? {
-		get {
-			for name in names {
-				for route in nextRoutes {
-					
-					if route.name == name {
-						let nextNames = names.dropFirst().array
-						
-						if nextNames.count == 0 {
-							return route
-						} else {
-							return route[nextNames]
-						}
-					}
-				}
-				
-			}
-			
-			return nil
-		}
-	}
-	
+	public var fallbackRoute: Route?
 	
 	/**
 	Initialises a blank route that performs no filtering.
 	*/
-	init(name: String, action: @escaping (Update) -> (Bool)) {
+	public init(name: String, action: @escaping (Update) -> (Bool)) {
 		self.name = name
 		self.action = action
 	}
@@ -73,9 +45,32 @@ public class Route {
 	/**
 	Initialises a blank route that performs no filtering.
 	*/
-	init(name: String, routes: [Route]) {
+	public init(name: String, routes: [Route]) {
 		self.name = name
 		self.nextRoutes = routes
+	}
+	
+	/**
+	Allows you to access routes that are linked to other routes
+	*/
+	public subscript(nameArray: [String]) -> Route? {
+		for name in nameArray {
+			for route in nextRoutes {
+				
+				if route.name == name {
+					let nextNames = nameArray.dropFirst().array
+					
+					if nextNames.count == 0 {
+						return route
+					} else {
+						return route[nextNames]
+					}
+				}
+			}
+			
+		}
+		
+		return nil
 	}
 	
 	/**
@@ -85,14 +80,14 @@ public class Route {
 	function might be called if the Route determines it can accept the update, this function
 	can still return false if the action function returns as false.
 	*/
-	public func handle(_ update: Update) -> Bool {
+	open func handle(_ update: Update) -> Bool {
 		return passUpdate(update)
 	}
 	
 	/**
 	Allows a route to compare itself with another route of any type to see if they match.
 	*/
-	public func compare(_ route: Route) -> Bool {
+	open func compare(_ route: Route) -> Bool {
 		
 		if name != route.name { return false }
 		if enabled != route.enabled { return false }
@@ -121,6 +116,7 @@ public class Route {
 		
 		// Attempt to find a route that will successfully handle the update.
 		for route in nextRoutes {
+			
 			if route.enabled == true {
 				if route.handle(update) == true { return true }
 			}
@@ -139,9 +135,44 @@ public class Route {
 	}
 	
 	/**
+	Adds the given routes to the `nextRoutes` array.  Convenience function.
+	*/
+	public func addRoutes(_ routes: Route...) {
+		for route in routes {
+			nextRoutes.append(route)
+		}
+	}
+	
+	/**
+	Attempts to remove the given routes from the 'nextRoutes' array.
+	*/
+	public func removeRoutes(_ routes: Route...) {
+		
+		for route in routes {
+			for (i, nextRoute) in nextRoutes.enumerated() {
+				if route.compare(nextRoute) == true {
+					nextRoutes.remove(at: i)
+				}
+			}
+		}
+	}
+	
+	/**
+	Attempts to remove routes from the 'nextRoutes' array that match the given names.
+	*/
+	public func removeRoutes(_ names: String...) {
+		
+		for incomingName in names {
+			if let routeIndex = nextRoutes.index(where: {$0.name == incomingName}) {
+				nextRoutes.remove(at: routeIndex)
+			}
+		}
+	}
+	
+	/**
 	Empties the route of all actions, routes and fallbacks.
 	*/
-	public func clearAll() {
+	open func clearAll() {
 		self.action = nil
 		self.nextRoutes = []
 		self.fallbackRoute = nil
@@ -151,7 +182,7 @@ public class Route {
 	Closes the route system by ensuring all routes connected to it are cleared.
 	Providing no strong reference cycles are present, this will help ensure the Session closes.
 	*/
-	public func close() {
+	open func close() {
 		self.action = nil
 		self.fallbackRoute = nil
 		self.nextRoutes.forEach { T in T.close() }

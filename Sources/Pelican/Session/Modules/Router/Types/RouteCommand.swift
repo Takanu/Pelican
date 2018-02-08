@@ -26,7 +26,7 @@ public class RouteCommand: Route {
 	multiple are being included, with commas in-between them (`"start, settings, shop"`).
 	- parameter action: The function to be executed if the Route is able to handle an incoming update.
 	*/
-	public init(name: String, commands: String, action: @escaping (Update) -> (Bool)) {
+	public init(name: String = "", commands: String, action: @escaping (Update) -> (Bool)) {
 		
 		super.init(name: name, action: action)
 		
@@ -42,7 +42,7 @@ public class RouteCommand: Route {
 	multiple are being included, with commas in-between them (`"start, settings, shop"`).
 	- parameter action: The function to be executed if the Route is able to handle an incoming update.
 	*/
-	public init(name: String, commands: String, routes: Route...) {
+	public init(name: String = "", commands: String, routes: Route...) {
 		
 		super.init(name: name, routes: routes)
 		

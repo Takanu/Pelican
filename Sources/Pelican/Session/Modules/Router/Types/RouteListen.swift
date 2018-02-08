@@ -36,7 +36,7 @@ public class RouteListen: Route {
 	- parameter type: The types of updates the route can consider for triggering an action.
 	- parameter action: The function to be executed if the Route is able to handle an incoming update.
 	*/
-	public init(name: String, pattern: String, type: UpdateType, action: @escaping (Update) -> (Bool)) {
+	public init(name: String = "", pattern: String, type: UpdateType, action: @escaping (Update) -> (Bool)) {
 		
 		self.type = type
 		self.pattern = pattern
@@ -51,7 +51,7 @@ public class RouteListen: Route {
 	- parameter type: The types of updates the route can consider for triggering an action.
 	- parameter action: The function to be executed if the Route is able to handle an incoming update.
 	*/
-	public init(name: String, pattern: String, type: UpdateType, routes: Route...) {
+	public init(name: String = "", pattern: String, type: UpdateType, routes: Route...) {
 		
 		self.type = type
 		self.pattern = pattern
