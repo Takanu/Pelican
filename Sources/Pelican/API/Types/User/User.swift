@@ -53,7 +53,14 @@ final public class User: Codable {
 		let values = try decoder.container(keyedBy: CodingKeys.self)
 		
 		tgID = try values.decode(Int.self, forKey: .tgID)
-		isBot = Bool(truncating: try values.decode(Int.self, forKey: .isBot) as NSNumber)
+		
+		let botValue = try values.decode(Int.self, forKey: .isBot)
+		if botValue <= 0 {
+			isBot = false
+		} else {
+			isBot = true
+		}
+		
 		firstName = try values.decode(String.self, forKey: .firstName)
 		lastName = try values.decodeIfPresent(String.self, forKey: .lastName)
 		username = try values.decodeIfPresent(String.self, forKey: .username)
