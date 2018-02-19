@@ -356,13 +356,13 @@ public final class Pelican: Vapor.Provider {
   public func setPollingInterval(_ interval: Int) {
 		updateQueue = UpdateQueue(interval: TimeInterval(interval)) {
 			
-			PLog.verbose("Update Starting...")
+			PLog.info("Update Starting...")
 			
       let updates = self.requestUpdates()
 			if updates != nil { self.handleUpdates(updates!) }
 			self.updateQueue!.queueNext()
 			
-			PLog.verbose("Update Complete.")
+			PLog.info("Update Complete.")
     }
     
     pollInterval = interval
@@ -398,7 +398,7 @@ public final class Pelican: Vapor.Provider {
 		//print("UPDATE START")
 		
     let query = makeUpdateQuery()
-		PLog.verbose("Contacting Telegram for Updates...")
+		PLog.info("Contacting Telegram for Updates...")
 		
 		var response: Response? = nil
 		let vaporRequest = Request(method: .post, uri: apiURL + "/getUpdates")
@@ -595,7 +595,7 @@ public final class Pelican: Vapor.Provider {
     // Check the global timer for any scheduled events
     globalTimer += pollInterval
     //checkChatSessionQueues()
-		PLog.verbose("Handling updates...")
+		PLog.info("Handling updates...")
 		
 		// Filter the update to the current builders.
 		for update in updates {
@@ -658,7 +658,7 @@ public final class Pelican: Vapor.Provider {
 		
 		// Update the last active time.
 		timeLastUpdate = Date()
-		PLog.verbose("Updates handled.")
+		PLog.info("Updates handled.")
 		
   }
 	

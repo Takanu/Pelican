@@ -67,9 +67,11 @@ extension Pelican {
 		
 		// Send the request and get a response back
 		PLog.verbose("Telegram Request:\n\n(\(vaporRequest))")
+		PLog.info("Sending request...")
 		var response: Response? = nil
 		response = connectToClient(request: vaporRequest, attempts: 0)
 		
+		PLog.info("Response received...")
 		PLog.verbose("Telegram Response:\n\n(\(String(describing: response!)))")
 		let tgResponse = TelegramResponse(response: response!)
 		
