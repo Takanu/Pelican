@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Vapor
 
 /**
 Represents a response from Telegram servers once a request has been made.
@@ -15,15 +14,20 @@ Represents a response from Telegram servers once a request has been made.
 public class TelegramResponse {
 
 	// CORE
-	/// Whether the request was a success or not
+	/// Whether the request was a success or not.
 	var success: Bool
+	
 	/// The data contained, if available.
 	var data: Data?
+	
+	/// The date the response was created.
+	var date = Date()
 	
 	
 	// ERRORS
 	/// The error description, if the request was unsuccessful.
 	var errorDescription: String?
+	
 	/// The error code, if the request was unsuccessful.
 	var errorCode: String?
 

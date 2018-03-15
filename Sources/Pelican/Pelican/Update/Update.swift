@@ -18,10 +18,13 @@ public class Update {
 	// RAW DATA
 	/// The type of data being carried by the update.
 	public var type: UpdateType
+	
 	/// The data package contained in the update as a UpdateModel type.
 	public var data: UpdateModel
+	
 	/// The data package contained in the update as a Node, which you can either access through subscripting the type or directly.
 	public var json: JSON
+	
 	/// The time the update was received by Pelican.
 	public var time = Date()
 	
@@ -29,10 +32,13 @@ public class Update {
 	// HEADER CONTENT
 	/// Defines the unique identifier for the content (not the ID of the entity that contains the content).
 	public var id: Int
+	
 	/// The basic package of content provided in the update by the sending user, to be used by Route filters.
 	public var content: String
+	
 	/// The user who triggered the update.  This only has the potential to unwrap as nil if the message originated from a channel.
 	public var from: User?
+	
 	/// The chat the update came from, if the update is a Message type.  If it isn't, it'll return nil.
 	public var chat: Chat?
 	

@@ -18,104 +18,6 @@ public protocol ReceiveUpload {
 	func receiveMessage(message: Message)
 }
 
-// The Dispatch queue for getting updates and serving them to sessions.
-private class UpdateQueue {
-  private let queue = DispatchQueue(label: "TG-Updates",
-                                    qos: .userInteractive,
-                                    target: nil)
-  
-  private let interval: TimeInterval
-	private var startTime: Date
-	private var lastExecuteLength: TimeInterval
-  private let execute: () -> Void
-  private var operation: DispatchWorkItem?
-  
-	init(interval: TimeInterval, execute: @escaping () -> Void) {
-    self.interval = interval
-		self.startTime = Date()
-		self.lastExecuteLength = TimeInterval.init(0)
-    self.execute = execute
-		self.operation = DispatchWorkItem(qos: .userInteractive, flags: .enforceQoS) { [weak self] in
-			
-			// Record the starting time and execute the loop
-			self?.startTime = Date()
-			self?.execute()
-		}
-  }
-	
-	func queueNext() {
-		lastExecuteLength = abs(startTime.timeIntervalSinceNow)
-		
-		// Account for loop time in the asynchronous delay.
-		let delayTime = interval - lastExecuteLength
-		
-		// If the delay time left is below 0, execute the loop immediately.
-		if delayTime <= 0 {
-			PLog.verbose("Update loop executing immediately.")
-			queue.async(execute: self.operation!)
-		}
-			
-		// Otherwise use the built delay time.
-		else {
-			PLog.verbose("Update loop executing at \(DispatchWallTime.now() + delayTime)")
-			queue.asyncAfter(wallDeadline: .now() + delayTime, execute: self.operation!)
-		}
-	}
-  
-  func stop() {
-    operation?.cancel()
-		PLog.warning("Update cycle cancelled")
-  }
-}
-
-/**
-Defines the kind of action you wish a chat action to specify.  (This description sucks).
-
-- note: Should be moved to Types+Standard
-*/
-public enum ChatAction: String {
-  case typing = "typing"
-  case photo = "upload_photo"
-  case uploadVideo = "upload_video"
-  case recordVideo = "record_video"
-  case uploadAudio = "upload_audio"
-  case recordAudio = "record_audio"
-  case document = "upload_document"
-  case location = "find_location"
-}
-
-/**
-Errors relating to Pelican setup.
-*/
-enum TGBotError: String, Error {
-  case KeyMissing = "The API key hasn't been provided.  Please provide a \"token\" for Config/pelican.json, containing your bot token."
-  case EntryMissing = "Pelican hasn't been given an session setup closure.  Please provide one using `sessionSetupAction`."
-}
-
-/**
-Errors related to request fetching.
-*/
-enum TGReqError: String, Error {
-  case NoResponse = "The request received no response."
-  case UnknownError = "Something happened, and i'm not sure what!"
-  case BadResponse = "Telegram responded with \"NOT OKAY\" so we're going to trust that it means business."
-  case ResponseNotExtracted = "The request could not be extracted."
-}
-
-/**
-Errors related to update processing.  Might merge the two?
-*/
-enum TGUpdateError: String, Error {
-  case BadUpdate = "The message received from Telegram was malformed or unable to be processed by this bot."
-}
-
-/**
-Motherfucking Vapor.
-*/
-enum TGVaporError: String, Error {
-	case EngineSucks = "Engine is unable to keep an SSL connection going, please use \"foundation\" instead, under your droplet configuration file."
-}
-
 /** 
 A deprecated internal type used to enable models to switch between node-type conversion for response purposes, 
 and that for databasing purposes.
@@ -124,7 +26,6 @@ public enum TGContext: Vapor.Context {
   case response
   case db
 }
-
 
 
 
@@ -226,7 +127,7 @@ public final class Pelican: Vapor.Provider {
 	/// The time the last update the bot has received from Telegram.
 	var timeLastUpdate: Date
 	
-  fileprivate var updateQueue: UpdateQueue?
+  fileprivate var updateQueue: UpdateFetchQueue?
   var uploadQueue: DispatchQueue
   var pollInterval: Int = 0
   var globalTimer: Int = 0        // Used for executing scheduled events.
@@ -354,7 +255,7 @@ public final class Pelican: Vapor.Provider {
 	until the timeout amount is reached.
 	*/
   public func setPollingInterval(_ interval: Int) {
-		updateQueue = UpdateQueue(interval: TimeInterval(interval)) {
+		updateQueue = UpdateFetchQueue(interval: TimeInterval(interval)) {
 			
 			PLog.info("Update Starting...")
 			
@@ -407,7 +308,7 @@ public final class Pelican: Vapor.Provider {
 		do {
 			// Build a new request with the correct URI and fetch the other data from the Session Request
 			vaporRequest.query = try query.makeNode(in: nil)
-			vaporRequest.headers = [HeaderKey.connection: "keep-alive"]
+			//vaporRequest.headers = [HeaderKey.connection: "keep-alive"]
 			
 			response = connectToClient(request: vaporRequest, attempts: 0)
 			

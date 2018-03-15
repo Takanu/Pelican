@@ -20,6 +20,7 @@ open class UserSession: Session {
 	
 	//  CORE INTERNAL VARIABLES
 	public var tag: SessionTag
+	public var dispatchQueue: SessionDispatchQueue
 	
 	/// The user information associated with this session.
 	public var info: User
@@ -76,6 +77,7 @@ open class UserSession: Session {
 		self.schedule = bot.schedule
 		
 		self.requests = SessionRequests(tag: tag)
+		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "pelican.usersession",qos: .userInitiated)
 	}
 	
 	
@@ -87,19 +89,23 @@ open class UserSession: Session {
 		self.baseRoute.close()
 		self.timeout.close()
 		self.flood.clearAll()
+		self.dispatchQueue.cancelAll()
 	}
 	
 	
 	public func update(_ update: Update) {
 		
-		// Bump the timeout controller first so if flood or another process closes the Session, a new timeout event will not be added.
-		timeout.bump(update)
+		dispatchQueue.async {
+			// Bump the timeout controller first so if flood or another process closes the Session, a new timeout event will not be added.
+			self.timeout.bump(update)
+			
+			// This needs revising, whatever...
+			let handled = self.baseRoute.handle(update)
+			
+			// Bump the flood controller after
+			self.flood.handle(update)
+		}
 		
-		// This needs revising, whatever...
-		let handled = baseRoute.handle(update)
-		
-		// Bump the flood controller after
-		flood.handle(update)
 		
 	}
 }

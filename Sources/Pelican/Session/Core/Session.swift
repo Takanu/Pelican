@@ -2,6 +2,7 @@
 import Foundation
 import Vapor
 import FluentProvider
+import Dispatch     // Required on Linux platforms.
 
 
 /**
@@ -15,6 +16,16 @@ public protocol Session {
 	// CORE DATA
 	/// The "tag" of a session, holding key identifying details that allow it to be identified by Pelican, and is also passed to delegates for both identification and callback events.
 	var tag: SessionTag { get }
+	
+	
+	// DISPATCH QUEUE
+	/**
+	The queue that Pelican will use to asynchronously dispatch update handling to, if the update should be handled by this session.
+	The queue is serialised which means that updates given to a specific session will be processed in a First In, First Out (FIFO)
+	order, but that update handling across different Sessions can be processed at the same time.
+	
+	If your code enables more than one session to modify data on any given session, ensure that the properties are thread-safe.*/
+	var dispatchQueue: SessionDispatchQueue { get }
 	
 	
 	// DELEGATES AND CONTROLLERS

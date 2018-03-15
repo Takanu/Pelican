@@ -16,11 +16,9 @@ Ignore this if you want?  What am i, a doctor?
 */
 open class ChatSession: Session {
 	
-	/// Database storage for compatibility with Model in FluentProvider.
-	public var storage = Storage()
-	
-	// CORE TYPES
 	public var tag: SessionTag
+	public var dispatchQueue: SessionDispatchQueue
+	
 	
 	/// The chat ID associated with the session.
 	var chatID: Int
@@ -76,6 +74,7 @@ open class ChatSession: Session {
 		self.flood = Flood()
 		
 		self.requests = SessionRequests(tag: tag)
+		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "pelican.chatsession",qos: .userInitiated)
 	}
 	
 	open func postInit() {
@@ -83,24 +82,29 @@ open class ChatSession: Session {
 	}
 	
 	open func cleanup() {
+		
+		// Clear all properties
 		self.queue.clear()
 		self.baseRoute.close()
 		self.timeout.close()
 		self.flood.clearAll()
+		self.dispatchQueue.cancelAll()
 	}
 	
 	
 	// Receives a message from the TelegramBot to check whether in the current state anything can be done with it
 	public func update(_ update: Update) {
 		
-		// Bump the timeout controller first so if flood or another process closes the Session, a new timeout event will not be added.
-		timeout.bump(update)
-		
-		// This needs revising, whatever...
-		_ = baseRoute.handle(update)
-		
-		// Pass the update to the flood controller to be handled.
-		flood.handle(update)
+		dispatchQueue.async {
+			// Bump the timeout controller first so if flood or another process closes the Session, a new timeout event will not be added.
+			self.timeout.bump(update)
+			
+			// This needs revising, whatever...
+			_ = self.baseRoute.handle(update)
+			
+			// Pass the update to the flood controller to be handled.
+			self.flood.handle(update)
+		}
 		
 	}
 }

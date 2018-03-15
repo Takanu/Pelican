@@ -64,6 +64,8 @@ extension Pelican {
 				vaporRequest.formData = request.form
 			}
 		}
+		// Get a timestamp to alert me when a long delay occurs
+		let requestDate = Date()
 		
 		// Send the request and get a response back
 		PLog.verbose("Telegram Request:\n\n(\(vaporRequest))")
@@ -76,8 +78,18 @@ extension Pelican {
 		let tgResponse = TelegramResponse(response: response!)
 		
 		
+		
 		// Decide what to do next, given the response.
 		if tgResponse != nil  {
+			
+			let timeDiff = tgResponse!.date.timeIntervalSince1970 - requestDate.timeIntervalSince1970
+			if timeDiff > 3.0 {
+				PLog.error("""
+				*** REQUEST TOOK A LONG TIME (\(timeDiff) secs) ***
+				\(Date())
+				\(request.methodName) - \(queryText.bytes.count) bytes.
+				""")
+			}
 			
 			// If the response didn't succeed, log the error.
 			if tgResponse!.success == false {
