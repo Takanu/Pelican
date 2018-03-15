@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 final public class UserProfilePhotos: Codable {
 	

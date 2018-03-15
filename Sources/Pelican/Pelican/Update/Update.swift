@@ -7,13 +7,12 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Encapsulates a single update received from a Telegram bot.
 */
 public class Update {
-	
 	
 	// RAW DATA
 	/// The type of data being carried by the update.

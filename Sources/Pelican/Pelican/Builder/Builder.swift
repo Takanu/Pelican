@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Defines a class that will be used by Pelican to automatically generate Sessions based on two key components:

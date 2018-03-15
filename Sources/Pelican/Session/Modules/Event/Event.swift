@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 public enum SessionEventType: String {
 	case timeout

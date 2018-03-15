@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Used to monitor timeout conditions for a session.

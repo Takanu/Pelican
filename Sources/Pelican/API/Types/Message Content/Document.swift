@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 /**
 Represents a generic file type, typically not covered by other Telegram file types (like Audio, Voice or Photo).

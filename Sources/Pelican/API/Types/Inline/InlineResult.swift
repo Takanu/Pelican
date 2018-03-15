@@ -1,7 +1,7 @@
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 /**
 Used for a result/your response of an inline query.

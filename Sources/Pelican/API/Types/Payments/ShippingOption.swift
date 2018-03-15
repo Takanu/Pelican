@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Represents one shipping option for the Telegram Payment API.

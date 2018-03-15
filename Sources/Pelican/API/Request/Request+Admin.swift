@@ -7,11 +7,6 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
-import HTTP
-import FormData
-import Multipart
 
 /**
 Adds an extension that deals in creating requests for administrating a chat.  The bot must be an administrator to use these requests.
@@ -35,7 +30,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "getChatMember"
+		request.method = "getChatMember"
 		return request
 		
 	}
@@ -57,7 +52,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "unbanChatMember"
+		request.method = "unbanChatMember"
 		return request
 	}
 	
@@ -88,7 +83,7 @@ extension TelegramRequest {
 		}
 		
 		// Set the Request, Method and Content
-		request.methodName = "restrictChatMember"
+		request.method = "restrictChatMember"
 		return request
 	}
 	
@@ -121,7 +116,7 @@ extension TelegramRequest {
 		}
 		
 		// Set the Request, Method and Content
-		request.methodName = "promoteChatMember"
+		request.method = "promoteChatMember"
 		return request
 	}
 	
@@ -140,7 +135,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "exportChatInviteLink"
+		request.method = "exportChatInviteLink"
 		return request
 	}
 	
@@ -160,7 +155,7 @@ extension TelegramRequest {
 		//form[link.type.rawValue] = Field(name: link.type.rawValue, filename: link.name, part: Part(headers: [:], body: data!))
 		
 		// Set the Request, Method and Content
-		request.methodName = "setChatPhoto"
+		request.method = "setChatPhoto"
 		return request
 	}
 	
@@ -181,7 +176,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "deleteChatPhoto"
+		request.method = "deleteChatPhoto"
 		return request
 	}
 	
@@ -201,7 +196,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "setChatTitle"
+		request.method = "setChatTitle"
 		return request
 	}
 	
@@ -221,7 +216,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "setChatTitle"
+		request.method = "setChatTitle"
 		return request
 	}
 	
@@ -242,7 +237,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "pinChatMessage"
+		request.method = "pinChatMessage"
 		return request
 	}
 	
@@ -261,7 +256,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "unpinChatMessage"
+		request.method = "unpinChatMessage"
 		return request
 	}
 	

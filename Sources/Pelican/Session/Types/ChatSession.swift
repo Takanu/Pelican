@@ -7,8 +7,8 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 /**
 Holds the information for a bot session, when someone is immediately interacting with the bot

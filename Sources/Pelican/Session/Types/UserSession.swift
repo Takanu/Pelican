@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 A high-level class for managing states and information for each user that attempts to interact with your bot

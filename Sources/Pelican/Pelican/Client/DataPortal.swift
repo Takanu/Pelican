@@ -6,7 +6,8 @@
 //
 
 import Foundation
-import HTTP
+
+
 
 /**
 Encapsulates an active method request with a URLSession data task.
@@ -122,20 +123,6 @@ final public class DataPortal {
 				callback()
 			}
 		}
-	}
-	
-	/**
-	Taken from Vapor's HTTP Module to exchange a Vapor Request for a URLRequest.
-	*/
-	public func makeFoundationRequest(_ request: Request) throws -> URLRequest {
-		let url = try request.uri.makeFoundationURL()
-		var urlRequest = URLRequest(url: url)
-		urlRequest.httpMethod = request.method.description.uppercased()
-		urlRequest.httpBody = request.body.bytes.flatMap { Data(bytes: $0) }
-		request.headers.forEach { key, val in
-			urlRequest.addValue(val, forHTTPHeaderField: key.description)
-		}
-		return urlRequest
 	}
 	
 	/**

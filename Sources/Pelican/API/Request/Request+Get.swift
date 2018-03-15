@@ -24,7 +24,7 @@ extension TelegramRequest {
 	public static func getMe() -> TelegramRequest {
 		
 		let request = TelegramRequest()
-		request.methodName = "getMe"
+		request.method = "getMe"
 		
 		return request
 	}
@@ -40,7 +40,7 @@ extension TelegramRequest {
 		
 		let request = TelegramRequest()
 		
-		request.methodName = "getUpdates"
+		request.method = "getUpdates"
 		return request
 	}
 	
@@ -66,7 +66,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "getUserProfilePhotos"
+		request.method = "getUserProfilePhotos"
 		
 		return request
 	}
@@ -89,7 +89,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "getFile"
+		request.method = "getFile"
 		request.content = fileID as Any
 		
 		return request
@@ -113,7 +113,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "getChat"
+		request.method = "getChat"
 		
 		return request
 		
@@ -137,7 +137,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "getChatAdministrators"
+		request.method = "getChatAdministrators"
 		
 		return request
 		
@@ -159,7 +159,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "getChatMembersCount"
+		request.method = "getChatMembersCount"
 		
 		return request
 		
@@ -182,7 +182,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "getChatMember"
+		request.method = "getChatMember"
 		
 		return request
 		

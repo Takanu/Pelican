@@ -6,10 +6,6 @@
 //
 
 import Foundation
-import Vapor
-import TLS
-import FormData
-import Multipart
 
 extension Pelican {
 	/**
@@ -50,7 +46,7 @@ extension Pelican {
 									 userInfo: nil,
 									 hostname: "api.telegram.org",
 									 port: nil,
-									 path: "/bot" + apiKey + "/" + request.methodName,
+									 path: "/bot" + apiKey + "/" + request.method,
 									 query: queryText,
 									 fragment: nil)
 		
@@ -87,7 +83,7 @@ extension Pelican {
 				PLog.error("""
 				*** REQUEST TOOK A LONG TIME (\(timeDiff) secs) ***
 				\(Date())
-				\(request.methodName) - \(queryText.bytes.count) bytes.
+				\(request.method) - \(queryText.bytes.count) bytes.
 				""")
 			}
 			

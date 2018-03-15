@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 /**
 This object represents an incoming callback query from a callback button in an inline keyboard.

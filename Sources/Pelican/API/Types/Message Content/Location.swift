@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 /**
 Represents a real-world location, that when sent as the contents of a message, is represented by a map preview.

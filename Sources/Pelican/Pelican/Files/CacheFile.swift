@@ -1,7 +1,5 @@
 
 import Foundation
-import Vapor
-
 
 /**
 Represents a file that has been uploaded and is stored in the cache for.
@@ -11,6 +9,7 @@ struct CacheFile: Equatable {
 	
 	/// The message file being stored
 	var file: MessageFile
+	
 	/// The time it was last uploaded (useful for predicting when it needs to be uploaded again).
 	var uploadTime: Date
 	

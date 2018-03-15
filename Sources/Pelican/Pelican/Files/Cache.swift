@@ -6,11 +6,6 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
-import FormData
-import Multipart
-import HTTP
 
 /** Manages a database of currently active file links for re-use, as well as asynchronously uploads content
 that doesn't have a link.
@@ -79,7 +74,7 @@ public class CacheManager {
 	/** Attempts to retrieve the raw data for the requested resource.
 	- parameter upload: The file you wish to get raw data for.
 	*/
-	func fetchFile(path: String) throws -> Bytes? {
+	func fetchFile(path: String) throws -> Data? {
 		
 		if path.contains("://") {
 			
@@ -111,9 +106,8 @@ public class CacheManager {
 			
 			// Try getting the bytes
 			do {
-				let image = try Data(contentsOf: url)
-				let bytes = image.makeBytes()
-				return bytes
+				let data = try Data(contentsOf: url)
+				return data
 				
 			} catch {
 				PLog.error(CacheError.LocalNotFound.rawValue)
@@ -127,33 +121,94 @@ public class CacheManager {
 	/**
 	Attempts to retrieve data on the given MessageFile that would allow it to be send in a Telegram Request.
 
-	- returns: A form data entry with all the information necessary to send or re-link the file in a message, or nil if this was not possible.
+	- returns: An header tuple containing the correct header field and value, and a body data type containing the body that should be supplied to the URLRequest.
 	*/
-	func getFormEntry(forFile file: MessageFile) throws -> [String:FormData.Field]? {
+	func getRequestData(forFile file: MessageFile) throws -> (header: (String, String), body: Data) {
 		
+		// If there's a file ID, send the ID as part of the body.
 		if file.fileID != nil {
-			return [file.contentType: Field(name: file.contentType, filename: file.fileID!, part: Part(headers: [HeaderKey.contentType:"text/html"], body: file.fileID!.bytes) )]
+			let header = ("Content-Type", "text/html")
+			let body = file.fileID!.data(using: .utf8)!
+			return (header, body)
 		}
 		
+		// If theres a URL, we need to fetch or validate the file.
 		else if file.url != nil {
 			
-			var bytes: Bytes?
+			let boundary = generateBoundary()
+			var body: Data
 			do {
-				bytes = try fetchFile(path: file.url!)
+				body = try createDataBody(withParameters: nil, file: file, boundary: boundary)
 			} catch {
 				throw error
 			}
 			
-			if bytes == nil {
+			if body.count == nil {
 				throw CacheError.NoBytes
 			}
 			
-			let fileName = file.url!.components(separatedBy: "/").last!
-			//let ext = file.url!.components(separatedBy: ".").last!
-				
-			return [file.contentType: Field(name: file.contentType, filename: fileName, part: Part(headers: [HeaderKey.contentType:"multipart/form-data"], body: bytes!) )]
+			let header = ("Content-Type", "multipart/form-data; boundary=\(boundary)")
+			return (header, body)
 		}
 		
+		// Otherwise, throw a niiiiice big error.
 		throw CacheFormError.LinkNotFound
+	}
+	
+	
+	/**
+	Generates a boundary to suit the formatting requirements for sending multipart form-data over HTTP.
+	*/
+	private func generateBoundary() -> String {
+		return "Boundary-\(UUID().uuidString)"
+	}
+	
+	
+	/**
+	Creates a data body for files, to be sent as multipart form-data.
+	- paramater withParameters: Optional paramters to be sent before the multipart form-data.
+	- parameter file: The file to be turned into body data.
+	- parameter boundary:
+	*/
+	private func createDataBody(withParameters params: [String: String]?, file: MessageFile, boundary: String) throws -> Data {
+		
+		let lineBreak = "\r\n"
+		var body = Data()
+		
+		// Add any optional parameters
+		if let parameters = params {
+			for (key, value) in parameters {
+				body.append("--\(boundary + lineBreak)")
+				body.append("Content-Disposition: form-data; name=\"\(key)\"\(lineBreak + lineBreak)")
+				body.append("\(value + lineBreak)")
+			}
+		}
+		
+		// Fetch the contents of the file
+		let fileName = file.url?.components(separatedBy: "/").last? ?? ""
+		let name = fileName.components(separatedBy: ".").first? ?? ""
+		let fileData = try fetchFile(path: file.url)
+		
+		// Build the body
+		body.append("--\(boundary + lineBreak)")
+		body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\"\(lineBreak)")
+		//body.append("Content-Type: \(photo.mimeType + lineBreak + lineBreak)")
+		body.append("Content-Type: multipart/form-data")
+		body.append(photo.data)
+		body.append(lineBreak)
+		
+		body.append("--\(boundary)--\(lineBreak)")
+		
+		return body
+		
+	}
+}
+
+
+extension Data {
+	mutating func append(_ string: String) {
+		if let data = string.data(using: .utf8) {
+			append(data)
+		}
 	}
 }

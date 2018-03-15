@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 /**
 Defines a single keyboard key on a `MarkupInline` keyboard.  Each key supports one of 6 different modes:
@@ -46,7 +46,6 @@ This button will allow the user to pay for something.  **This only appears when 
 
 */
 final public class MarkupInlineKey: Codable, Equatable {
-	public var storage = Storage()
 	
 	public var text: String // Label text
 	public var data: String

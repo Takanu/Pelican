@@ -6,8 +6,6 @@
 //
 
 import Foundation
-import Vapor
-import Fluent
 
 extension SessionRequests {
 	

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Represents a result of an inline query that was chosen by the user and sent to the chat.

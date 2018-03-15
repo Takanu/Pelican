@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 This object represents information about an order for the Telegram Payment API.

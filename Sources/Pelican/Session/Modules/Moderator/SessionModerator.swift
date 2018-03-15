@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Contains the permissions associated with a single user or chat.  A SessionModerator can only be 

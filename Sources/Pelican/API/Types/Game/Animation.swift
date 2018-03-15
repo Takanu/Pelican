@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 /** 
 This object represents an animation file to be displayed in a Telegram message containing a game, used for additional visual flair and to better preview what your game is to 

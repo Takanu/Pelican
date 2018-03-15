@@ -7,8 +7,8 @@ Defines anything relating to types, but isn't a real type component, such as pro
 
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 /**
 For any model that replicates the Telegram API, it must inherit fron this to be designed to build queries and be converted from responses
@@ -18,13 +18,6 @@ protocol TelegramType {
 	
 }
 
-
-
-
-// All types that conform to this protocol are able to convert itself into a aet of query information
-protocol TelegramQuery: NodeConvertible, JSONConvertible {
-  func makeQuerySet() -> [String:NodeConvertible]
-}
 
 // Defines a type that can send unique content types inside a message.
 public protocol MessageContent: Codable {
@@ -36,7 +29,7 @@ public protocol MessageContent: Codable {
   var method: String { get }
 	
 	/// Used to enable any method sending this message content to access the information it needs to deliver it, omitting any custom properties.
-  func getQuery() -> [String:NodeConvertible]
+  func getQuery() -> [String:Codable]
 }
 
 

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 public class ChatPhoto: Codable {
 	

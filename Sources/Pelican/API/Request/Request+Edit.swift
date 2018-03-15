@@ -7,11 +7,9 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
-import HTTP
-import FormData
-import Multipart
+
+
+
 
 /**
 Adds an extension that deals in creating requests for editing messages in a chat.
@@ -44,7 +42,7 @@ extension TelegramRequest {
 		if parseMode != .none { request.query["parse_mode"] = parseMode.rawValue }
 		
 		// Set the query
-		request.methodName = "editMessageText"
+		request.method = "editMessageText"
 		request.content = text as Any
 		
 		return request
@@ -77,7 +75,7 @@ extension TelegramRequest {
 		}
 		
 		// Set the query
-		request.methodName = "editMessageCaption"
+		request.method = "editMessageCaption"
 		request.content = caption as Any
 		
 		return request
@@ -110,7 +108,7 @@ extension TelegramRequest {
 		}
 		
 		// Set the query
-		request.methodName = "editMessageReplyMarkup"
+		request.method = "editMessageReplyMarkup"
 		request.content = markup as Any
 		
 		return request
@@ -140,7 +138,7 @@ extension TelegramRequest {
 
 		
 		// Set the query
-		request.methodName = "deleteMessage"
+		request.method = "deleteMessage"
 		return request
 	}
 }

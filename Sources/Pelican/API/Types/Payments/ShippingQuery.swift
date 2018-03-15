@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Contains information about an incoming shipping query for the Telegram Payment API.

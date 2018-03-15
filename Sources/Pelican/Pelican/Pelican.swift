@@ -1,12 +1,6 @@
 
 import Dispatch     // Linux thing.
 import Foundation
-import Vapor
-import FluentProvider
-import HTTP
-import FormData
-import Multipart
-import TLS
 
 protocol TelegramParameter: NodeConvertible, JSONConvertible {
   func getQueryParameter() -> String
@@ -30,8 +24,7 @@ public enum TGContext: Vapor.Context {
 
 
 /**
-The Vapor Provider for building Telegram bots!  Interact with this class directly when 
-initialising your Vapor app and setting up your Telegram bot.
+Your own personal pelican for building Telegram bots!
 
 To get started with Pelican, you'll need to place the code below as setup before running the app.
 You'll also need to add your API token as a `token` inside `config/pelican.json` (create it if you don't have the file),
@@ -62,37 +55,33 @@ try drop.run()
 
 ```
 */
-public final class Pelican: Vapor.Provider {
-	public static let repositoryName = "Pelican"
-
-	/// Wait whats this?
-  public let message: String = "Rawr."
-  //public var provided: Providable { return Providable() }
-	
+public final class Pelican {
 	
 	// CORE PROPERTIES
 	/// The cache system responsible for handling the re-using of already uploaded files and assets, to preserve system resources.
   var cache: CacheManager
+	
 	/// The API key assigned to your bot.  PLEASE DO NOT ASSIGN IT HERE, ADD IT TO A JSON FILE INSIDE config/pelican.json as a "token".
   var apiKey: String
+	
 	/// The Payment key assigned to your bot.  To assign the key, add it to the JSON file inside config/pelican.json as "payment_token".
 	var paymentKey: String?
+	
 	/// The combination of the API request URL and your API token.
   var apiURL: String
+	
 	/// The droplet powering the server
 	var drop: Droplet?
-	/// Client Connection with Vapor, to Telegram.
-	var client: ClientProtocol?
+	
 	/// The type of client being used by the app
 	var clientType: String = ""
-	/// The TLS context being used?
-	var context: TLS.Context? = nil
+
 	/// Defines an object to be used for custom data, to be used purely for cloning into newly-created ChatSessions.  DO NOT EDIT CONTENTS.
   private var customData: NSCopying?
 	
-	
 	/// Returns the API key assigned to your bot.
 	public var getAPIKey: String { return apiKey }
+	
 	/// Returns the combination of the API request URL and your API token.
 	public var getAPIURL: String { return apiURL }
 	
@@ -106,17 +95,22 @@ public final class Pelican: Vapor.Provider {
 	- warning: Pelican automatically handles this variable, don't use it unless you want to perform something very specific.
 	*/
   public var offset: Int = 0
+	
 	/// (Polling) The number of messages that can be received in any given update, between 1 and 100.
   public var limit: Int = 100
+	
 	/// (Polling) The length of time Pelican will hold onto an update connection with Telegram to wait for updates before disconnecting.
   public var timeout: Int = 1
 	
 	/// Defines what update types the bot will receive.  Leave empty if all are allowed, or otherwise specify to optimise the bot.
   public var allowedUpdates: [UpdateType] = []
+	
 	/// If true, the bot will ignore any historic messages it has received while it has been offline.
   public var ignoreInitialUpdates: Bool = true
+	
 	/// Whether the bot has started and is running.
   private var started: Bool = false
+	
 	/// Whether the bot has started and is running.
   public var hasStarted: Bool { return started }
 	
@@ -124,6 +118,7 @@ public final class Pelican: Vapor.Provider {
   // QUEUES
 	/// The time the bot started operating.
 	var timeStarted: Date
+	
 	/// The time the last update the bot has received from Telegram.
 	var timeLastUpdate: Date
 	

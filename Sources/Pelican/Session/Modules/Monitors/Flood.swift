@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Used for monitoring and controlling updates sent to a session by a user.

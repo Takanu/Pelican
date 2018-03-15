@@ -13,23 +13,32 @@ Represents a response from Telegram servers once a request has been made.
 */
 public class TelegramResponse {
 
-	// CORE
-	/// Whether the request was a success or not.
-	var success: Bool
+	// HTTP CORE
+	/// The HTTP Version.
+	public var version: Version
 	
-	/// The data contained, if available.
-	var data: Data?
+	/// The status of the request.
+	public var status: Status
 	
-	/// The date the response was created.
+	/// HTTP response headers.
+	public var headers: [String: String]
+	
+	/// HTTP body.
+	public var body: Data
+	
+	/// ???
+	public var storage: [String: Any]
+
+	/// The date the response was received.
 	var date = Date()
 	
 	
-	// ERRORS
+	// TELEGRAM STATUS
 	/// The error description, if the request was unsuccessful.
-	var errorDescription: String?
+	var tgStatus: String?
 	
-	/// The error code, if the request was unsuccessful.
-	var errorCode: String?
+	/// The Telegram code sent back as a
+	var tgCode: String?
 
 	/**
 	Converts a response received from a Telegram Request to a response type.

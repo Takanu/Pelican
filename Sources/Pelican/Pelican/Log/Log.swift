@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Internally handles debug switches and prints for Pelican.  Provides a clean interface that categorises and sorts prints

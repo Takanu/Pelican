@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /// I might use this later, but currently I have no need to manually define many kinds of errors.
 /*

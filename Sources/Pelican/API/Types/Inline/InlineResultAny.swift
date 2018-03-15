@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Defines a wrapper for the InlineResult protocol, that allows ambiguous InlineResult types to be encoded and decoded.

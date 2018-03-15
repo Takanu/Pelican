@@ -7,11 +7,9 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
-import HTTP
-import FormData
-import Multipart
+
+
+
 
 /**
 Adds an extension that deals in creating requests for sending chat messages.
@@ -46,7 +44,7 @@ extension TelegramRequest {
 		
 		
 		// Set the query
-		request.methodName = "sendMessage"
+		request.method = "sendMessage"
 		request.content = text as Any
 		
 		return request
@@ -77,7 +75,7 @@ extension TelegramRequest {
 		let finalQuery = query.reduce(file.getQuery(), { r, e in var r = r; r[e.0] = e.1; return r })
 		
 		// Set the Request, Method and Content
-		methodName = file.method
+		method = file.method
 		content = file as Any
 		
 	}
@@ -163,7 +161,7 @@ extension TelegramRequest {
 		
 		
 		// Set the Request, Method and Content
-		request.methodName = file.method
+		request.method = file.method
 		request.content = file as Any // We'll deal with this at the point Pelican receives the request.
 		
 		return request
@@ -181,7 +179,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.methodName = "sendChatAction"
+		request.method = "sendChatAction"
 		request.content = action as Any
 		
 		return request
@@ -208,7 +206,7 @@ extension TelegramRequest {
 		if disableNotification != false { request.query["disable_notification"] = disableNotification }
 		
 		// Set the query
-		request.methodName = "sendGame"
+		request.method = "sendGame"
 		request.content = gameName as Any
 		
 		return request
@@ -239,7 +237,7 @@ extension TelegramRequest {
 		}
 		
 		// Set the query
-		request.methodName = "setGameScore"
+		request.method = "setGameScore"
 		request.content = score as Any
 		
 		return request
@@ -268,7 +266,7 @@ extension TelegramRequest {
 		}
 		
 		// Set the query
-		request.methodName = "getGameHighScores"
+		request.method = "getGameHighScores"
 		
 		return request
 		

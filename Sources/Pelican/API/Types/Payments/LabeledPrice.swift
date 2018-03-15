@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Represents a portion of the price for goods and services being sold (eg. item, discounts, taxes, shipping).

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Contains basic information about a successful payment for the Telegram Payment API.

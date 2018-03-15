@@ -7,11 +7,6 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
-import HTTP
-import FormData
-import Multipart
 
 /**
 Adds an extension that deals in answering queries sent by a user in various contexts.
@@ -41,7 +36,7 @@ extension TelegramRequest {
 		
 		
 		// Set the query
-		request.methodName = "answerCallbackQuery"
+		request.method = "answerCallbackQuery"
 		request.content = text as Any
 		
 		return request
@@ -76,7 +71,7 @@ extension TelegramRequest {
 		
 		
 		// Set the query
-		request.methodName = "answerInlineQuery"
+		request.method = "answerInlineQuery"
 		request.content = results as Any
 		
 		return request

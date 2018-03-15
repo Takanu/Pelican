@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import HTTP
+
 
 /**
 Allows Pelican to make Telegram API methods either synchronosly or asynchronously, using URLSession.
