@@ -80,7 +80,7 @@ extension TelegramRequest {
 	https://api.telegram.org/file/bot<token>/<file_path>, where <file_path> is taken from the response. It is guaranteed that the link will be valid for at least 1 hour. When the link expires, a new one can be requested by calling
 	getFile again.
 	*/
-	public static func getFile(fileID: Int) -> TelegramRequest {
+	public static func getFile(fileID: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		

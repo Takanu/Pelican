@@ -48,6 +48,13 @@ internal class DispatchTimer {
   }
 }
 
+func pelicanPrint(_ text: String, file: String = #file,
+                  function: String = #function, line: Int = #line)
+{
+  let fileName = URL(string: file)?.lastPathComponent ?? file
+  print("[\(fileName):\(function):\(line)] \(text)")
+}
+
 /// With Vapor 2 these are currently no longer necessary.
 /*
 // Extensions to manipulate node entries more seamlessly

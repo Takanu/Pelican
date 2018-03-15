@@ -58,6 +58,7 @@ public struct SessionTag: Equatable {
 	Sends a TelegramRequest to Pelican, to be sent as a bot API request.
 	- returns: A response from Telegram.
 	*/
+	@discardableResult
 	public func sendRequest(_ request: TelegramRequest) -> TelegramResponse {
 		
 		return sendRequestCallback(request)
