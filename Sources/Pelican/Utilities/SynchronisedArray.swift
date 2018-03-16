@@ -9,7 +9,7 @@ import Foundation
 
 /// A thread-safe array.
 public class SynchronizedArray<Element> {
-	fileprivate let queue = DispatchQueue(label: "io.Pelican.SynthronizedArray", attributes: .concurrent)
+	fileprivate let queue = DispatchQueue(label: "com.Pelican.SynthronizedArray", attributes: .concurrent)
 	fileprivate var array = [Element]()
 }
 

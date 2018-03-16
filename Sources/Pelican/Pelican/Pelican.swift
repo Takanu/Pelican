@@ -2,25 +2,6 @@
 import Dispatch     // Linux thing.
 import Foundation
 
-protocol TelegramParameter: NodeConvertible, JSONConvertible {
-  func getQueryParameter() -> String
-}
-
-/** Required for classes that wish to receive message objects once the upload is complete.
-*/
-public protocol ReceiveUpload {
-	func receiveMessage(message: Message)
-}
-
-/** 
-A deprecated internal type used to enable models to switch between node-type conversion for response purposes, 
-and that for databasing purposes.
-*/
-public enum TGContext: Vapor.Context {
-  case response
-  case db
-}
-
 
 
 /**
@@ -69,15 +50,6 @@ public final class Pelican {
 	
 	/// The combination of the API request URL and your API token.
   var apiURL: String
-	
-	/// The droplet powering the server
-	var drop: Droplet?
-	
-	/// The type of client being used by the app
-	var clientType: String = ""
-
-	/// Defines an object to be used for custom data, to be used purely for cloning into newly-created ChatSessions.  DO NOT EDIT CONTENTS.
-  private var customData: NSCopying?
 	
 	/// Returns the API key assigned to your bot.
 	public var getAPIKey: String { return apiKey }
@@ -130,8 +102,9 @@ public final class Pelican {
 	
 	
   // SESSIONS
-	/// The sets of sessions that are currently active, encapsulated within their respective builders.
+	/// The set of sessions that are currently active, encapsulated within their respective builders.
   internal var sessions: [SessionBuilder] = []
+	
 	/// The schedule system for sessions to use to delay the execution of actions.
 	public var schedule = Schedule()
 	
@@ -144,26 +117,16 @@ public final class Pelican {
 	// ???
 	
 	
-	// Boots the provider?
-	public func boot(_ config: Vapor.Config) throws {
-		print("*shrug")
-	}
-	
-	
-  // Provider conforming functions
-  public init(config: Vapor.Config) throws {
+  /**
+	Initialises Pelican.
+	- warning: Pelican will attempt to find your API key at this point, and will fail if it's missing.
+	*/
+  public init() throws {
 		
 		// Obtain the token from pelican.json
     guard let token = config["pelican", "token"]?.string else {
       throw TGBotError.KeyMissing
     }
-		
-		Node.fuzzy = [Row.self, JSON.self, Node.self]
-		/*
-			[Chat.self, Message.self, MessageEntity.self, Photo.self, PhotoSize.self,
-									Audio.self, Document.self, Sticker.self, Video.self, Voice.self, Contact.self, Location.self,
-									Venue.self, UserProfilePhotos.self]
-		*/
 		
 		// Initialise controls and timers
 		self.mod = Moderator()
@@ -179,68 +142,24 @@ public final class Pelican {
     self.uploadQueue = DispatchQueue(label: "TG-Upload",
                                      qos: .background,
                                      target: nil)
-		
-		// Fake-initialise the client
-		//try! cache.setBundlePath(Droplet().config.publicDir)
-		
-		// Ensure that the Foundation Engine is being used.
-		
-		let engine = config["droplet", "client"]?.string ?? ""
-		if engine == "foundation" {
-			self.clientType = "foundation"
-			//print("Hey, sorry but you'll need to use the Foundation Client instead of the Engine Client.  I've tried being friends with it but it's just too stubborn.  Ill remove this once the Engine Client starts working with it <3")
-			//throw TGVaporError.EngineSucks
-		}
-		else {
-			self.clientType = "engine"
-		}
-  }
-	
-	
-  public func afterInit(_ drop: Droplet) { }
-	
-	/// Occurs "just" before the drop is run itself, after drop.run() is called.
-  public func beforeRun(_ drop: Droplet) {
-		
-    if ignoreInitialUpdates == true {
-      _ = self.requestUpdates()
-    }
-    
-    if allowedUpdates.count == 0 {
-      for type in iterateEnum(UpdateType.self) {
-        allowedUpdates.append(type)
-      }
-    }
-		
-		started = true
-		updateQueue!.queueNext()
   }
 	
   /// Perform correct droplet configuration here.
-  public func boot(_ drop: Droplet) {
+  public func boot() {
 		
-		// Get the config
-		let config = drop.config
-		try! config.resolveClient()  // idk what this does...
-		context = try! TLS.Context(.client)
-		self.drop = drop
-		
-		// Setup the client used to send and get requests.
-		let engine = config["droplet", "client"]?.string ?? ""
-		if engine == "foundation" {
-			self.client = try! drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(context!), proxy: .none)
-			//self.client = try! drop.client.make
+		if ignoreInitialUpdates == true {
+			_ = self.requestUpdates()
 		}
 		
-		else {
-			self.client = try! drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(context!), proxy: .none)
+		if allowedUpdates.count == 0 {
+			for type in iterateEnum(UpdateType.self) {
+				allowedUpdates.append(type)
+			}
 		}
 		
-		// Setup the logger.
-		PLog.console = drop.log
+		started = true
+		updateQueue!.queueNext()
 		
-		// Setup the cache
-		try! cache.setBundlePath(drop.config.workDir + "/Public")
 	}
 
 	

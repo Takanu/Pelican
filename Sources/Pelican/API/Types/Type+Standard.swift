@@ -55,7 +55,7 @@ class File: Model {
 
 
 // Contains information about why a request was unsuccessful.
-final public class ResponseParameters: Model {
+final public class ResponseParameters {
 	public var storage = Storage()
   public var migrateToChatID: Int? // ???
   public var retryAfter: Int? // ???

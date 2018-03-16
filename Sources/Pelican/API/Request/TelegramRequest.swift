@@ -18,7 +18,7 @@ public class TelegramRequest {
 	public var method: String
 	
 	/// The queries to be used as arguments for the request.
-	public var query: [String: String] = [:]
+	public var query: [String: Encodable] = [:]
 	
 	/// If the method is uploading a file, the type to be uploaded.
 	var file: MessageFile?
@@ -46,16 +46,17 @@ public class TelegramRequest {
 		/// Build the URL
 		var uri = URLComponents()
 		uri.scheme = "https"
-		//uri.user = userInfo?.username
-		//uri.password = userInfo?.info
 		uri.host = "api.telegram.org"
 		uri.port = 443
 		uri.path = "/bot\(apiToken)/\(method)"
 		
 		var querySets: [URLQueryItem] = []
+		
 		for item in query {
-			querySets.append(URLQueryItem(name: item.key, value: item.value))
+			let value = try item.value.encodeToUTF8()
+			querySets.append(URLQueryItem(name: item.key, value: value))
 		}
+		
 		uri.queryItems = querySets
 
 		guard let url = uri.url else { throw ConversionError.unableToMakeFoundationURL }
@@ -66,7 +67,7 @@ public class TelegramRequest {
 		
 		/// If we have message content, get the information as part of an HTTP body.
 		if file != nil {
-			let reqData = cache.getRequestData(forFile: file!)
+			let reqData = try cache.getRequestData(forFile: file!)
 			urlRequest.addValue(reqData.header.1, forHTTPHeaderField: reqData.header.0)
 			urlRequest.httpBody = reqData.body
 		}

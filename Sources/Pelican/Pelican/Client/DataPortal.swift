@@ -59,26 +59,11 @@ final public class DataPortal {
 						return
 					}
 					
+					// Convert the data to useful types if successful
 					if let data = data {
-						// Convert the data to JSON
+						
 						let httpResponse = urlResponse as! HTTPURLResponse
-						
-						let body = data.makeBytes()
-						var headers: [HeaderKey: String] = [:]
-						
-						httpResponse.allHeaderFields.forEach { tuple in
-							headers[HeaderKey("\(tuple.key)")] = "\(tuple.value)"
-						}
-						
-						
-						let status = Status(statusCode: httpResponse.statusCode)
-						let response = Response(status: status, headers: headers, body: Body(body))
-						
-						//print(response)
-						print("URLSESSION - Task Complete.")
-						
-						//let jsonSerialized = try JSONSerialization.jsonObject(with: data, options: []) as? [String : String]
-						//response = Response(urlResponse: urlResponse, data: data)
+						let response = TelegramResponse(data: data, urlResponse: httpResponse)
 						portal.close(with: response)
 					}
 				}
@@ -103,20 +88,11 @@ final public class DataPortal {
 				return
 			}
 			
+			// Convert the data to useful types if successful
 			if let data = data {
-				// Convert the data to JSON
+				
 				let httpResponse = urlResponse as! HTTPURLResponse
-				
-				let body = data.makeBytes()
-				var headers: [HeaderKey: String] = [:]
-				
-				httpResponse.allHeaderFields.forEach { tuple in
-					headers[HeaderKey("\(tuple.key)")] = "\(tuple.value)"
-				}
-				
-				
-				let status = Status(statusCode: httpResponse.statusCode)
-				let response = Response(status: status, headers: headers, body: Body(body))
+				let response = TelegramResponse(data: data, urlResponse: httpResponse)
 				
 				//print(response)
 				print("URLSESSION - Task Complete.")
@@ -124,27 +100,5 @@ final public class DataPortal {
 			}
 		}
 	}
-	
-	/**
-	Taken from Vapor's HTTP Module to exchange a set of Data and a URLResponse into a nice Vapor Response.
-	*/
-	public func makeVaporResponse(data: Data, urlResponse: URLResponse) -> Response {
-		let httpResponse = urlResponse as! HTTPURLResponse
-		
-		//let bodyText = data.makeBytes().makeString().percentDecoded
-		
-		let body = data.makeBytes()
-		var headers: [HeaderKey: String] = [:]
-		
-		httpResponse.allHeaderFields.forEach { tuple in
-			headers[HeaderKey("\(tuple.key)")] = "\(tuple.value)"
-		}
-		
-		
-		let status = Status(statusCode: httpResponse.statusCode)
-		return Response(status: status, headers: headers, body: Body(body))
-	}
-	
-	
 	
 }

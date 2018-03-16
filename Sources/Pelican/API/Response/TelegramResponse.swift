@@ -27,7 +27,7 @@ public class TelegramResponse {
 	public var body: Data
 	
 	/// ???
-	public var storage: [String: Any]
+	//public var storage: [String: Any]
 
 	/// The date the response was received.
 	var date = Date()
@@ -45,43 +45,15 @@ public class TelegramResponse {
 	- parameter response: The Vapor.Response type returned from a Telegram API request.  Failing
 	to provide the correct response will result in a runtime error.
 	*/
-	init?(response: Response)	{
+	init(data: Data, urlResponse: HTTPURLResponse)	{
 		
-		let json = response.json!
-		
-		if json["ok"] != nil {
-			self.success = json["ok"]!.bool!
-		} else {
-			return nil
+		//self.version = urlResponse.v
+		self.status = Status(statusCode: urlResponse.statusCode)
+		urlResponse.allHeaderFields.forEach { tuple in
+			self.headers["\(tuple.key)"] = "\(tuple.value)"
 		}
 		
-		// If the request wasn't successful, fetch information about why it wasn't
-		if success == false {
-			do {
-				
-				if json["description"] != nil {
-					self.errorDescription = try json["description"]!.serialize().makeString()
-				}
-				
-				if json["error_code"] != nil {
-					self.errorCode = try json["error_code"]!.serialize().makeString()
-				}
-				
-			} catch {
-				PLog.error("Telegram Response Creation Error - \(error)")
-				return nil
-			}
-		}
+		self.body = data
 		
-		// If it was, set the result.
-		else {
-			do {
-				self.data = Data.init(bytes: try json["result"]!.makeBytes().array)
-			} catch {
-				PLog.error("Telegram Response Creation Error - \(error)")
-				return nil
-			}
-			
-		}
 	}
 }

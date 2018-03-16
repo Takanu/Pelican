@@ -77,7 +77,7 @@ open class UserSession: Session {
 		self.schedule = bot.schedule
 		
 		self.requests = SessionRequests(tag: tag)
-		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "pelican.usersession",qos: .userInitiated)
+		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.usersession",qos: .userInitiated)
 	}
 	
 	

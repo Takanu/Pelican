@@ -74,7 +74,7 @@ open class ChatSession: Session {
 		self.flood = Flood()
 		
 		self.requests = SessionRequests(tag: tag)
-		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "pelican.chatsession",qos: .userInitiated)
+		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.chatsession",qos: .userInitiated)
 	}
 	
 	open func postInit() {
