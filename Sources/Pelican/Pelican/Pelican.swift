@@ -1,8 +1,7 @@
 
 import Dispatch     // Linux thing.
 import Foundation
-
-
+import SwiftyJSON
 
 /**
 Your own personal pelican for building Telegram bots!
@@ -123,8 +122,24 @@ public final class Pelican {
 	*/
   public init() throws {
 		
-		// Obtain the token from pelican.json
-    guard let token = config["pelican", "token"]?.string else {
+		let workingDir = Pelican.workingDirectory()
+		if workingDir == "" {
+			throw TGBotError.WorkingDirNotFound
+		}
+		
+		let bundle = Bundle(path: workingDir)
+		if bundle == nil {
+			throw TGBotError.WorkingDirNotFound
+		}
+		
+		let configURL = bundle?.url(forResource: "config", withExtension: "json", subdirectory: nil)
+		if configURL == nil {
+			throw TGBotError.ConfigMissing
+		}
+		
+		let data = try Data(contentsOf: configURL!)
+		let configJSON = try JSON.init(data: data)
+    guard let token = configJSON["token"].string else {
       throw TGBotError.KeyMissing
     }
 		
