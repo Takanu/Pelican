@@ -7,7 +7,8 @@
 
 import Foundation
 
-/** Manages a database of currently active file links for re-use, as well as asynchronously uploads content
+/**
+Manages a database of currently active file links for re-use, as well as asynchronously uploads content
 that doesn't have a link.
 
 The database updates itself when a FileLink class is sent using the bot or a session, enabling content to

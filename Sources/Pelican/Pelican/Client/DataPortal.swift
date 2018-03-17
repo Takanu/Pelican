@@ -22,36 +22,31 @@ final public class DataPortal {
 	static var timeout = 5.sec
 	
 	// REQUEST DATA
-	/// The TelegramRequest type used to make this request.
-	var request: TelegramRequest
 	//var target: SessionTag
 	
 	// URLSESSION DATA
-	var urlRequest: URLRequest
+	var request: URLRequest
 	var dataTask: URLSessionDataTask?
-	var portal: Portal<Response>?
+	var portal: Portal<TelegramResponse>?
 	
 	// PORTAL DATA
 	var semaphore = DispatchSemaphore(value: 0)
 	
 	
-	init(_ request: TelegramRequest) throws {
+	init(_ request: URLRequest) throws {
 		
 		self.request = request
 		
-		let url = try! request.uri.makeFoundationURL()
-		let urlRequest = URLRequest(url: url)
-		
 	}
 	
-	public func openSync(session: URLSession) throws -> Response {
+	public func openSync(session: URLSession) throws -> TelegramResponse {
 		
 		do {
 			// Open the portal! \o/
-			let response = try Portal<Response>.open(timeout: timeout.rawValue) { portal in
+			let response = try Portal<TelegramResponse>.open(timeout: timeout.rawValue) { portal in
 				print("PORTAL: Assigning data task...")
 				
-				self.dataTask = self.session.dataTask(with: urlRequest) { (data, urlResponse, error) in
+				self.dataTask = self.session.dataTask(with: request) { (data, urlResponse, error) in
 					
 					if let error = error {
 						print("PORTAL: Closing with error...")
@@ -73,16 +68,16 @@ final public class DataPortal {
 			}
 		} catch {
 			
-			if error == SyncPortalError.timedOut {
+			//if error == PortalError.timedOut {
 				// *shrug*
-			}
+			//}
 			
 		}
 	}
 	
-	public func openAsync(session: URLSession, callback: () -> ()) throws {
+	public func openAsync(session: URLSession, callback: ((TelegramResponse) -> ())? ) throws {
 		
-		self.dataTask = session.dataTask(with: urlRequest) { (data, urlResponse, error) in
+		self.dataTask = session.dataTask(with: request) { (data, urlResponse, error) in
 			
 			if let error = error {
 				return
@@ -94,9 +89,11 @@ final public class DataPortal {
 				let httpResponse = urlResponse as! HTTPURLResponse
 				let response = TelegramResponse(data: data, urlResponse: httpResponse)
 				
-				//print(response)
 				print("URLSESSION - Task Complete.")
-				callback()
+				
+				if callback != nil {
+					callback(response)!
+				}
 			}
 		}
 	}

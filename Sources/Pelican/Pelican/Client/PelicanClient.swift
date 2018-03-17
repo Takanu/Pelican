@@ -16,6 +16,9 @@ fast enough time and attempts to resolve any errors where possible.
 */
 class PelicanClient {
 	
+	/// The API token of the bot this current instance of Pelican is responsible for.
+	var token: String
+	
 	/// The URLSession to be used for data tasks
 	var session: URLSession!
 	
@@ -27,9 +30,15 @@ class PelicanClient {
 	
 	/// The time taken to perform the data task
 	public var requestTime: TimeInterval?
+	
+	/// A reference to the CacheManager required to store and update FileIDs of files and optimise file sending.
+	var cache: CacheManager
 
 	
-	init() {
+	init(token: String, cache: CacheManager) {
+		
+		self.token = token
+		self.cache = cache
 		
 		let config = URLSessionConfiguration.ephemeral
 		config.httpCookieStorage = nil
@@ -39,53 +48,31 @@ class PelicanClient {
 		config.networkServiceType = .default
 		//config.waitsForConnectivity = true
 		
-		/// Assigning the delegate queue is a bad idea.  Don't do it unless you know what you're doing.
+		/// Assigning the delegate queue is a bad idea.  Don't do it unless you know what you're doing.  Which we're not.
 		session = URLSession(configuration: config)
 	}
 
 	
 	/**
-	Makes a client request while waiting for a return value instead of immediately returning without waiting for a response.
+	Makes a synchronous client request.  This will block thread execution until a response is received,
+	but you will be able to directly receive a TelegramResponse and handle it on the same thread.
 	*/
-	private func syncRequest(request: Request, next: @escaping (Response?) -> ()) {
+	func syncRequest(request: TelegramRequest) throws -> TelegramResponse {
 		
-		dataTask?.cancel()
-		let url = try! request.uri.makeFoundationURL()
-		let urlRequest = URLRequest(url: url)
+		let urlrequest = try request.makeURLRequest(token, cache: cache)
 		
 		print("URLSESSION - Preparing task...")
-		
-		
-		
-		next(response)
-		
 	}
 	
-	
-	
-	func getResponse(request: Request, next: @escaping (Response?) -> ()) {
+	/**
+	Makes an asynchronous client request which will not block thread code execution.
+	An optional closure can be provided to handle the result once a response is received.
+	*/
+	func asyncRequest(request: TelegramRequest, next: ((TelegramResponse) -> ())? ) throws {
+		
+		let urlrequest = try request.makeURLRequest(token, cache: cache)
 		
 		
-		
-		dataTask?.cancel()
-		
-		print("URLSESSION - Preparing task...")
-		print(request)
-		
-		self.dataTask = self.session.dataTask(with: url) { (data, urlResponse, error) in
-			
-			if let data = data {
-				// Convert the data to JSON
-				let response = self.makeVaporResponse(data: data, urlResponse: urlResponse!)
-				
-				print(response)
-				print("URLSESSION - Task Complete.")
-				next(response)
-			}
-		}
-		
-		print("URLSESSION - Sending task...")
-		self.dataTask?.resume()
 		
 	}
 }

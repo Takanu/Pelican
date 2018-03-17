@@ -96,7 +96,6 @@ extension TelegramRequest {
 	Photo, Video, Document and Voice message file types - you wont see a caption appear with any other uploaded file type.
 	*/
 	public static func sendFile(file: MessageFile,
-															callback: ReceiveUpload? = nil,
 															chatID: Int,
 															markup: MarkupType?,
 															caption: String = "",

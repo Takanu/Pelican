@@ -47,7 +47,13 @@ public struct SessionTag: Equatable {
 	
 	
 	// CALLBACKS
-	var sendRequestCallback: (TelegramRequest) -> (TelegramResponse?)
+	/// A callback connected to PelicanClient that allows synchronous requests to be made to Telegram.
+	var sendSyncRequestCallback: (TelegramRequest) -> (TelegramResponse?)
+	
+	/// A callback connected to PelicanClient that allows asynchronous requests to be made to Telegram.
+	var sendAsyncRequestCallback: (TelegramRequest, ((TelegramResponse) -> ()) )
+	
+	/// A callback connected to Pelican that can be used to notify it of key session life-cycle events.
 	var sendEventCallback: (SessionEvent) -> ()
 	
 	

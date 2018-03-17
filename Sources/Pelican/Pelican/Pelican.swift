@@ -41,6 +41,9 @@ public final class Pelican {
 	/// The cache system responsible for handling the re-using of already uploaded files and assets, to preserve system resources.
   var cache: CacheManager
 	
+	/// A controller that records and manages client connections to Telegram.
+	var client: PelicanClient
+	
 	/// The API key assigned to your bot.  PLEASE DO NOT ASSIGN IT HERE, ADD IT TO A JSON FILE INSIDE config/pelican.json as a "token".
   var apiKey: String
 	
@@ -146,6 +149,7 @@ public final class Pelican {
 		// Initialise controls and timers
 		self.mod = Moderator()
     self.cache = CacheManager()
+		self.client = PelicanClient()
     self.apiKey = token
     self.apiURL = "https://api.telegram.org/bot" + apiKey
 		

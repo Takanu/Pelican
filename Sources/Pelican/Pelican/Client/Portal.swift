@@ -1,5 +1,5 @@
 //
-//  SyncPortal.swift
+//  Portal.swift
 //  App
 //
 //  Created by Ido Constantine on 06/03/2018.
@@ -18,22 +18,22 @@ public func background(function: @escaping () -> Void) {
 /**
 There was an error thrown by the portal itself vs a user thrown variable
 */
-public enum SyncPortalError: String, Error {
+public enum PortalError: String, Error {
 	/**
-	SyncPortal was destroyed w/o being closed
+	Portal was destroyed w/o being closed
 	*/
 	case notClosed
 	
 	/**
-	SyncPortal timedOut before it was closed.
+	Portal timedOut before it was closed.
 	*/
 	case timedOut
 }
 
 /**
-A port of Vapor's SyncPortal class (V2.x), defined in their HTTP module to handle the asynchronous nature of URLSession data tasks in a synchronous environment (https://github.com/vapor/engine)
+A port of Vapor's Portal class (V2.x), defined in their HTTP module to handle the asynchronous nature of URLSession data tasks in a synchronous environment (https://github.com/vapor/engine)
 */
-public final class SyncPortal<T> {
+public final class Portal<T> {
 	fileprivate var result: Result<T>? = .none
 	private let semaphore: DispatchSemaphore
 	private let lock = NSLock()
@@ -72,13 +72,13 @@ public final class SyncPortal<T> {
 	}
 }
 
-extension SyncPortal {
+extension Portal {
 	/**
 	This function is used to enter an asynchronous supported context with a portal
 	object that can be used to complete a given operation.
 	
 	```
-	let value = try SyncPortal<Int>.open { portal in
+	let value = try Portal<Int>.open { portal in
 	// .. do whatever necessary passing around `portal` object
 	// eventually call
 	
@@ -95,12 +95,12 @@ extension SyncPortal {
 	*/
 	public static func open(
 		timeout: Double = (60 * 60),
-		_ handler: @escaping (SyncPortal) throws -> Void
+		_ handler: @escaping (Portal) throws -> Void
 		) throws -> T {
 		
 		// Create the semaphore and portal.
 		let semaphore = DispatchSemaphore(value: 0)
-		let portal = SyncPortal<T>(semaphore)
+		let portal = Portal<T>(semaphore)
 		
 		// Dispatch the handler work on a global thread.
 		background {
@@ -117,27 +117,27 @@ extension SyncPortal {
 		// Use the result to decide if we should return or throw an error.
 		switch waitResult {
 		case .success:
-			guard let result = portal.result else { throw SyncPortalError.notClosed }
+			guard let result = portal.result else { throw PortalError.notClosed }
 			return try result.extract()
 		case .timedOut:
-			throw SyncPortalError.timedOut
+			throw PortalError.timedOut
 		}
 	}
 }
 
-extension SyncPortal {
+extension Portal {
 	/**
 	Execute timeout operations
 	*/
 	static func timeout(_ timeout: Double, operation: @escaping () throws -> T) throws -> T {
-		return try SyncPortal<T>.open(timeout: timeout) { portal in
+		return try Portal<T>.open(timeout: timeout) { portal in
 			let value = try operation()
 			portal.close(with: value)
 		}
 	}
 }
 
-extension SyncPortalError {
+extension PortalError {
 	public var identifier: String {
 		return rawValue
 	}
