@@ -1,8 +1,8 @@
 //
-//  Portal.swift
-//  App
+//  Result.swift
+//  Pelican
 //
-//  Created by Ido Constantine on 06/03/2018.
+//  Taken from Vapor's HTTP Module (https://github.com/vapor/engine)
 //
 
 import Foundation

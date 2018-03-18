@@ -2,7 +2,7 @@
 //  Type+Extensions.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 31/08/2017.
+//  Created by Takanu Kyriako on 31/08/2017.
 //
 
 import Foundation

@@ -2,7 +2,7 @@
 //  Request+Extra.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 15/03/2018.
+//  Created by Takanu Kyriako on 15/03/2018.
 //
 
 import Foundation

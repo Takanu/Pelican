@@ -2,7 +2,7 @@
 //  File.swift
 //  PelicanPackageDescription
 //
-//  Created by Ido Constantine on 19/01/2018.
+//  Created by Takanu Kyriako on 19/01/2018.
 //
 
 import Foundation

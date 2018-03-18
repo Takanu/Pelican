@@ -1,22 +1,28 @@
 //
-//  SessionRequests+Admin.swift
+//  SessionRequest+Admin.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 16/12/2017.
+//  Created by Takanu Kyriako on 16/12/2017.
 //
 
 import Foundation
 
-extension SessionRequests {
+extension SessionRequestSync {
 	
 	/**
 	Sends a text-based message to the chat linked to this session.
 	*/
 	@discardableResult
-	public func sendMessage(_ message: String, markup: MarkupType?, chatID: Int, parseMode: MessageParseMode = .markdown, replyID: Int = 0, useWebPreview: Bool = false, disableNotification: Bool = false) -> Message? {
+	public func sendMessage(_ message: String,
+													markup: MarkupType?,
+													chatID: Int,
+													parseMode: MessageParseMode = .markdown,
+													replyID: Int = 0,
+													useWebPreview: Bool = false,
+													disableNotification: Bool = false) -> Message? {
 		
 		let request = TelegramRequest.sendMessage(chatID: chatID, text: message, markup: markup, parseMode: parseMode, disableWebPreview: useWebPreview, disableNotification: disableNotification, replyMessageID: replyID)
-		let response = tag.sendRequest(request)
+		let response = tag.sendSyncRequest(request)
 		
 		if response != nil {
 			if response!.success == true {
@@ -37,15 +43,20 @@ extension SessionRequests {
 	Sends and uploads a file as a message to the chat linked to this session, using a `FileLink`
 	*/
 	@discardableResult
-	public func sendFile(_ file: MessageFile, caption: String, markup: MarkupType?, chatID: Int, replyID: Int = 0, disableNotification: Bool = false) -> Message? {
+	public func sendFile(_ file: MessageFile,
+											 caption: String,
+											 markup: MarkupType?,
+											 chatID: Int,
+											 replyID: Int = 0,
+											 disableNotification: Bool = false) -> Message? {
 		
-		let request = TelegramRequest.sendFile(file: file, callback: nil, chatID: chatID, markup: markup, caption: caption, disableNotification: disableNotification, replyMessageID: replyID)
+		let request = TelegramRequest.sendFile(file: file, chatID: chatID, markup: markup, caption: caption, disableNotification: disableNotification, replyMessageID: replyID)
 		
 		if request == nil {
 			return nil
 		}
 		
-		let response = tag.sendRequest(request!)
+		let response = tag.sendSyncRequest(request!)
 		
 		if response != nil {
 			if response!.success == true {

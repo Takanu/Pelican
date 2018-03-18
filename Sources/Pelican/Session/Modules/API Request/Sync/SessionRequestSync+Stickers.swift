@@ -1,8 +1,8 @@
 //
-//  SessionRequests+Stickers.swift
+//  SessionRequest+Stickers.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 17/12/2017.
+//  Created by Takanu Kyriako on 17/12/2017.
 //
 
 import Foundation
@@ -10,7 +10,7 @@ import Foundation
 /**
 This extension handles any kinds of operations involving stickers (including setting group sticker packs).
 */
-extension SessionRequests {
+extension SessionRequestSync {
 	
 	/**
 	Use this method to send .webp stickers. (COMBINE WITH SENDFILE, just makes sense tbh).
@@ -56,7 +56,11 @@ extension SessionRequests {
 	Adds a sticker to a sticker set created by the bot.
 	- returns: True on success.
 	*/
-	public func addStickerToSet(name: String, image: Photo, emojis: String, userID: String, maskPositionFIXME: Int?) {
+	public func addStickerToSet(name: String,
+															image: Photo,
+															emojis: String,
+															userID: String,
+															maskPositionFIXME: Int?) {
 		
 	}
 	

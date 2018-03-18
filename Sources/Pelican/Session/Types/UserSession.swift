@@ -36,7 +36,7 @@ open class UserSession: Session {
 	
 	// API REQUESTS
 	// Shortcuts for API requests.
-	public var requests: SessionRequests
+	public var requests: SessionRequest
 	
 	
 	// DELEGATES / CONTROLLERS
@@ -76,7 +76,7 @@ open class UserSession: Session {
 		
 		self.schedule = bot.schedule
 		
-		self.requests = SessionRequests(tag: tag)
+		self.requests = SessionRequest(tag: tag)
 		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.usersession",qos: .userInitiated)
 	}
 	

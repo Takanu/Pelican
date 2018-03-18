@@ -2,7 +2,7 @@
 //  ChatAction.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 06/03/2018.
+//  Created by Takanu Kyriako on 06/03/2018.
 //
 
 import Foundation

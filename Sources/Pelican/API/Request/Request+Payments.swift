@@ -2,7 +2,7 @@
 //  Request+Payments.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 18/12/2017.
+//  Created by Takanu Kyriako on 18/12/2017.
 //
 
 import Foundation

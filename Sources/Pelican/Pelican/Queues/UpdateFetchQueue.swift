@@ -2,7 +2,7 @@
 //  Pelican+Queues.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 04/03/2018.
+//  Created by Takanu Kyriako on 04/03/2018.
 //
 
 import Foundation

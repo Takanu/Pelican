@@ -1,39 +1,51 @@
 //
-//  SessionRequests+Edit.swift
+//  SessionRequest+Edit.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 16/12/2017.
+//  Created by Takanu Kyriako on 16/12/2017.
 //
 
 import Foundation
 
-extension SessionRequests {
+extension SessionRequestSync {
 	
 	/**
 	Edits a text based message.
 	*/
-	public func editMessage(_ message: String, messageID: Int?, inlineMessageID: Int?, markup: MarkupType?, chatID: Int, parseMode: MessageParseMode = .markdown, disableWebPreview: Bool = false) {
+	public func editMessage(_ message: String,
+													messageID: Int?,
+													inlineMessageID: Int?,
+													markup: MarkupType?,
+													chatID: Int,
+													parseMode: MessageParseMode = .markdown,
+													disableWebPreview: Bool = false) {
 		
 		let request = TelegramRequest.editMessageText(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, text: message, markup: markup, parseMode: parseMode, disableWebPreview: disableWebPreview)
-		_ = tag.sendRequest(request)
+		_ = tag.sendSyncRequest(request)
 	}
 	
 	/**
 	Edits the caption on a media/file based message.
 	*/
-	public func editCaption(messageID: Int = 0, caption: String, markup: MarkupType?, chatID: Int) {
+	public func editCaption(messageID: Int = 0,
+													caption: String,
+													markup: MarkupType?,
+													chatID: Int) {
 		
 		let request = TelegramRequest.editMessageCaption(chatID: chatID, messageID: messageID, caption: caption, markup: markup)
-		_ = tag.sendRequest(request)
+		_ = tag.sendSyncRequest(request)
 	}
 	
 	/**
 	Edits the inline markup options assigned to any type of message/
 	*/
-	public func editReplyMarkup(_ markup: MarkupType?, messageID: Int = 0, inlineMessageID: Int = 0, chatID: Int) {
+	public func editReplyMarkup(_ markup: MarkupType?,
+															messageID: Int = 0,
+															inlineMessageID: Int = 0,
+															chatID: Int) {
 		
 		let request = TelegramRequest.editMessageReplyMarkup(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, markup: markup)
-		_ = tag.sendRequest(request)
+		_ = tag.sendSyncRequest(request)
 	}
 	
 	/**
@@ -47,7 +59,7 @@ extension SessionRequests {
 	public func deleteMessage(_ messageID: Int, chatID: Int) {
 		
 		let request = TelegramRequest.deleteMessage(chatID: chatID, messageID: messageID)
-		_ = tag.sendRequest(request)
+		_ = tag.sendSyncRequest(request)
 	}
 	
 }

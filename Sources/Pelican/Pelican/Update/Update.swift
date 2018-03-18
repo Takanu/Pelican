@@ -7,7 +7,7 @@
 //
 
 import Foundation
-
+import SwiftyJSON
 
 /**
 Encapsulates a single update received from a Telegram bot.

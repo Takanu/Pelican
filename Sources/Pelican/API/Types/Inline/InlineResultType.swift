@@ -2,7 +2,7 @@
 //  InlineResultType.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 22/01/2018.
+//  Created by Takanu Kyriako on 22/01/2018.
 //
 
 import Foundation

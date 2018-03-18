@@ -1,15 +1,13 @@
 
 import Foundation
-
-
 import Dispatch     // Required on Linux platforms.
 
 
 /**
-The king-daddy of Pelican, Sessions encapsulate an interaction point between you and a type of interaction on Telegram.
+The king-daddy of Pelican, Sessions encapsulate an interaction point between you and a type of interaction point on Telegram.
 
 The protocol is a shell that defines the minimum amount of content required in order to function.  Extend it's functionality
-by adding Modules from the folder to your own custom sessions.
+by adding modules to your own custom sessions.
 */
 public protocol Session {
 	
@@ -48,7 +46,7 @@ public protocol Session {
 	of it's delegates requests Pelican to remove it.  This function should never send the closure event itself, use this to clean up any custom types before the Session is removed.*/
 	func cleanup()
 	
-	/** Receives updates from Pelican to be used to find matching Routes and Prompts (in ChatSessions only).  Returns SessionRequests that
+	/** Receives updates from Pelican to be used to find matching Routes and Prompts (in ChatSessions only).  Returns SessionRequest which
 	Pelican uses to make requests to Telegram with. */
 	func update(_ update: Update)
 	

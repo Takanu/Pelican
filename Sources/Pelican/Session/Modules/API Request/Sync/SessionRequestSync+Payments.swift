@@ -1,13 +1,13 @@
 //
-//  SessionRequests+Payments.swift
+//  SessionRequest+Payments.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 18/12/2017.
+//  Created by Takanu Kyriako on 18/12/2017.
 //
 
 import Foundation
 
-extension SessionRequests {
+extension SessionRequestSync {
 
 	/**
 	Use this method to send invoices.

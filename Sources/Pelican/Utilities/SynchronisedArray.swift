@@ -2,7 +2,7 @@
 //  SynchronisedArray.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 05/03/2018.
+//  Created by Takanu Kyriako on 05/03/2018.
 //
 
 import Foundation

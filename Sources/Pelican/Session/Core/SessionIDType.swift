@@ -15,8 +15,11 @@ public enum SessionIDType {
 	
 	/// Defines a single user on Telegram.
 	case chat
+	
 	/// Defines a single chat on Telegram.
 	case user
+	
 	/// Defines any other type of ID, typically only existing for that specific update.  This ID will not work for any Moderator operations.
 	case temporary
+	
 }

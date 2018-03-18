@@ -2,7 +2,7 @@
 //  InputMessageContentType.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 22/12/2017.
+//  Created by Takanu Kyriako on 22/12/2017.
 //
 
 import Foundation

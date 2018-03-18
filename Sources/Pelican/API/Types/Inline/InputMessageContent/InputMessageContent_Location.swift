@@ -2,7 +2,7 @@
 //  InputMessageLocation.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 19/12/2017.
+//  Created by Takanu Kyriako on 19/12/2017.
 //
 
 import Foundation

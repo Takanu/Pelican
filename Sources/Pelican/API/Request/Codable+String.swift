@@ -2,7 +2,7 @@
 //  Codable+String.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 16/03/2018.
+//  Created by Takanu Kyriako on 16/03/2018.
 //
 
 import Foundation

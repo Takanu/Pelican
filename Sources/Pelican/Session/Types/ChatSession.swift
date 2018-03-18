@@ -31,7 +31,7 @@ open class ChatSession: Session {
 	
 	// API REQUESTS
 	// Shortcuts for API requests.
-	public var requests: SessionRequests
+	public var requests: SessionRequest
 	
 	
 	// DELEGATES AND CONTROLLERS
@@ -73,7 +73,7 @@ open class ChatSession: Session {
 		self.timeout = Timeout(tag: self.tag, schedule: bot.schedule)
 		self.flood = Flood()
 		
-		self.requests = SessionRequests(tag: tag)
+		self.requests = SessionRequest(tag: tag)
 		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.chatsession",qos: .userInitiated)
 	}
 	
