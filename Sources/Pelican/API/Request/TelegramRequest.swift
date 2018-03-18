@@ -9,8 +9,13 @@
 import Foundation
 
 /**
-Catalogues all possible methods that are available in the Telegram API through static functions, whilst 
-providing properties for wrapping created function data from within the type to.
+Encapsulates all required information to make an API request to Telegam.
+
+The TelegramRequest type also contains via static declarations all possible methods that are available in the Telegram API.  These
+can be used to fabricate a TelegramRequest for a specific method call.
+
+To send a TelegramRequest, use `Client.syncRequest` or `Client.asyncRequest`.  Alternatively if programming bot events in a Session, just use the included
+SessionRequest type to make the `TelegramRequest`, send it and return you the right result.
 */
 public class TelegramRequest {
 	
@@ -26,11 +31,9 @@ public class TelegramRequest {
 	/// An optional field for the content that's included to define what the content of the request is, if in a String format.
 	var content: Any?
 	
-	
-	public enum ConversionError: Error {
+	enum TelegramRequestError: String, Error {
 		case unableToMakeFoundationURL
 	}
-	
 	
 	init() {}
 	
@@ -59,7 +62,7 @@ public class TelegramRequest {
 		
 		uri.queryItems = querySets
 
-		guard let url = uri.url else { throw ConversionError.unableToMakeFoundationURL }
+		guard let url = uri.url else { throw TelegramRequestError.unableToMakeFoundationURL }
 		
 		
 		/// Build the request

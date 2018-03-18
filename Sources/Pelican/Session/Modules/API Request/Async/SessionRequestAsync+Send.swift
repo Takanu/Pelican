@@ -21,8 +21,15 @@ extension SessionRequestAsync {
 													disableNotification: Bool = false,
 													callback: ((Message?) -> ())?) {
 		
-		let request = TelegramRequest.sendMessage(chatID: chatID, text: message, markup: markup, parseMode: parseMode, disableWebPreview: useWebPreview, disableNotification: disableNotification, replyMessageID: replyID)
-		let response = tag.sendAsyncRequest(request) { response in
+		let request = TelegramRequest.sendMessage(chatID: chatID,
+																							text: message,
+																							markup: markup,
+																							parseMode: parseMode,
+																							disableWebPreview: useWebPreview,
+																							disableNotification: disableNotification,
+																							replyMessageID: replyID)
+		
+		tag.sendAsyncRequest(request) { response in
 			
 		}
 		

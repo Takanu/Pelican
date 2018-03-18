@@ -27,11 +27,14 @@ extension SessionRequestSync {
 		if response != nil {
 			if response!.success == true {
 				
-				do {
-					let decoder = JSONDecoder()
-					return try decoder.decode(Message.self, from: response!.data!)
-				} catch {
-					PLog.error("Pelican Response Decode Error (sendMessage:) - \(error) - \(error.localizedDescription)")
+				if let data = response!.result?.rawData() {
+					do {
+						let decoder = JSONDecoder()
+						return try decoder.decode(Message.self, from: response!.data!)
+						
+					} catch {
+						PLog.error("Pelican Response Decode Error (sendMessage:) - \(error) - \(error.localizedDescription)")
+					}
 				}
 			}
 		}

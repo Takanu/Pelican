@@ -33,7 +33,7 @@ public struct SessionRequestSync {
 	Use this if Pelican hasn't yet implemented a new API method, but also submit an issue [right about here](https://github.com/Takanu/Pelican)
 	here so I can add it 👌👍.
 	*/
-	func customRequest(methodName: String, queries: [String: Codable]) {
+	func customRequest(methodName: String, queries: [String: Codable]) -> TelegramResponse? {
 		
 	}
 }

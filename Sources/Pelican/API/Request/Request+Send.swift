@@ -21,7 +21,13 @@ extension TelegramRequest {
 	## API Description
 	Sends a message.  Must contain a chat ID, message text and an optional MarkupType.
 	*/
-	public static func sendMessage(chatID: Int, text: String, markup: MarkupType?, parseMode: MessageParseMode = .markdown, disableWebPreview: Bool = false, disableNotification: Bool = false, replyMessageID: Int = 0) -> TelegramRequest {
+	public static func sendMessage(chatID: Int,
+																 text: String,
+																 markup: MarkupType?,
+																 parseMode: MessageParseMode = .markdown,
+																 disableWebPreview: Bool = false,
+																 disableNotification: Bool = false,
+																 replyMessageID: Int = 0) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
