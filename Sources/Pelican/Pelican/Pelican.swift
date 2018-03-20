@@ -107,7 +107,7 @@ public final class PelicanBot {
 			"offset": offset,
 			"limit": limit,
 			"timeout": timeout,
-			//"allowed_updates": allowedUpdates.map { $0.rawValue },
+			"allowed_updates": allowedUpdates.map { $0.rawValue },
 		]
 		
 		return request
@@ -201,9 +201,23 @@ public final class PelicanBot {
 			self.schedule.run()
 		}
 		
-		// Clear the first set of updates if we need to.
+		// Clear the first set of updates if we're asked to.
 		if ignoreInitialUpdates == true {
-			_ = self.requestUpdates()
+			
+			let request = TelegramRequest()
+			request.method = "getUpdates"
+			request.query = [
+				"offset": offset,
+				"limit": limit,
+				"timeout": 1,
+			]
+			
+			if let response = client.syncRequest(request: request) {
+				let update_count = response.result!.array?.count ?? 0
+				let update_id = response.result![update_count - 1]["update_id"].int ?? -1
+				offset = update_id + 1
+			}
+			
 		}
 		
 		// Boot!
