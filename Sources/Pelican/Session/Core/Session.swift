@@ -37,7 +37,7 @@ public protocol Session {
 	
 	
 	/** A standard initialiser for a Session, which includes all the required information to setup any delegates it might have. */
-	init(bot: Pelican, tag: SessionTag, update: Update)
+	init(bot: PelicanBot, tag: SessionTag, update: Update)
 	
 	/** Performs any post-initialiser setup, like setting initial routes. */
 	func postInit()

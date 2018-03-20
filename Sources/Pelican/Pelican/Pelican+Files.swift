@@ -4,7 +4,7 @@
 
 import Foundation
 
-extension Pelican {
+extension PelicanBot {
 	
 	/**
 	This function will attempt to get the current working directory of the application.

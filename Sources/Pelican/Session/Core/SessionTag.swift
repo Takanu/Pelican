@@ -45,7 +45,7 @@ public struct SessionTag: Equatable {
 	private var sendEventCallback: (SessionEvent) -> ()
 	
 	
-	init(bot: Pelican, builder: SessionBuilder, id: Int) {
+	init(bot: PelicanBot, builder: SessionBuilder, id: Int) {
 		
 		self._id = id
 		self._sessionType = builder.session

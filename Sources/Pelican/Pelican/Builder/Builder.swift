@@ -39,7 +39,7 @@ public class SessionBuilder {
 	
 	/** An optional function type that can be used to initialise a Session type in a custom way, such as if it has any additional initialisation paramaters. 
 	If left empty, the default Session initialiser will be used. */
-	var setup: ((Pelican, SessionTag, Update) -> (Session))?
+	var setup: ((PelicanBot, SessionTag, Update) -> (Session))?
 	
 	/** An optional closure designed to resolve "collisions", when two or more builders capture the same update.
 	The closure must return a specific enumerator that determines whether based on the collision, the builder will either not 
@@ -47,7 +47,7 @@ public class SessionBuilder {
 	
 	- note: If left unused, the builder will always execute an update it has successfully captured, even if another builder has also captured it.
 	*/
-	public var collision: ((Pelican, Update) -> (BuilderCollision))?
+	public var collision: ((PelicanBot, Update) -> (BuilderCollision))?
 	
 	/// The number of sessions the builder can have active at any given time.  Leave at 0 for no limit.
 	var maxSessions: Int = 0
@@ -65,7 +65,7 @@ public class SessionBuilder {
 	- parameter setup: An optional function type that can be used to setup Sessions when created to be given anything else that isn't available during
 	initialisation, such as specific Flood Limits and Timeouts.
 	*/
-	public init(spawner: @escaping (Update) -> Int?, idType: SessionIDType, session: Session.Type, setup: ((Pelican, SessionTag, Update) -> (Session))?) {
+	public init(spawner: @escaping (Update) -> Int?, idType: SessionIDType, session: Session.Type, setup: ((PelicanBot, SessionTag, Update) -> (Session))?) {
 		self.spawner = spawner
 		self.idType = idType
 		self.session = session
@@ -98,7 +98,7 @@ public class SessionBuilder {
 	- returns: A session that corresponds with the given update if the Builder can handle it,
 	and nil if it could not.
 	*/
-	func getSession(bot: Pelican, update: Update) -> Session? {
+	func getSession(bot: PelicanBot, update: Update) -> Session? {
 		
 		/// Check if our spawner gives us a non-nil value
 		if let id = spawner(update) {
@@ -144,7 +144,7 @@ public class SessionBuilder {
 	- parameter update: The update to use to see if a session can be built with it.
 	- returns: True if the update was successfully used, and false if not.
 	*/
-	func execute(bot: Pelican, update: Update) -> Bool {
+	func execute(bot: PelicanBot, update: Update) -> Bool {
 		
 		if let session = getSession(bot: bot, update: update) {
 			

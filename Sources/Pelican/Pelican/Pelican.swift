@@ -36,7 +36,7 @@ try drop.run()
 
 ```
 */
-public final class Pelican {
+public final class PelicanBot {
 	
 	// CORE PROPERTIES
 	/// The cache system responsible for handling the re-using of already uploaded files and assets, to preserve system resources.
@@ -59,6 +59,9 @@ public final class Pelican {
 	
 	
   // CONNECTION SETTINGS
+	/// Sets the frequency at which the bot looks for updates from users to act on once a previous update has been fetched.  This must be set before Telegram is able to run.
+	var pollInterval: Int = -1
+	
 	/**
 	(Polling) Identifier of the first update to be returned. Must be greater by one than the highest among the identifiers of previously received updates. By default, updates starting with the earliest unconfirmed update are returned.
 	
@@ -89,10 +92,10 @@ public final class Pelican {
 	
   // UPDATE QUEUES
 	/// The time the bot started operating.
-	var timeStarted: Date
+	var timeStarted: Date?
 	
 	/// The time the last update the bot has received from Telegram.
-	var timeLastUpdate: Date
+	var timeLastUpdate: Date?
 	
 	/// A pre-built request type to be used for fetching updates.
 	var getUpdatesRequest: TelegramRequest {
@@ -110,7 +113,7 @@ public final class Pelican {
 	
   fileprivate var updateQueue: UpdateFetchQueue?
   var uploadQueue: DispatchQueue
-  var pollInterval: Int = 0
+	
   var globalTimer: Int = 0        // Used for executing scheduled events.
   public var getTime: Int { return globalTimer }
 	
@@ -137,7 +140,7 @@ public final class Pelican {
 	*/
   public init() throws {
 		
-		let workingDir = Pelican.workingDirectory()
+		let workingDir = PelicanBot.workingDirectory()
 		if workingDir == "" {
 			throw TGBotError.WorkingDirNotFound
 		}
@@ -168,10 +171,6 @@ public final class Pelican {
     self.cache = CacheManager()
 		self.client = Client(token: token, cache: cache)
 		
-		// Initialise timers
-		self.timeStarted = Date()
-		self.timeLastUpdate = Date()
-		
 		// Initialise upload queue and droplet
     self.uploadQueue = DispatchQueue(label: "TG-Upload",
                                      qos: .background,
@@ -181,43 +180,39 @@ public final class Pelican {
   /**
 	Starts the bot!
 	*/
-  public func boot() {
+  public func boot() throws {
 		
+		if pollInterval == -1 {
+			throw TGBotError.NoPollingInterval
+		}
+		
+		// Set the upload queue.
+		updateQueue = UpdateFetchQueue(interval: TimeInterval(self.pollInterval)) {
+			
+			PLog.info("Update Starting...")
+			
+			let updates = self.requestUpdates()
+			if updates != nil {
+				self.handleUpdates(updates!)
+			}
+			
+			self.timeLastUpdate = Date()
+			self.updateQueue!.queueNext()
+			PLog.info("Update Complete.")
+		}
+		
+		// Clear the first set of updates if we need to.
 		if ignoreInitialUpdates == true {
 			_ = self.requestUpdates()
 		}
 		
-		if allowedUpdates.count == 0 {
-			for type in iterateEnum(UpdateType.self) {
-				allowedUpdates.append(type)
-			}
-		}
-		
+		// Boot!
+		self.timeStarted = Date()
+		self.timeLastUpdate = Date()
 		started = true
 		updateQueue!.queueNext()
 		
 	}
-
-	
-	/**
-	Sets the frequency at which the bot looks for updates from users to act on.  If a timeout is set,
-	this becomes the length of time it takes after handling a set of updates to request more from Telegram,
-	until the timeout amount is reached.
-	*/
-  public func setPollingInterval(_ interval: Int) {
-		updateQueue = UpdateFetchQueue(interval: TimeInterval(interval)) {
-			
-			PLog.info("Update Starting...")
-			
-      let updates = self.requestUpdates()
-			if updates != nil {  }
-			self.updateQueue!.queueNext()
-			
-			PLog.info("Update Complete.")
-    }
-    
-    pollInterval = interval
-  }
   
   /**
 	Requests a set of updates from Telegram, based on the poll, offset, timeout and update limit settings
@@ -236,10 +231,7 @@ public final class Pelican {
 		if response != nil {
 			if response!.status != .ok { return nil }
 			let updateResult = self.generateUpdateTypes(response: response!)
-			
-			if updateResult != nil {
-				self.handleUpdates(updateResult!)
-			}
+			return updateResult
 		}
 		
 		return nil
@@ -464,10 +456,8 @@ public final class Pelican {
 		
 		//print(updates)
 		
-		
 		// Check the schedule.
 		schedule.run()
-		
 		
 		// Update the last active time.
 		timeLastUpdate = Date()

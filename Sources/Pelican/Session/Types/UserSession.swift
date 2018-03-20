@@ -62,7 +62,7 @@ open class UserSession: Session {
 	public var timeoutLength: Int = 0
 	
 	
-	public required init(bot: Pelican, tag: SessionTag, update: Update) {
+	public required init(bot: PelicanBot, tag: SessionTag, update: Update) {
 		
 		self.tag = tag
 		

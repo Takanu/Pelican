@@ -8,6 +8,6 @@
 import Foundation
 
 
-extension Pelican {
+extension PelicanBot {
 	
 }

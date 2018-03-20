@@ -22,6 +22,7 @@ enum TGBotError: String, Error {
 	case ConfigMissing = "The config file is missing.  Make sure you include a \"config.json\" file in the project directory that contains your API token."
 	case KeyMissing = "The API key hasn't been provided.  Please provide a \"token\" for Config/pelican.json, containing your bot token."
 	case EntryMissing = "Pelican hasn't been given an session setup closure.  Please provide one using `sessionSetupAction`."
+	case NoPollingInterval = "Pelican hasn't been given a polling interval.  Please set one using `Pelican.pollInterval`."
 }
 
 /**

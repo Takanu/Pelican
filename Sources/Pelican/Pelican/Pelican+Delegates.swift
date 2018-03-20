@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Pelican {
+extension PelicanBot {
 	/**
 	Handles a specific event sent from a Session.
 	*/

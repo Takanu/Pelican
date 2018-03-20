@@ -60,7 +60,7 @@ open class ChatSession: Session {
 	
 	
 	// Setup the session by passing a function that modifies itself with the required commands.
-	public required init(bot: Pelican, tag: SessionTag, update: Update) {
+	public required init(bot: PelicanBot, tag: SessionTag, update: Update) {
 		
 		self.tag = tag
 		self.chat = update.chat!
