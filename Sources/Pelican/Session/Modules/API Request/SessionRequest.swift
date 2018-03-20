@@ -25,10 +25,10 @@ public struct SessionRequest {
 	var tag: SessionTag
 	
 	/// Contains all API methods you can use to make a synchronous API request, where your code execution will wait until a response from Telegram is received.
-	var sync: SessionRequestSync
+	public var sync: SessionRequestSync
 	
 	/// Contains all API methods you can use to make an asynchronous API request, where your code execution will continue immediately after the request is made and sent.
-	var async: SessionRequestAsync
+	public var async: SessionRequestAsync
 	
 	public init(tag: SessionTag) {
 		self.tag = tag
