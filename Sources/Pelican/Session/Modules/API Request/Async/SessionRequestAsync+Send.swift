@@ -19,7 +19,7 @@ extension SessionRequestAsync {
 													replyID: Int = 0,
 													useWebPreview: Bool = false,
 													disableNotification: Bool = false,
-													callback: ((Message?) -> ())?) {
+													callback: ((Message?) -> ())? = nil) {
 		
 		let request = TelegramRequest.sendMessage(chatID: chatID,
 																							text: message,

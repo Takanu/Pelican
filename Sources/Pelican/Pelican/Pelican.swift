@@ -74,7 +74,7 @@ public final class PelicanBot {
   public var timeout: Int = 300
 	
 	/// Defines what update types the bot will receive.  Leave empty if all are allowed, or otherwise specify to optimise the bot.
-  public var allowedUpdates: [UpdateType] = []
+  public var allowedUpdates: [UpdateType] = [.message, .editedMessage, .channelPost, .editedChannelPost, .callbackQuery, .inlineQuery, .chosenInlineResult, .shippingQuery, .preCheckoutQuery]
 	
 	/// If true, the bot will ignore any historic messages it has received while it has been offline.
   public var ignoreInitialUpdates: Bool = true

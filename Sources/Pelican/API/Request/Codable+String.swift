@@ -8,6 +8,11 @@
 import Foundation
 
 extension Encodable {
+	
+	/**
+	A convenience method to convert any codable type into a JSON format.
+	If the type is a standard Swift type, string substitutes will be used.
+	*/
 	func encodeToUTF8() throws -> String? {
 
 		var jsonData = Data()
@@ -34,6 +39,12 @@ extension Encodable {
 			else if self is Decimal {
 				let result = self as! Decimal
 				return result.description
+			}
+			
+			else if self is Bool {
+				let result = self as! Bool
+				if result == true { return "true" }
+				else { return "false" }
 			}
 			
 			

@@ -26,7 +26,7 @@ class PLog {
 	Privately used from the convenience methods laid out in Debug+Prints.
 	*/
 	static internal func addPrint(level: LogLevel, text: String, file: String, function: String, line: Int) {
-		
+		print("\(function) : \(line) ===\n\(text)")
 
 //			console!.log(level, message: text, file: file, function: function, line: line)
 			// *shrug*
