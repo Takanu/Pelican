@@ -63,8 +63,8 @@ public class TelegramResponse {
 		self.body = try JSON(data: data)
 		
 		self.success = body["ok"].bool ?? false
-		self.responseCode = body["status"].string
-		self.responseStatus = body["error_code"].string
+		self.responseCode = body["error_code"].string
+		self.responseStatus = body["description"].string
 		self.result = body["result"]
 		
 	}

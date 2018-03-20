@@ -7,7 +7,7 @@ import SwiftyJSON
 Your own personal pelican for building Telegram bots!
 
 To get started with Pelican, you'll need to place the code below as setup before running the app.
-You'll also need to add your API token as a `token` inside `config/pelican.json` (create it if you don't have the file),
+You'll also need to add your API token as a `token` inside `config.json` (create it if you don't have the file),
 to assign it to your bot and start receiving updates.  You can get your API token from @BotFather.
 
 ## Pelican JSON Contents
@@ -21,18 +21,14 @@ to assign it to your bot and start receiving updates.  You can get your API toke
 ## Pelican Basic Setup
 
 ```
-// Make sure you set up Pelican manually so you can assign it variables.
-let config = try Config()
-let pelican = try Pelican(config: config)
+// Create a bot instance
+let pelican = try PelicanBot()
 
-
-// Add Builder
+// Add a builder
 pelican.addBuilder(SessionBuilder(spawner: Spawn.perChatID(types: nil), idType: .chat, session: TestUser.self, setup: nil) )
 
-// Add the provider and run it!
-try config.addProvider(pelican)
-let drop = try Droplet(config)
-try drop.run()
+// Run it
+try pelican.boot()
 
 ```
 */
@@ -60,7 +56,7 @@ public final class PelicanBot {
 	
   // CONNECTION SETTINGS
 	/// Sets the frequency at which the bot looks for updates from users to act on once a previous update has been fetched.  This must be set before Telegram is able to run.
-	var pollInterval: Int = -1
+	public var pollInterval: Int = -1
 	
 	/**
 	(Polling) Identifier of the first update to be returned. Must be greater by one than the highest among the identifiers of previously received updates. By default, updates starting with the earliest unconfirmed update are returned.
@@ -75,7 +71,7 @@ public final class PelicanBot {
   public var limit: Int = 100
 	
 	/// (Polling) The length of time Pelican will hold onto an update connection with Telegram to wait for updates before disconnecting.
-  public var timeout: Int = 1
+  public var timeout: Int = 300
 	
 	/// Defines what update types the bot will receive.  Leave empty if all are allowed, or otherwise specify to optimise the bot.
   public var allowedUpdates: [UpdateType] = []
@@ -105,7 +101,7 @@ public final class PelicanBot {
 			"offset": offset,
 			"limit": limit,
 			"timeout": timeout,
-			"allowed_updates": allowedUpdates.map { $0.rawValue },
+			//"allowed_updates": allowedUpdates.map { $0.rawValue },
 		]
 		
 		return request
@@ -212,6 +208,10 @@ public final class PelicanBot {
 		started = true
 		updateQueue!.queueNext()
 		
+		// Until we add terminal commands, hooooold!
+		while 1 == 1 {
+			continue
+		}
 	}
   
   /**
