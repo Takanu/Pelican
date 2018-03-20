@@ -181,7 +181,7 @@ public final class PelicanBot {
 		updateQueue = LoopQueue(queueLabel: "com.pelican.fetchupdates",
 														qos: .userInteractive,
 														interval: TimeInterval(self.pollInterval)) {
-			
+															
 			PLog.info("Update Starting...")
 			
 			let updates = self.requestUpdates()
@@ -190,14 +190,14 @@ public final class PelicanBot {
 			}
 			
 			self.timeLastUpdate = Date()
-			self.updateQueue!.queueNext()
 			PLog.info("Update Complete.")
 		}
 		
 		// Set the schedule queue.
 		scheduleQueue = LoopQueue(queueLabel: "com.pelican.eventschedule",
-															qos: .userInteractive,
+															qos: .default,
 															interval: TimeInterval(1)) {
+																
 			self.schedule.run()
 		}
 		
@@ -209,7 +209,7 @@ public final class PelicanBot {
 			request.query = [
 				"offset": offset,
 				"limit": limit,
-				"timeout": 1,
+				"timeout": 3,
 			]
 			
 			if let response = client.syncRequest(request: request) {

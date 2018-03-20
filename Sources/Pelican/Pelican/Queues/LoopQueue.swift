@@ -48,6 +48,7 @@ class LoopQueue {
 			// Record the starting time and execute the loop
 			self?.startTime = Date()
 			self?.execute()
+			self?.queueNext()
 		}
 	}
 	
