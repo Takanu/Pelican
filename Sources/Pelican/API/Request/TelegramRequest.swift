@@ -55,17 +55,17 @@ public class TelegramRequest {
 		
 		var querySets: [URLQueryItem] = []
 		
-		for item in query {
-			let value = try item.value.encodeToUTF8()
-			querySets.append(URLQueryItem(name: item.key, value: value))
+		if file == nil {
+			for item in query {
+				let value = try item.value.encodeToUTF8()
+				querySets.append(URLQueryItem(name: item.key, value: value))
+			}
+			
+			uri.queryItems = querySets
 		}
 		
-		uri.queryItems = querySets
-
-		guard let url = uri.url else { throw TelegramRequestError.unableToMakeFoundationURL }
-		
-		
 		/// Build the request
+		guard let url = uri.url else { throw TelegramRequestError.unableToMakeFoundationURL }
 		var urlRequest = URLRequest(url: url)
 		
 		/// If we have message content, get the information as part of an HTTP body.
