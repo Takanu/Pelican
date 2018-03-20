@@ -50,7 +50,7 @@ public struct SessionTag: Equatable {
 		self._id = id
 		self._sessionType = builder.session
 		self._idType = builder.idType
-		self._builderID = builder.getID
+		self._builderID = builder.id
 		
 		self.sendSyncRequestCallback = bot.client.syncRequest
 		self.sendAsyncRequestCallback = bot.client.asyncRequest

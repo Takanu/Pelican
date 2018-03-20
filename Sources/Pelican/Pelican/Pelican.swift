@@ -87,6 +87,12 @@ public final class PelicanBot {
 	
 	
   // UPDATE QUEUES
+	/// The DispatchQueue system that fetches updates and hands them off to any applicable Sessions to handle independently.
+	private var updateQueue: LoopQueue?
+	
+	/// The DispatchQueue system that checks for any scheduled events and hands the ones it finds to the Session that requested them, on the Session queue.
+	private var scheduleQueue: LoopQueue?
+	
 	/// The time the bot started operating.
 	var timeStarted: Date?
 	
@@ -107,19 +113,12 @@ public final class PelicanBot {
 		return request
 	}
 	
-  fileprivate var updateQueue: UpdateFetchQueue?
-  var uploadQueue: DispatchQueue
-	
-  var globalTimer: Int = 0        // Used for executing scheduled events.
-  public var getTime: Int { return globalTimer }
-	
-	
   // SESSIONS
 	/// The set of sessions that are currently active, encapsulated within their respective builders.
   internal var sessions: [SessionBuilder] = []
 	
 	/// The schedule system for sessions to use to delay the execution of actions.
-	public var schedule = Schedule()
+	public var schedule: Schedule!
 	
 	
   // MODERATION
@@ -166,11 +165,7 @@ public final class PelicanBot {
 		self.mod = Moderator()
     self.cache = CacheManager()
 		self.client = Client(token: token, cache: cache)
-		
-		// Initialise upload queue and droplet
-    self.uploadQueue = DispatchQueue(label: "TG-Upload",
-                                     qos: .background,
-                                     target: nil)
+		self.schedule = Schedule(workCallback: self.requestSessionWork)
   }
 	
   /**
@@ -183,7 +178,9 @@ public final class PelicanBot {
 		}
 		
 		// Set the upload queue.
-		updateQueue = UpdateFetchQueue(interval: TimeInterval(self.pollInterval)) {
+		updateQueue = LoopQueue(queueLabel: "com.pelican.fetchupdates",
+														qos: .userInteractive,
+														interval: TimeInterval(self.pollInterval)) {
 			
 			PLog.info("Update Starting...")
 			
@@ -195,6 +192,13 @@ public final class PelicanBot {
 			self.timeLastUpdate = Date()
 			self.updateQueue!.queueNext()
 			PLog.info("Update Complete.")
+		}
+		
+		// Set the schedule queue.
+		scheduleQueue = LoopQueue(queueLabel: "com.pelican.eventschedule",
+															qos: .userInteractive,
+															interval: TimeInterval(1)) {
+			self.schedule.run()
 		}
 		
 		// Clear the first set of updates if we need to.
@@ -397,9 +401,6 @@ public final class PelicanBot {
 	*/
 	internal func handleUpdates(_ updates: [Update]) {
 		
-    // Check the global timer for any scheduled events
-    globalTimer += pollInterval
-    //checkChatSessionQueues()
 		PLog.info("Handling updates...")
 		
 		// Filter the update to the current builders.
@@ -475,7 +476,7 @@ public final class PelicanBot {
 		var generator = Xoroshiro()
 		
 		var id = 0
-		while id == 0 || sessions.contains(where: {$0.getID == id}) == true {
+		while id == 0 || sessions.contains(where: {$0.id == id}) == true {
 			id = Int(generator.random32())
 		}
 		

@@ -11,14 +11,20 @@ import Foundation
 
 
 /**
-Defines a list of scheduled events, submitted either by Pelican or a Session to perform at a later date.
+Organises a list of scheduled events, submitted either by Pelican or a Session to perform at a later date.
+
+Updates by the scheduler are dispatched to the DispatchQueue of the session it belongs to, in order to ensure thread-safe operations.
 */
 public class Schedule {
 	
 	/// A sorted list of events, sorted from the shortest delay to the longest.
 	var queue: [ScheduleEvent] = []
+	
 	/// The time the run loop was last called at (used for popExpiredEvent)
 	var runTime: Date = Date()
+	
+	/// A callback that allows the Schedule to request that Pelican have the event work be performed on the originating Session's DispatchQueue.
+	var requestExecution: (SessionTag, @escaping () -> ()) -> ()
 	
 	/** 
 	The range that the Schedule will look outside the current time to find events to execute on in seconds.
@@ -27,17 +33,15 @@ public class Schedule {
 	var fluctuationRange: Double = 0.1
 	
 	
-	
-	
-	init() { }
+	init(workCallback: @escaping (SessionTag, @escaping () -> ()) -> ()) {
+		self.requestExecution = workCallback
+	}
 	
 	
 	/**
 	Adds an event to the queue.
 	*/
 	func add(_ event: ScheduleEvent) {
-		
-		//print("Adding Event - Created at \(event.creationTime) with execution time of \(event.executeTime)")
 		
 		if let index = queue.index(where: { $0.executeTime.timeIntervalSince1970 > event.executeTime.timeIntervalSince1970 } ) {
 			queue.insert(event, at: index)
@@ -94,21 +98,30 @@ Defines a single scheduled item for the Pelican Schedule to execute, at the defi
 */
 public class ScheduleEvent: Equatable {
 	
-	var delay: [Duration]?
-	public var getcreationTime: Date { return creationTime }
-	var creationTime = Date()
-	public var getExecuteTime: Date { return executeTime }
-	var executeTime: Date
+	// The session the event belongs to, used to appropriately allocate the work to the right DispatchQueue.
+	var tag: SessionTag
 	
+	// The length of the time the event has to wait before it is executed.
+	var delay: [Duration]?
+	
+	// The date at which the event was created.
+	public var creationTime: Date { return _creationTime }
+	var _creationTime = Date()
+	
+	// The date at which the event will be executed (rough approximation, seriously rough).
+	public var executeTime: Date { return _executeTime }
+	var _executeTime: Date
+	
+	// The action to be executed when the executeTime is reached.
 	var action: () -> ()
 	
 	
 	/**
 	Creates a Schedule Event using an array of durations as the basis for the execution time.
 	*/
-	public init(delay: [Duration], action: @escaping () -> ()) {
+	public init(tag: SessionTag, delay: [Duration], action: @escaping () -> ()) {
 		
-		// Set the basic properties
+		self.tag = tag
 		self.delay = delay
 		self.action = action
 		
@@ -118,30 +131,30 @@ public class ScheduleEvent: Equatable {
 			shift += duration.unixTime
 		}
 		
-		self.executeTime = creationTime.addingTimeInterval(shift)
+		self._executeTime = _creationTime.addingTimeInterval(shift)
 	}
 	
 	
 	/**
 	Creates a Schedule Event using an numerical delay value, in Unix Time as the basis for the execution time.
 	*/
-	public init(delayUnixTime: Double, action: @escaping () -> ()) {
+	public init(tag: SessionTag, delayUnixTime: Double, action: @escaping () -> ()) {
 		
-		// Set the basic properties
+		self.tag = tag
 		self.action = action
 		
-		// Append the action delay
-		self.executeTime = creationTime.addingTimeInterval(delayUnixTime)
+		// Append the action delay 
+		self._executeTime = _creationTime.addingTimeInterval(delayUnixTime)
 	}
 	
 	
 	/**
 	Creates a Schedule Event using a specified date as the execution time.
 	*/
-	public init(atDate: Date, action: @escaping () -> ()) {
+	public init(tag: SessionTag, atDate: Date, action: @escaping () -> ()) {
 		
-		// Set the basic properties
-		self.executeTime = atDate
+		self.tag = tag
+		self._executeTime = atDate
 		self.action = action
 	}
 	
@@ -178,7 +191,7 @@ public class ScheduleEvent: Equatable {
 			shift = duration.delayDate(shift)
 		}
 		
-		self.executeTime = shift
+		self._executeTime = shift
 		return self.executeTime
 		
 	}

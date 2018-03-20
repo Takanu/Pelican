@@ -84,7 +84,7 @@ public class Timeout {
 		
 		// Set the new bump date and event
 		lastBump = Date()
-		lastEvent = ScheduleEvent(delay: [duration]) {
+		lastEvent = ScheduleEvent(tag: tag, delay: [duration]) {
 			
 			if self.action != nil {
 				self.action!()

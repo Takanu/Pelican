@@ -39,4 +39,18 @@ extension PelicanBot {
 		
 		
 	}
+	
+	/**
+	Submits work for a Session's DispatchQueue to handle.
+	*/
+	func requestSessionWork(tag: SessionTag, work: @escaping () -> ()) {
+		
+		sessions.forEach { builder in
+			if let session = builder.findBuilder(tag: tag) {
+				session.dispatchQueue.async(work)
+				return
+			}
+		}
+		
+	}
 }

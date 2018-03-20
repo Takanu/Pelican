@@ -72,7 +72,7 @@ public class ChatSessionQueue {
 		
 		
 		// Add it directly to the end of the stack
-		let event = ScheduleEvent(delayUnixTime: execTime, action: action)
+		let event = ScheduleEvent(tag: tag, delayUnixTime: execTime, action: action)
 		addEvent(event)
 		eventHistory.append(event)
 		
@@ -95,7 +95,7 @@ public class ChatSessionQueue {
 		// Calculate what kind of delay we're using
 		let execTime = bumpEventTime(delay: delay, viewTime: viewTime)
 		
-		let event = ScheduleEvent(delayUnixTime: execTime) {
+		let event = ScheduleEvent(tag: tag, delayUnixTime: execTime) {
 			
 			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: message, markup: markup	)
 			_ = self.tag.sendSyncRequest(request)
@@ -119,7 +119,7 @@ public class ChatSessionQueue {
 		// Calculate what kind of delay we're using
 		let execTime = bumpEventTime(delay: delay, viewTime: viewTime)
 		
-		let event = ScheduleEvent(delayUnixTime: execTime) {
+		let event = ScheduleEvent(tag: tag, delayUnixTime: execTime) {
 			
 			let request = TelegramRequest.sendMessage(chatID: self.chatID, text: message, markup: markup, parseMode: parseMode, disableWebPreview: useWebPreview, disableNotification: disableNotification, replyMessageID: replyID)
 			_ = self.tag.sendSyncRequest(request)

@@ -24,9 +24,8 @@ public class SessionBuilder {
 	
 	/** The identifier for the Builder, to allow Pelican to identify and send events to it from an individual Session.
 	This is an internal ID and should not be changed. */
-	var id: Int = 0
-	public var getID: Int { return id }
-	
+	var _id: Int = 0
+	public var id: Int { return _id }
 	
 	/// A function that checks an update to see whether or not it matches given criteria in that function, returning a non-nil value if true.
 	var spawner: (Update) -> Int?
@@ -77,7 +76,7 @@ public class SessionBuilder {
 	This should only be used by Pelican once it receives a builder, and nowhere else. 
 	*/
 	func setID(_ id: Int) {
-		self.id = id
+		self._id = id
 	}
 	
 	/**
@@ -94,7 +93,7 @@ public class SessionBuilder {
 	}
 	
 	/**
-	Attempts to return a session based on a given update.
+	Attempts to return a session belonging to the builder based on a given update.  If one doesn't exist, it will be created.
 	- returns: A session that corresponds with the given update if the Builder can handle it,
 	and nil if it could not.
 	*/
@@ -137,6 +136,21 @@ public class SessionBuilder {
 		}
 		
 		return nil
+	}
+	
+	/**
+	Attempts to return a session based on the given SessionTag.
+	- returns: A session that corresponds with the given update if the Builder can handle it,
+	and nil if it could not.
+	*/
+	func findBuilder(tag: SessionTag) -> Session? {
+		if self.id != tag.builderID { return nil }
+		
+		if let session = sessions[tag.id] {
+			return session
+		} else {
+			return nil
+		}
 	}
 	
 	/**

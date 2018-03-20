@@ -10,12 +10,10 @@ import Dispatch     // Required on Linux platforms.
 
 
 // The Dispatch queue for getting updates and serving them to sessions.
-class UpdateFetchQueue {
+class LoopQueue {
 	
 	/// The actual dispatch queue, that uses the highest level of QoS.
-	private let queue = DispatchQueue(label: "pelican.updatefetch",
-																		qos: .userInteractive,
-																		target: nil)
+	private let queue: DispatchQueue
 	
 	/// The minimum length of time that must be between the start of the code block and the end of it, before it is called again.
 	private let interval: TimeInterval
@@ -32,7 +30,15 @@ class UpdateFetchQueue {
 	/// The work item that encapsulates the `execute` closure property, which is the item pushed to the queue
 	private var operation: DispatchWorkItem?
 	
-	init(interval: TimeInterval, execute: @escaping () -> Void) {
+	init(queueLabel: String,
+			 qos: DispatchQoS,
+			 interval: TimeInterval,
+			 execute: @escaping () -> Void) {
+		
+		self.queue = DispatchQueue(label: queueLabel,
+															 qos: qos,
+															 target: nil)
+		
 		self.interval = interval
 		self.startTime = Date()
 		self.lastExecuteLength = TimeInterval.init(0)
