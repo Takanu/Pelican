@@ -16,7 +16,7 @@ Encapsulates an active method request with a URLSession data task.
 - Enables external cancellation of data tasks (?)
 - Features timeout handling
 */
-final public class ClientConnection: URLSessionTaskDelegate {
+final public class ClientConnection {
 	
 	// CONFIGURATION
 	/// The length of time a normal data task will remain open before the connection automatically closes.
@@ -87,10 +87,14 @@ final public class ClientConnection: URLSessionTaskDelegate {
 					
 					// Convert the data to useful types if successful
 					if let data = data {
+						do {
+							let httpResponse = urlResponse as! HTTPURLResponse
+							let response = try TelegramResponse(data: data, urlResponse: httpResponse)
+							portal.close(with: response)
+						} catch {
+							portal.close(with: error)
+						}
 						
-						let httpResponse = urlResponse as! HTTPURLResponse
-						let response = TelegramResponse(data: data, urlResponse: httpResponse)
-						portal.close(with: response)
 					}
 				}
 				
@@ -101,7 +105,7 @@ final public class ClientConnection: URLSessionTaskDelegate {
 			return response
 			
 		} catch {
-			if error is PortalError{
+			if error is PortalError {
 				let portalError = error as! PortalError
 				
 				if portalError == .timedOut {
@@ -117,8 +121,9 @@ final public class ClientConnection: URLSessionTaskDelegate {
 						throw PortalError.timedOut
 					}
 				}
-				
 			}
+			
+			return nil
 		}
 	}
 	
@@ -126,7 +131,7 @@ final public class ClientConnection: URLSessionTaskDelegate {
 	/**
 	Opens an asynchronous client connection to Telegram.
 	*/
-	public func openAsync(session: URLSession, callback: ((TelegramResponse) -> ())? ) throws {
+	public func openAsync(session: URLSession, callback: ((TelegramResponse?) -> ())? ) throws {
 		
 		self.callback = callback
 		
@@ -140,16 +145,23 @@ final public class ClientConnection: URLSessionTaskDelegate {
 			// Convert the data to useful types if successful
 			if let data = data {
 				
-				let httpResponse = urlResponse as! HTTPURLResponse
-				let response = TelegramResponse(data: data, urlResponse: httpResponse)
-				
-				print("ClientConnection - Task Complete.")
-				
-				if callback != nil {
-					callback!(response)
-					self.isActive = false
+				do {
+					let httpResponse = urlResponse as! HTTPURLResponse
+					let response = try TelegramResponse(data: data, urlResponse: httpResponse)
+					
+					print("ClientConnection - Task Complete.")
+					
+					if callback != nil {
+						callback!(response)
+						self.isActive = false
+						return
+					}
+				} catch {
+					print(error)
 					return
 				}
+				
+				
 			}
 		}
 		
@@ -167,13 +179,14 @@ final public class ClientConnection: URLSessionTaskDelegate {
 	/**
 	Overridden to catch timeout errors.
 	*/
+	/*
 	override func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
 		
 		if error == nil {
 			return
 		}
 		
-		if error! == URLError {
+		if error! is URLError {
 			let urlError = error as! URLError
 			
 			// Timeout Handling
@@ -196,5 +209,6 @@ final public class ClientConnection: URLSessionTaskDelegate {
 			
 		}
 	}
+*/
 	
 }

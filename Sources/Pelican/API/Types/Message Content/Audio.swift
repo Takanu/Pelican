@@ -84,8 +84,8 @@ final public class Audio: TelegramType, MessageFile {
 	}
 	
 	// SendType conforming methods
-	public func getQuery() -> [String:NodeConvertible] {
-		var keys: [String:NodeConvertible] = [
+	public func getQuery() -> [String: Codable] {
+		var keys: [String: Codable] = [
 			"audio": fileID]
 		
 		if duration != 0 { keys["duration"] = duration }

@@ -1,13 +1,9 @@
 
-
-
 /**
 Defines anything relating to types, but isn't a real type component, such as protocols and extensions.
 */
 
-
 import Foundation
-
 
 
 /**
@@ -50,11 +46,13 @@ public protocol MessageFile: MessageContent {
 	
 	/// The Telegram File ID, obtained when a file is uploaded to the bot either by the bot itself, or by a user interacting with it.
 	var fileID: String? { get set }
+	
 	/**
 	The path to the resource either as a local source relative to the Public/ folder
 	of your app (eg. `karaoke/jack-1.png`) or as a remote source using an HTTP link.
 	*/
 	var url: String? { get set }
+	
 }
 
 extension MessageFile {

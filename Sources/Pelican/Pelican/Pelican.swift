@@ -13,7 +13,8 @@ to assign it to your bot and start receiving updates.  You can get your API toke
 ## Pelican JSON Contents
 ```
 {
-"token": "INSERT:YOUR-KEY-RIGHT-HERE"
+"bot_token": "INSERT:YOUR-KEY-RIGHT-HERE"
+"payment_token": "INSERT:PAYMENTS-PLZ-DELICIOUS"
 }
 ```
 
@@ -44,20 +45,17 @@ public final class Pelican {
 	/// A controller that records and manages client connections to Telegram.
 	var client: Client
 	
-	/// The API key assigned to your bot.  PLEASE DO NOT ASSIGN IT HERE, ADD IT TO A JSON FILE INSIDE config/pelican.json as a "token".
-  var apiKey: String
+	/// The API key assigned to your bot.
+	public var apiKey: String { return _apiKey }
+  private var _apiKey: String
 	
 	/// The Payment key assigned to your bot.  To assign the key, add it to the JSON file inside config/pelican.json as "payment_token".
-	var paymentKey: String?
+	public var paymentKey: String? { return _paymentKey }
+	var _paymentKey: String?
 	
 	/// The combination of the API request URL and your API token.
-  var apiURL: String
-	
-	/// Returns the API key assigned to your bot.
-	public var getAPIKey: String { return apiKey }
-	
-	/// Returns the combination of the API request URL and your API token.
-	public var getAPIURL: String { return apiURL }
+	public var apiURL: String { return _apiURL }
+  private var _apiURL: String
 	
 	
   // CONNECTION SETTINGS
@@ -89,12 +87,26 @@ public final class Pelican {
   public var hasStarted: Bool { return started }
 	
 	
-  // QUEUES
+  // UPDATE QUEUES
 	/// The time the bot started operating.
 	var timeStarted: Date
 	
 	/// The time the last update the bot has received from Telegram.
 	var timeLastUpdate: Date
+	
+	/// A pre-built request type to be used for fetching updates.
+	var getUpdatesRequest: TelegramRequest {
+		let request = TelegramRequest()
+		request.method = "getUpdates"
+		request.query = [
+			"offset": offset,
+			"limit": limit,
+			"timeout": timeout,
+			"allowed_updates": allowedUpdates.map { $0.rawValue },
+		]
+		
+		return request
+	}
 	
   fileprivate var updateQueue: UpdateFetchQueue?
   var uploadQueue: DispatchQueue
@@ -142,16 +154,19 @@ public final class Pelican {
 		
 		let data = try Data(contentsOf: configURL!)
 		let configJSON = try JSON.init(data: data)
-    guard let token = configJSON["token"].string else {
+    guard let token = configJSON["bot_token"].string else {
       throw TGBotError.KeyMissing
     }
+		
+		// Set tokens
+		self._apiKey = token
+		self._apiURL = "https://api.telegram.org/bot" + token
+		self._paymentKey = configJSON["payment_token"].string
 		
 		// Initialise controls and timers
 		self.mod = Moderator()
     self.cache = CacheManager()
 		self.client = Client(token: token, cache: cache)
-    self.apiKey = token
-    self.apiURL = "https://api.telegram.org/bot" + apiKey
 		
 		// Initialise timers
 		self.timeStarted = Date()
@@ -163,7 +178,9 @@ public final class Pelican {
                                      target: nil)
   }
 	
-  /// Perform correct droplet configuration here.
+  /**
+	Starts the bot!
+	*/
   public func boot() {
 		
 		if ignoreInitialUpdates == true {
@@ -193,33 +210,13 @@ public final class Pelican {
 			PLog.info("Update Starting...")
 			
       let updates = self.requestUpdates()
-			if updates != nil { self.handleUpdates(updates!) }
+			if updates != nil {  }
 			self.updateQueue!.queueNext()
 			
 			PLog.info("Update Complete.")
     }
     
     pollInterval = interval
-  }
-	
-	/**
-	An internal method for creating an update query string for easy use when requesting updates.
-	*/
-  internal func makeUpdateQuery() -> [String:NodeConvertible] {
-    var keys: [String:NodeConvertible] = [
-      "offset": offset,
-      "limit": limit,
-      "timeout": timeout]
-    
-    var filteredUpdates: [String] = []
-    for item in allowedUpdates {
-      if !filteredUpdates.contains(item.rawValue) {
-        filteredUpdates.append(item.rawValue)
-      }
-    }
-    
-    keys["allowed_updates"] = filteredUpdates
-    return keys
   }
   
   /**
@@ -229,39 +226,19 @@ public final class Pelican {
 	*/
 	public func requestUpdates() -> [Update]? {
 		
-		//print("UPDATE START")
+		var response: TelegramResponse? = nil
 		
-    let query = makeUpdateQuery()
+		// Build a new request with the correct URI and fetch the other data from the Session Request
 		PLog.info("Contacting Telegram for Updates...")
-		
-		var response: Response? = nil
-		let vaporRequest = Request(method: .post, uri: apiURL + "/getUpdates")
-		//print(vaporRequest)
-		
-		do {
-			// Build a new request with the correct URI and fetch the other data from the Session Request
-			vaporRequest.query = try query.makeNode(in: nil)
-			//vaporRequest.headers = [HeaderKey.connection: "keep-alive"]
-			
-			response = connectToClient(request: vaporRequest, attempts: 0)
-			
-		} catch {
-			print(error)
-			print(TGReqError.NoResponse.rawValue)
-			return nil
-		}
-		
-		//print(response)
+		response = client.syncRequest(request: getUpdatesRequest)
 		
 		// If we have a response, try and build an update list from it.
 		if response != nil {
 			if response!.status != .ok { return nil }
+			let updateResult = self.generateUpdateTypes(response: response!)
 			
-			//print(response)
-			
-			let updateResult = self.filterUpdateResponse(response: response!.json!)
 			if updateResult != nil {
-				return updateResult
+				self.handleUpdates(updateResult!)
 			}
 		}
 		
@@ -269,11 +246,13 @@ public final class Pelican {
 
 	}
 	
-	public func filterUpdateResponse(response: JSON) -> [Update]? {
+	public func generateUpdateTypes(response: TelegramResponse) -> [Update]? {
 		
     // Get the basic result data
-		let results = response["result"]?.array ?? []
+		let results = response.result?.array ?? []
     let messageCount = results.count
+		
+		if response.result == nil { return nil }
 
     // Make the collection types
 		var updates: [Update] = []
@@ -281,14 +260,14 @@ public final class Pelican {
 
     // Iterate through the collected messages
     for i in 0..<messageCount {
-      let update_id = response["result", i, "update_id"]?.int ?? -1
-			let responseSlice = response["result", i]!
+      let update_id = response.result![i]["update_id"].int ?? -1
+			let responseSlice = response.result![i]
 
       // This is just a plain old message
       if allowedUpdates.contains(UpdateType.message) {
-        if (responseSlice["message"]) != nil {
+        if (responseSlice["message"]) != JSON.null {
 					
-					let update = unwrapIncomingUpdate(json: responseSlice["message"]!,
+					let update = unwrapIncomingUpdate(json: responseSlice["message"],
 																						dataType: Message.self,
 																						updateType: .message)
 					
@@ -300,8 +279,8 @@ public final class Pelican {
 
       // This is if a message was edited
       if allowedUpdates.contains(UpdateType.editedMessage) {
-        if (responseSlice["edited_message"]) != nil {
-					let update = unwrapIncomingUpdate(json: responseSlice["edited_message"]!,
+        if (responseSlice["edited_message"]) != JSON.null {
+					let update = unwrapIncomingUpdate(json: responseSlice["edited_message"],
 																						dataType: Message.self,
 																						updateType: .editedMessage)
 					
@@ -313,8 +292,8 @@ public final class Pelican {
 
       // This is for a channel post
       if allowedUpdates.contains(UpdateType.channelPost) {
-        if (responseSlice["channel_post"]) != nil {
-					let update = unwrapIncomingUpdate(json: responseSlice["channel_post"]!,
+        if (responseSlice["channel_post"]) != JSON.null {
+					let update = unwrapIncomingUpdate(json: responseSlice["channel_post"],
 																						dataType: Message.self,
 																						updateType: .channelPost)
 					
@@ -326,8 +305,8 @@ public final class Pelican {
 
       // This is for an edited channel post
       if allowedUpdates.contains(UpdateType.editedChannelPost) {
-        if (responseSlice["edited_channel_post"]) != nil {
-					let update = unwrapIncomingUpdate(json: responseSlice["edited_channel_post"]!,
+        if (responseSlice["edited_channel_post"]) != JSON.null {
+					let update = unwrapIncomingUpdate(json: responseSlice["edited_channel_post"],
 																						dataType: Message.self,
 																						updateType: .editedChannelPost)
 					
@@ -340,8 +319,8 @@ public final class Pelican {
       // COME BACK TO THESE LATER
       // This type is for when someone tries to search something in the message box for this bot
       if allowedUpdates.contains(UpdateType.inlineQuery) {
-        if (responseSlice["inline_query"]) != nil {
-					let update = unwrapIncomingUpdate(json: responseSlice["inline_query"]!,
+        if (responseSlice["inline_query"]) != JSON.null {
+					let update = unwrapIncomingUpdate(json: responseSlice["inline_query"],
 																						dataType: InlineQuery.self,
 																						updateType: .inlineQuery)
 					
@@ -353,8 +332,8 @@ public final class Pelican {
 
       // This type is for when someone has selected an search result from the inline query
       if allowedUpdates.contains(UpdateType.chosenInlineResult) {
-        if (responseSlice["chosen_inline_result"]) != nil {
-					let update = unwrapIncomingUpdate(json: responseSlice["chosen_inline_result"]!,
+        if (responseSlice["chosen_inline_result"]) != JSON.null {
+					let update = unwrapIncomingUpdate(json: responseSlice["chosen_inline_result"],
 																						dataType: ChosenInlineResult.self,
 																						updateType: .chosenInlineResult)
 					
@@ -366,8 +345,8 @@ public final class Pelican {
 
       /// Callback Query handling (receiving button presses for inline buttons with callback data)
       if allowedUpdates.contains(UpdateType.callbackQuery) {
-        if (response["result", i, "callback_query"]) != nil {
-					let update = unwrapIncomingUpdate(json: responseSlice["callback_query"]!,
+        if (responseSlice["callback_query"]) != JSON.null {
+					let update = unwrapIncomingUpdate(json: responseSlice["callback_query"],
 																						dataType: CallbackQuery.self,
 																						updateType: .callbackQuery)
 					
@@ -389,11 +368,11 @@ public final class Pelican {
 	internal func unwrapIncomingUpdate<T: UpdateModel>(json: JSON, dataType: T.Type, updateType: UpdateType) -> Update? {
 		
 		// Setup the decoder
-		let data = Data.init(bytes: try! json.makeBytes().array)
 		let decoder = JSONDecoder()
 		
 		// Attempt to decode
 		do {
+			let data = try json.rawData()
 			let result = try decoder.decode(dataType, from: data)
 			let update = Update(withData: result, json: json, type: updateType)
 			

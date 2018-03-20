@@ -16,7 +16,7 @@ public class TelegramResponse {
 
 	// HTTP CORE
 	/// The HTTP Version.
-	public var version: Version
+	//public var version: Version
 	
 	/// The status of the request.
 	public var status: Status
@@ -26,6 +26,9 @@ public class TelegramResponse {
 
 	/// The date the response was received.
 	var date = Date()
+	
+	/// The body of the response.
+	var body: JSON
 	
 	
 	// TELEGRAM INFO
@@ -51,16 +54,18 @@ public class TelegramResponse {
 		
 		//self.version = urlResponse.something
 		self.status = Status(statusCode: urlResponse.statusCode)
+		var newHeaders: [String: String] = [:]
 		urlResponse.allHeaderFields.forEach { tuple in
-			self.headers["\(tuple.key)"] = "\(tuple.value)"
+			newHeaders["\(tuple.key)"] = "\(tuple.value)"
 		}
 		
-		var json = try JSON(data: data)
+		self.headers = newHeaders
+		self.body = try JSON(data: data)
 		
-		self.success = json["ok"].bool ?? false
-		self.responseCode = json["status"].string
-		self.responseStatus = json["error_code"].string
-		self.result = json["result"]
+		self.success = body["ok"].bool ?? false
+		self.responseCode = body["status"].string
+		self.responseStatus = body["error_code"].string
+		self.result = body["result"]
 		
 	}
 }

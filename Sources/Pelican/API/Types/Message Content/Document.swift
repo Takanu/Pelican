@@ -67,8 +67,8 @@ final public class Document: TelegramType, MessageFile {
 	}
 	
 	// SendType conforming methods
-	public func getQuery() -> [String:NodeConvertible] {
-		let keys: [String:NodeConvertible] = [
+	public func getQuery() -> [String: Codable] {
+		let keys: [String: Codable] = [
 			"document": fileID]
 		
 		return keys

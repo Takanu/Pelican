@@ -47,14 +47,12 @@ class Client {
 		config.httpCookieStorage = nil
 		config.httpMaximumConnectionsPerHost = 20
 		config.isDiscretionary = false
-		config.shouldUseExtendedBackgroundIdleMode = false
-		//config.shouldUseExtendedBackgroundIdleMode = false
 		config.networkServiceType = .default
-		//config.waitsForConnectivity = true
 		config.timeoutIntervalForRequest = 5.0
+		//config.shouldUseExtendedBackgroundIdleMode = false
+		//config.waitsForConnectivity = true
 		
-		
-		/// Assigning the delegate queue is a bad idea.  Don't do it unless you know what you're doing.  Which we're not.
+		/// Assigning the delegate queue is a bad idea.  Don't do it unless you know what you're doing.  Which we don't.
 		session = URLSession(configuration: config)
 	}
 
@@ -73,7 +71,7 @@ class Client {
 			return try portal.openSync(session: session)
 			
 		} catch {
-			
+			return nil
 		}
 	}
 	
@@ -81,7 +79,7 @@ class Client {
 	Makes an asynchronous client request which will not block thread code execution.
 	An optional closure can be provided to handle the result once a response is received.
 	*/
-	func asyncRequest(request: TelegramRequest, callback: ((TelegramResponse) -> ())? ) {
+	func asyncRequest(request: TelegramRequest, callback: ((TelegramResponse?) -> ())? ) {
 		
 		do {
 			let urlRequest = try request.makeURLRequest(token, cache: cache)

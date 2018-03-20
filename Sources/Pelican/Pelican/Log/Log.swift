@@ -17,7 +17,7 @@ If you want to see any logs before the Droplet is initialised, add "-DPELICAN_DE
 class PLog {
 	
 	/// A callback to the console logger associated with the first droplet run.
-	static var console: LogProtocol?
+//	static var console: LogProtocol?
 	
 	init() {}
 	
@@ -27,14 +27,8 @@ class PLog {
 	*/
 	static internal func addPrint(level: LogLevel, text: String, file: String, function: String, line: Int) {
 		
-		if console == nil {
-			#if PELICAN_DEBUG
-			print(text)
-			#endif
-		}
-		
-		else {
-			console!.log(level, message: text, file: file, function: function, line: line)
-		}
+
+//			console!.log(level, message: text, file: file, function: function, line: line)
+			// *shrug*
 	}
 }

@@ -151,7 +151,7 @@ extension TelegramRequest {
 		
 		let request = TelegramRequest()
 		
-		request.form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
+		//request.form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
 		//form[link.type.rawValue] = Field(name: link.type.rawValue, filename: link.name, part: Part(headers: [:], body: data!))
 		
 		// Set the Request, Method and Content

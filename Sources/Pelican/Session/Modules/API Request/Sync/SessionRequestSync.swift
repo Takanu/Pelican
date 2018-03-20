@@ -35,5 +35,6 @@ public struct SessionRequestSync {
 	*/
 	func customRequest(methodName: String, queries: [String: Codable]) -> TelegramResponse? {
 		
+		return nil
 	}
 }

@@ -95,10 +95,10 @@ public class Moderator {
 		switch type {
 			
 		case .chat:
-			return chatTitles.keys.array
+			return chatTitles.keys.map { $0 }
 			
 		case .user:
-			return userTitles.keys.array
+			return userTitles.keys.map { $0 }
 			
 		default:
 			return nil

@@ -60,8 +60,8 @@ final public class Voice: TelegramType, MessageFile {
 	}
 	
 	// SendType conforming methods to send itself to Telegram under the provided method.
-	public func getQuery() -> [String:NodeConvertible] {
-		var keys: [String:NodeConvertible] = [
+	public func getQuery() -> [String: Codable] {
+		var keys: [String: Codable] = [
 			"voice": fileID]
 		
 		if duration != 0 { keys["duration"] = duration }

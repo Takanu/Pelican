@@ -75,17 +75,15 @@ public class CacheManager {
 	/** Attempts to retrieve the raw data for the requested resource.
 	- parameter upload: The file you wish to get raw data for.
 	*/
-	func fetchFile(path: String) throws -> Data? {
+	func fetchFile(path: String) throws -> Data {
 		
 		if path.contains("://") {
 			
 		}
-	
 			
 		else {
 			if bundle == nil {
-				PLog.error(CacheError.BadBundle.rawValue)
-				return nil
+				throw CacheError.BadBundle
 			}
 			
 			// Get the combined name and extension
@@ -101,8 +99,7 @@ public class CacheManager {
 			// Try getting the URL
 			guard let url = bundle!.url(forResource: name, withExtension: ext, subdirectory: path)
 				else {
-					PLog.error(CacheError.LocalNotFound.rawValue)
-					return nil
+					throw CacheError.LocalNotFound
 			}
 			
 			// Try getting the bytes
@@ -111,12 +108,11 @@ public class CacheManager {
 				return data
 				
 			} catch {
-				PLog.error(CacheError.LocalNotFound.rawValue)
-				return nil
+				throw CacheError.LocalNotFound
 			}
 		}
 		
-		return nil
+		throw CacheError.NoBytes
 	}
 	
 	/**
@@ -124,13 +120,13 @@ public class CacheManager {
 
 	- returns: An header tuple containing the correct header field and value, and a body data type containing the body that should be supplied to the URLRequest.
 	*/
-	func getRequestData(forFile file: MessageFile) throws -> (header: (String, String), body: Data) {
+	func getRequestData(forFile file: MessageFile, query: [String: Encodable]) throws -> Data {
 		
 		// If there's a file ID, send the ID as part of the body.
 		if file.fileID != nil {
-			let header = ("Content-Type", "text/html")
-			let body = file.fileID!.data(using: .utf8)!
-			return (header, body)
+			let boundary = generateBoundary()
+			let body = try createDataBody(withParameters: query, file: nil, boundary: boundary)
+			return body
 		}
 		
 		// If theres a URL, we need to fetch or validate the file.
@@ -139,17 +135,12 @@ public class CacheManager {
 			let boundary = generateBoundary()
 			var body: Data
 			do {
-				body = try createDataBody(withParameters: nil, file: file, boundary: boundary)
+				body = try createDataBody(withParameters: query, file: file, boundary: boundary)
 			} catch {
 				throw error
 			}
 			
-			if body.count == nil {
-				throw CacheError.NoBytes
-			}
-			
-			let header = ("Content-Type", "multipart/form-data; boundary=\(boundary)")
-			return (header, body)
+			return body
 		}
 		
 		// Otherwise, throw a niiiiice big error.
@@ -171,7 +162,7 @@ public class CacheManager {
 	- parameter file: The file to be turned into body data.
 	- parameter boundary:
 	*/
-	private func createDataBody(withParameters params: [String: String]?, file: MessageFile, boundary: String) throws -> Data {
+	private func createDataBody(withParameters params: [String: Encodable]?, file: MessageFile?, boundary: String) throws -> Data {
 		
 		let lineBreak = "\r\n"
 		var body = Data()
@@ -179,23 +170,31 @@ public class CacheManager {
 		// Add any optional parameters
 		if let parameters = params {
 			for (key, value) in parameters {
+			
+				guard let encodedValue = try value.encodeToUTF8() else { continue }
+				
 				body.append("--\(boundary + lineBreak)")
 				body.append("Content-Disposition: form-data; name=\"\(key)\"\(lineBreak + lineBreak)")
-				body.append("\(value + lineBreak)")
+				body.append("\(encodedValue + lineBreak)")
 			}
 		}
 		
 		// Fetch the contents of the file
-		let fileName = file.url?.components(separatedBy: "/").last? ?? ""
-		let name = fileName.components(separatedBy: ".").first? ?? ""
-		let fileData = try fetchFile(path: file.url)
+		if file == nil { return body }
+		if file!.url == nil { return body }
+		
+		let fileName = file!.url?.components(separatedBy: "/").last ?? ""
+		let name = fileName.components(separatedBy: ".").first ?? ""
+		let fileData = try fetchFile(path: file!.url!)
+		
+		
 		
 		// Build the body
 		body.append("--\(boundary + lineBreak)")
 		body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\"\(lineBreak)")
 		//body.append("Content-Type: \(photo.mimeType + lineBreak + lineBreak)")
 		body.append("Content-Type: multipart/form-data")
-		body.append(photo.data)
+		body.append(fileData)
 		body.append(lineBreak)
 		
 		body.append("--\(boundary)--\(lineBreak)")

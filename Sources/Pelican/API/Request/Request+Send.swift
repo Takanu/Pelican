@@ -8,9 +8,6 @@
 
 import Foundation
 
-
-
-
 /**
 Adds an extension that deals in creating requests for sending chat messages.
 */
@@ -114,60 +111,33 @@ extension TelegramRequest {
 		if file.fileID != nil {
 			request.query["chat_id"] = chatID
 			request.query[file.contentType] = file.fileID!
-			
-			// Check whether any other query needs to be added as form data.
-			let captionTypes = ["audio", "photo", "video", "document", "voice"]
-			
-			if caption != "" && captionTypes.contains(file.contentType) {
-				request.query["caption"] = caption
-			}
-			
-			if markup != nil {
-				if let markupText = TelegramRequest.encodeMarkupTypeToUTF8(markup!) {
-					request.query["reply_markup"] = markupText
-				}
-			}
-			
-			if replyMessageID != 0 {
-				request.query["reply_to_message_id"] = replyMessageID
-			}
-			
-			if disableNotification != false {
-				request.query["disable_notification"] = disableNotification
+		}
+		
+		// Check whether any other query needs to be added as form data.
+		let captionTypes = ["audio", "photo", "video", "document", "voice"]
+		
+		if caption != "" && captionTypes.contains(file.contentType) {
+			request.query["caption"] = caption
+		}
+		
+		if markup != nil {
+			if let markupText = TelegramRequest.encodeMarkupTypeToUTF8(markup!) {
+				request.query["reply_markup"] = markupText
 			}
 		}
 		
-		else {
-			// Create the form data and assign some initial values
-			request.form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
-			
-			// Check whether any other query needs to be added as form data.
-			let captionTypes = ["audio", "photo", "video", "document", "voice"]
-			
-			if caption != "" && captionTypes.contains(file.contentType) {
-				request.form["caption"] = Field(name: "caption", filename: nil, part: Part(headers: [:], body: caption.bytes))
-			}
-			
-			if markup != nil {
-				if let text = TelegramRequest.encodeMarkupTypeToUTF8(markup!) {
-					request.form["reply_markup"] = Field(name: "reply_markup", filename: nil, part: Part(headers: [:], body: text.makeBytes()))
-				}
-			}
-			
-			if replyMessageID != 0 {
-				request.form["reply_to_message_id"] = Field(name: "reply_to_message_id", filename: nil, part: Part(headers: [:], body: String(replyMessageID).bytes))
-			}
-			
-			if disableNotification != false {
-				request.form["disable_notification"] = Field(name: "disable_notification", filename: nil, part: Part(headers: [:], body: String(disableNotification).bytes))
-			}
+		if replyMessageID != 0 {
+			request.query["reply_to_message_id"] = replyMessageID
 		}
 		
+		if disableNotification != false {
+			request.query["disable_notification"] = disableNotification
+		}
 		
 		
 		// Set the Request, Method and Content
 		request.method = file.method
-		request.content = file as Any // We'll deal with this at the point Pelican receives the request.
+		request.file = file
 		
 		return request
 		

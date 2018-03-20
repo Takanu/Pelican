@@ -80,8 +80,8 @@ final public class Sticker: TelegramType, MessageFile {
 	}
 	
 	// SendType conforming methods to send itself to Telegram under the provided method.
-	public func getQuery() -> [String:NodeConvertible] {
-		let keys: [String:NodeConvertible] = [
+	public func getQuery() -> [String: Codable] {
+		let keys: [String: Codable] = [
 			"file_id": fileID]
 		
 		return keys

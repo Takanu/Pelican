@@ -46,8 +46,8 @@ final public class Contact: TelegramType, MessageContent {
 	
 	
 	// SendType conforming methods to send itself to Telegram under the provided method.
-	public func getQuery() -> [String:NodeConvertible] {
-		var keys: [String:NodeConvertible] = [
+	public func getQuery() -> [String: Codable] {
+		var keys: [String: Codable] = [
 			"phone_number": phoneNumber,
 			"first_name": firstName
 		]

@@ -62,8 +62,8 @@ final public class Photo: TelegramType, MessageFile {
 		self.fileSize = fileSize
 	}
 	
-	public func getQuery() -> [String : NodeConvertible] {
-		let keys: [String:NodeConvertible] = [
+	public func getQuery() -> [String : Codable] {
+		let keys: [String: Codable] = [
 			"photo": fileID]
 		
 		return keys

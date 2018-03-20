@@ -39,7 +39,7 @@ public struct SessionTag: Equatable {
 	private var sendSyncRequestCallback: (TelegramRequest) -> (TelegramResponse?)
 	
 	/// A callback connected to Client that allows asynchronous requests to be made to Telegram.
-	private var sendAsyncRequestCallback: (TelegramRequest, ((TelegramResponse) -> ())? ) -> ()
+	private var sendAsyncRequestCallback: (TelegramRequest, ((TelegramResponse?) -> ())? ) -> ()
 	
 	/// A callback connected to Pelican that can be used to notify it of key session life-cycle events.
 	private var sendEventCallback: (SessionEvent) -> ()
@@ -70,7 +70,7 @@ public struct SessionTag: Equatable {
 	/**
 	Sends a TelegramRequest from Pelican asynchronously.
 	*/
-	public func sendAsyncRequest(_ request: TelegramRequest, callback: ((TelegramResponse) -> ())? ) {
+	public func sendAsyncRequest(_ request: TelegramRequest, callback: ((TelegramResponse?) -> ())? ) {
 		
 		sendAsyncRequestCallback(request, callback)
 	}

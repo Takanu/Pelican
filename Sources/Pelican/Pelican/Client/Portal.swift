@@ -112,7 +112,7 @@ extension Portal {
 		}
 		
 		// Wait for the portal to signal the semaphore.
-		let waitResult = semaphore.wait(timeout: timeout)
+		let waitResult = semaphore.wait(timeout: .now() + timeout)
 		
 		// Use the result to decide if we should return or throw an error.
 		switch waitResult {
@@ -162,5 +162,13 @@ extension PortalError {
 			"ensure the timeout length is adequate for required operation time",
 			"make sure that `portal.close(with: )` is being called with an error or valid value"
 		]
+	}
+}
+
+extension NSLock {
+	public func locked(closure: () throws -> Void) rethrows {
+		lock()
+		defer { unlock() } // MUST be deferred to ensure lock releases if throws
+		try closure()
 	}
 }

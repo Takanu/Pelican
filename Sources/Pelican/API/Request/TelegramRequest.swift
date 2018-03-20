@@ -20,7 +20,7 @@ SessionRequest type to make the `TelegramRequest`, send it and return you the ri
 public class TelegramRequest {
 	
 	/// The name of the Telegram method.
-	public var method: String
+	public var method: String = ""
 	
 	/// The queries to be used as arguments for the request.
 	public var query: [String: Encodable] = [:]
@@ -70,9 +70,7 @@ public class TelegramRequest {
 		
 		/// If we have message content, get the information as part of an HTTP body.
 		if file != nil {
-			let reqData = try cache.getRequestData(forFile: file!)
-			urlRequest.addValue(reqData.header.1, forHTTPHeaderField: reqData.header.0)
-			urlRequest.httpBody = reqData.body
+			urlRequest.httpBody = try cache.getRequestData(forFile: file!, query: query)
 		}
 		
 		return urlRequest

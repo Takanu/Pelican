@@ -52,8 +52,9 @@ class File: Model {
 }
 */
 
+// Currently out of date and has no place in the current API type collection
 
-
+/**
 // Contains information about why a request was unsuccessful.
 final public class ResponseParameters {
 	public var storage = Storage()
@@ -78,5 +79,5 @@ final public class ResponseParameters {
 		return row
 	}
 }
-
+*/
 

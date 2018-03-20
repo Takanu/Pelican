@@ -58,7 +58,7 @@ open class Route {
 			for route in nextRoutes {
 				
 				if route.name == name {
-					let nextNames = nameArray.dropFirst().array
+					let nextNames = nameArray.dropFirst().filter { p in return true }
 					
 					if nextNames.count == 0 {
 						return route
