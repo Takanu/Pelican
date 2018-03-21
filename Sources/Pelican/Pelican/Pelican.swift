@@ -36,7 +36,7 @@ public final class PelicanBot {
 	
 	// CORE PROPERTIES
 	/// The cache system responsible for handling the re-using of already uploaded files and assets, to preserve system resources.
-  var cache: CacheManager
+  var cache: CacheManager!
 	
 	/// A controller that records and manages client connections to Telegram.
 	var client: Client
@@ -107,7 +107,7 @@ public final class PelicanBot {
 			"offset": offset,
 			"limit": limit,
 			"timeout": timeout,
-			"allowed_updates": allowedUpdates.map { $0.rawValue },
+			//"allowed_updates": allowedUpdates.map { $0.rawValue },
 		]
 		
 		return request
@@ -163,7 +163,7 @@ public final class PelicanBot {
 		
 		// Initialise controls and timers
 		self.mod = Moderator()
-    self.cache = CacheManager()
+    self.cache = try CacheManager(bundlePath: workingDir)
 		self.client = Client(token: token, cache: cache)
 		self.schedule = Schedule(workCallback: self.requestSessionWork)
   }
@@ -181,7 +181,7 @@ public final class PelicanBot {
 		updateQueue = LoopQueue(queueLabel: "com.pelican.fetchupdates",
 														qos: .userInteractive,
 														interval: TimeInterval(self.pollInterval)) {
-															
+			
 			PLog.info("Update Starting...")
 			
 			let updates = self.requestUpdates()
@@ -197,7 +197,7 @@ public final class PelicanBot {
 		scheduleQueue = LoopQueue(queueLabel: "com.pelican.eventschedule",
 															qos: .default,
 															interval: TimeInterval(1)) {
-																
+		
 			self.schedule.run()
 		}
 		
@@ -209,7 +209,7 @@ public final class PelicanBot {
 			request.query = [
 				"offset": offset,
 				"limit": limit,
-				"timeout": 3,
+				"timeout": 1,
 			]
 			
 			if let response = client.syncRequest(request: request) {
@@ -224,7 +224,9 @@ public final class PelicanBot {
 		self.timeStarted = Date()
 		self.timeLastUpdate = Date()
 		started = true
+		
 		updateQueue!.queueNext()
+		scheduleQueue!.queueNext()
 		
 		// Until we add terminal commands, hooooold!
 		while 1 == 1 {
@@ -468,11 +470,6 @@ public final class PelicanBot {
 				_ = builder.execute(bot: self, update: update)
 			}
 		}
-		
-		//print(updates)
-		
-		// Check the schedule.
-		schedule.run()
 		
 		// Update the last active time.
 		timeLastUpdate = Date()

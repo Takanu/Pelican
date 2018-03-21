@@ -23,11 +23,10 @@ public class CacheManager {
 	var cacheLength: Int = 0        // The length of time a file is cached on Telegram's servers before
 	// it needs re-uploading. 0 = No timer.
 	
-	init() { }
-	
-	func setBundlePath(_ path: String) throws {
-		self.bundle = Bundle(path: path)
+	init(bundlePath: String) throws {
+		self.bundle = Bundle(path: bundlePath + "/Resources")
 		if self.bundle == nil { throw CacheError.BadBundle }
+		
 	}
 	
 	/** Used to keep cache types separate, to make cache searching less intensive?  (idk).
@@ -120,19 +119,31 @@ public class CacheManager {
 
 	- returns: An header tuple containing the correct header field and value, and a body data type containing the body that should be supplied to the URLRequest.
 	*/
-	func getRequestData(forFile file: MessageFile, query: [String: Encodable]) throws -> Data {
+	func getRequestData(forFile file: MessageFile, query: [String: Encodable], url: URL) throws -> URLRequest? {
 		
 		// If there's a file ID, send the ID as part of the body.
 		if file.fileID != nil {
+			
 			let boundary = generateBoundary()
-			let body = try createDataBody(withParameters: query, file: nil, boundary: boundary)
-			return body
+			var urlRequest = URLRequest(url: url)
+			urlRequest.httpMethod = "POST"
+			
+			// Using setValue instead of addValue ensures that if the header field already exists, it is overwritten.
+			urlRequest.setValue("text/html; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+			urlRequest.httpBody = try createDataBody(withParameters: query, file: nil, boundary: boundary)
+			if urlRequest.httpBody == nil { throw CacheError.NoBytes }
+			return urlRequest
 		}
 		
 		// If theres a URL, we need to fetch or validate the file.
 		else if file.url != nil {
 			
 			let boundary = generateBoundary()
+			var urlRequest = URLRequest(url: url)
+			urlRequest.httpMethod = "POST"
+			urlRequest.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+			print(query)
+			
 			var body: Data
 			do {
 				body = try createDataBody(withParameters: query, file: file, boundary: boundary)
@@ -140,7 +151,10 @@ public class CacheManager {
 				throw error
 			}
 			
-			return body
+			urlRequest.setValue(String(body.count), forHTTPHeaderField: "Content-Length")
+			urlRequest.httpBody = body
+			urlRequest.httpShouldHandleCookies = false
+			return urlRequest
 		}
 		
 		// Otherwise, throw a niiiiice big error.
@@ -150,6 +164,9 @@ public class CacheManager {
 	
 	/**
 	Generates a boundary to suit the formatting requirements for sending multipart form-data over HTTP.
+	This lets the server receiving the request know that the data is all part of the same request.
+	
+	(The boundary uses UUID to ensure a unique boundary for every request, for security reasons)
 	*/
 	private func generateBoundary() -> String {
 		return "Boundary-\(UUID().uuidString)"
@@ -183,21 +200,25 @@ public class CacheManager {
 		if file == nil { return body }
 		if file!.url == nil { return body }
 		
-		let fileName = file!.url?.components(separatedBy: "/").last ?? ""
-		let name = fileName.components(separatedBy: ".").first ?? ""
+		// Fetch the file data and break up the path into names.
+		let fullFileName = file!.url?.components(separatedBy: "/").last ?? ""
+		let fileName = fullFileName.components(separatedBy: ".").first ?? ""
+		
+		let typeName = file!.contentType
 		let fileData = try fetchFile(path: file!.url!)
-		
-		
+		let mimeType = "text/plain"			// Can be upgraded later once MessageType is more sophisticated.
 		
 		// Build the body
 		body.append("--\(boundary + lineBreak)")
-		body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\"\(lineBreak)")
-		//body.append("Content-Type: \(photo.mimeType + lineBreak + lineBreak)")
-		body.append("Content-Type: multipart/form-data")
+		body.append("Content-Disposition: form-data; name=\"\(typeName)\"; filename=\"\(fileName)\"\(lineBreak)")
+		body.append("Content-Type: \(mimeType + lineBreak + lineBreak)")
+		
+		print(String.init(data: body, encoding: .utf8)!)
 		body.append(fileData)
 		body.append(lineBreak)
 		
 		body.append("--\(boundary)--\(lineBreak)")
+		
 		
 		return body
 		

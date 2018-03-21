@@ -107,11 +107,7 @@ extension TelegramRequest {
 		
 		let request = TelegramRequest()
 		
-		// If have a File ID, add it here.
-		if file.fileID != nil {
-			request.query["chat_id"] = chatID
-			request.query[file.contentType] = file.fileID!
-		}
+		request.query["chat_id"] = chatID
 		
 		// Check whether any other query needs to be added as form data.
 		let captionTypes = ["audio", "photo", "video", "document", "voice"]

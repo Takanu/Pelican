@@ -24,8 +24,17 @@ public protocol MessageContent: Codable {
 	/// The method used when the Telegram API call is made.
   var method: String { get }
 	
+	
+	/** Not yet implemented due to type overlap with content that doesn't need a file to be sent */
+	
+	/// An optional type to specify the MIME type of the file being sent.
+	//var mimeType: String? { get set }
+	
+	
 	/// Used to enable any method sending this message content to access the information it needs to deliver it, omitting any custom properties.
-  func getQuery() -> [String:Codable]
+  func getQuery() -> [String: Codable]
+	
+	
 }
 
 
@@ -52,7 +61,6 @@ public protocol MessageFile: MessageContent {
 	of your app (eg. `karaoke/jack-1.png`) or as a remote source using an HTTP link.
 	*/
 	var url: String? { get set }
-	
 }
 
 extension MessageFile {

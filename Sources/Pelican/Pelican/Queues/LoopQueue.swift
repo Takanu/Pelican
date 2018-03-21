@@ -43,7 +43,7 @@ class LoopQueue {
 		self.startTime = Date()
 		self.lastExecuteLength = TimeInterval.init(0)
 		self.execute = execute
-		self.operation = DispatchWorkItem(qos: .userInteractive, flags: .enforceQoS) { [weak self] in
+		self.operation = DispatchWorkItem(qos: qos, flags: .enforceQoS) { [weak self] in
 			
 			// Record the starting time and execute the loop
 			self?.startTime = Date()
@@ -64,13 +64,13 @@ class LoopQueue {
 		
 		// If the delay time left is below 0, execute the loop immediately.
 		if delayTime <= 0 {
-			PLog.verbose("Update loop executing immediately.")
+			//PLog.verbose("Update loop executing immediately.")
 			queue.async(execute: self.operation!)
 		}
 			
 			// Otherwise use the built delay time.
 		else {
-			PLog.verbose("Update loop executing at \(DispatchWallTime.now() + delayTime)")
+			//PLog.verbose("Update loop executing at \(DispatchWallTime.now() + delayTime)")
 			queue.asyncAfter(wallDeadline: .now() + delayTime, execute: self.operation!)
 		}
 	}

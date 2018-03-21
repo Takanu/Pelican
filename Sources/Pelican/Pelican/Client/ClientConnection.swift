@@ -74,14 +74,12 @@ final public class ClientConnection {
 		do {
 			// Open the portal! \o/
 			let response = try Portal<TelegramResponse>.open(timeout: self.timeout.rawValue) { portal in
-				print("PORTAL: Assigning data task...")
 				self.isActive = true
 				
 				// Set the data task at hand
 				self.dataTask = session.dataTask(with: self.request) { (data, urlResponse, error) in
 					
 					if let error = error {
-						print("PORTAL: Closing with error...")
 						portal.close(with: error)
 						return
 					}
@@ -92,8 +90,6 @@ final public class ClientConnection {
 							let httpResponse = urlResponse as! HTTPURLResponse
 							let response = try TelegramResponse(data: data, urlResponse: httpResponse)
 							
-							print("PORTAL - Task complete.")
-							print(response.body)
 							portal.close(with: response)
 							return
 							
@@ -106,7 +102,6 @@ final public class ClientConnection {
 				}
 				
 				// Send the task
-				print("ClientConnection - Sending task...")
 				self.dataTask?.resume()
 			}
 			

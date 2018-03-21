@@ -48,7 +48,7 @@ class Client {
 		config.httpMaximumConnectionsPerHost = 30
 		config.isDiscretionary = false
 		config.networkServiceType = .default
-		config.timeoutIntervalForRequest = 60
+		config.timeoutIntervalForRequest = 20
 		//config.shouldUseExtendedBackgroundIdleMode = false
 		//config.waitsForConnectivity = true
 		

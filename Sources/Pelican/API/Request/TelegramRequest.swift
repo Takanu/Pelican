@@ -33,6 +33,7 @@ public class TelegramRequest {
 	
 	enum TelegramRequestError: String, Error {
 		case unableToMakeFoundationURL
+		case unableToMakeURLRequest
 	}
 	
 	init() {}
@@ -46,6 +47,9 @@ public class TelegramRequest {
 	*/
 	func makeURLRequest(_ apiToken: String, cache: CacheManager) throws -> URLRequest {
 		
+		/// By the end we should have this, otherwise throw an error
+		var urlRequest: URLRequest?
+		
 		/// Build the URL
 		var uri = URLComponents()
 		uri.scheme = "https"
@@ -53,27 +57,31 @@ public class TelegramRequest {
 		uri.port = 443
 		uri.path = "/bot\(apiToken)/\(method)"
 		
-		var querySets: [URLQueryItem] = []
 		
+		// If the file is nil, we'll be using URL queries as parameter information.
 		if file == nil {
+			var querySets: [URLQueryItem] = []
+			
 			for item in query {
 				let value = try item.value.encodeToUTF8()
 				querySets.append(URLQueryItem(name: item.key, value: value))
 			}
 			
 			uri.queryItems = querySets
+			guard let url = uri.url else { throw TelegramRequestError.unableToMakeFoundationURL }
+			urlRequest = URLRequest(url: url)
 		}
 		
-		/// Build the request
-		guard let url = uri.url else { throw TelegramRequestError.unableToMakeFoundationURL }
-		var urlRequest = URLRequest(url: url)
-		
-		/// If we have message content, get the information as part of an HTTP body.
-		if file != nil {
-			urlRequest.httpBody = try cache.getRequestData(forFile: file!, query: query)
+		/// If we have message content, get the information as part of an HTTP header/body setup instead.
+		else {
+			guard let url = uri.url else { throw TelegramRequestError.unableToMakeFoundationURL }
+			urlRequest = try cache.getRequestData(forFile: file!, query: query, url: url)
+			print("FILE PREPARED.  OOOOOOOOOOOO!")
+			
 		}
 		
-		return urlRequest
+		if urlRequest == nil { throw TelegramRequestError.unableToMakeURLRequest }
+		else { return urlRequest! }
 	}
 }
 
