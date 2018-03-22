@@ -23,15 +23,22 @@ will still count towards a Session's flood limits.
 */
 public class UpdateFilter {
 	
-	var conditions: [UpdateFilterCondition] = []
+	public var conditions: [UpdateFilterCondition] = []
 	
 	init() { }
+	
+	/**
+	Adds a new condition to the filter list.
+	*/
+	public func addCondition(_ condition: UpdateFilterCondition) {
+		conditions.append(condition)
+	}
 	
 	/**
 	Verifies whether an update meets the given condition based on the conditions it has.
 	- returns: True if it passes all filter condition, false if not.
 	*/
-	func verifyUpdate(_ update: Update) -> Bool {
+	public func verifyUpdate(_ update: Update) -> Bool {
 		
 		for item in conditions {
 			if item.verifyUpdate(update) == false { return false }
@@ -43,7 +50,7 @@ public class UpdateFilter {
 	/**
 	Clears the records held for each condition.
 	*/
-	func clearRecords() {
+	public func clearRecords() {
 		conditions.forEach {
 			$0.clearRecords()
 		}
@@ -52,7 +59,7 @@ public class UpdateFilter {
 	/**
 	Removes all conditions from the filter.
 	*/
-	func reset() {
+	public func reset() {
 		conditions.removeAll()
 	}
 	
@@ -75,13 +82,14 @@ public class UpdateFilterCondition {
 	
 	// RECEIVED UPDATES
 	/// The updates received so far in this update window.  Records will be added regardless of whether or not they were handled by the Session.
-	private var records: [Update] = []
+	public var records: [Update] { return _records }
+	private var _records: [Update] = []
 	
 	/** The start of the current time window.  If a received update has a time that extends past
 	the `timeRange`, it's date will be set as the new start time and the currently held records will be removed. */
 	private var recordStartTime = Date()
 	
-	init(type: UpdateType, timeRange: Duration, condition: @escaping (UpdateFilterCondition) -> (Bool)) {
+	public init(type: UpdateType, timeRange: Duration, condition: @escaping (UpdateFilterCondition) -> (Bool)) {
 		self.type = type
 		self.timeRange = timeRange
 		self.condition = condition
@@ -91,26 +99,30 @@ public class UpdateFilterCondition {
 	Verifies whether an update meets the given condition.
 	- returns: True if it passes the filter condition, false if not.
 	*/
-	func verifyUpdate(_ update: Update) -> Bool {
+	public func verifyUpdate(_ update: Update) -> Bool {
 		
 		// Check that we're still in a valid time window.
 		let diff = update.time.timeIntervalSince1970 - recordStartTime.timeIntervalSince1970
 		
 		if diff > timeRange.rawValue {
 			recordStartTime = update.time
-			records.removeAll()
+			_records.removeAll()
 		}
 		
 		// Now test the condition.
-		if self.type != update.type { return true }
-		else { return condition(self) }
+		let result: Bool
+		if self.type != update.type { result = true }
+		else { result = condition(self) }
+		
+		_records.append(update)
+		return result
 	}
 	
 	/**
 	Clears the records held.
 	*/
-	func clearRecords() {
-		records.removeAll()
+	public func clearRecords() {
+		_records.removeAll()
 	}
 	
 }

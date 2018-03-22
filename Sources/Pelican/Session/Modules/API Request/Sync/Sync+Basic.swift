@@ -12,7 +12,7 @@ extension SessionRequestSync {
 	/**
 	A basic function for testing authorisation tokens, that returns your bot as a user if successful.
 	*/
-	func getMe() -> User? {
+	public func getMe() -> User? {
 		
 		let request = TelegramRequest.getMe()
 		let response = tag.sendSyncRequest(request)

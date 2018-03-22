@@ -65,13 +65,13 @@ public final class PelicanBot {
 	
 	- warning: Pelican automatically handles this variable, don't use it unless you want to perform something very specific.
 	*/
-  public var offset: Int = 0
+  public var updateOffset: Int = 0
 	
 	/// (Polling) The number of messages that can be received in any given update, between 1 and 100.
-  public var limit: Int = 100
+  public var updateLimit: Int = 100
 	
 	/// (Polling) The length of time Pelican will hold onto an update connection with Telegram to wait for updates before disconnecting.
-  public var timeout: Int = 300
+  public var updateTimeout: Int = 300
 	
 	/// Defines what update types the bot will receive.  Leave empty if all are allowed, or otherwise specify to optimise the bot.
   public var allowedUpdates: [UpdateType] = [.message, .editedMessage, .channelPost, .editedChannelPost, .callbackQuery, .inlineQuery, .chosenInlineResult, .shippingQuery, .preCheckoutQuery]
@@ -104,9 +104,9 @@ public final class PelicanBot {
 		let request = TelegramRequest()
 		request.method = "getUpdates"
 		request.query = [
-			"offset": offset,
-			"limit": limit,
-			"timeout": timeout,
+			"offset": updateOffset,
+			"limit": updateLimit,
+			"timeout": updateTimeout,
 			//"allowed_updates": allowedUpdates.map { $0.rawValue },
 		]
 		
@@ -207,15 +207,15 @@ public final class PelicanBot {
 			let request = TelegramRequest()
 			request.method = "getUpdates"
 			request.query = [
-				"offset": offset,
-				"limit": limit,
+				"offset": updateOffset,
+				"limit": updateLimit,
 				"timeout": 1,
 			]
 			
 			if let response = client.syncRequest(request: request) {
 				let update_count = response.result!.array?.count ?? 0
 				let update_id = response.result![update_count - 1]["update_id"].int ?? -1
-				offset = update_id + 1
+				updateOffset = update_id + 1
 			}
 			
 		}
@@ -235,7 +235,7 @@ public final class PelicanBot {
 	}
   
   /**
-	Requests a set of updates from Telegram, based on the poll, offset, timeout and update limit settings
+	Requests a set of updates from Telegram, based on the poll, offset, updateTimeout and update limit settings
 	assigned to Pelican.
 	- returns: A `TelegramUpdateSet` if succsessful, or nil if otherwise.
 	*/
@@ -368,7 +368,7 @@ public final class PelicanBot {
         }
       }
 
-      offset = update_id + 1
+      updateOffset = update_id + 1
     }
 
     return updates
