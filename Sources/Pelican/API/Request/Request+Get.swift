@@ -19,36 +19,6 @@ extension TelegramRequest {
 	Builds and returns a TelegramRequest for the API method with the given arguments.
 	
 	## API Description
-	A simple method for testing your bot's auth token. Requires no parameters. Returns basic information about the bot in form of a User object.
-	*/
-	public static func getMe() -> TelegramRequest {
-		
-		let request = TelegramRequest()
-		request.method = "getMe"
-		
-		return request
-	}
-	
-	
-	/**
-	Builds and returns a TelegramRequest for the API method with the given arguments.
-	
-	## Function Description
-	A simple method for getting updates for your bot.  This is not needed unless you're interested in generally bypassing all the Pelican goodness.
-	*/
-	public static func getUpdates(incrementUpdate: Bool = true) -> TelegramRequest {
-		
-		let request = TelegramRequest()
-		
-		request.method = "getUpdates"
-		return request
-	}
-	
-	
-	/**
-	Builds and returns a TelegramRequest for the API method with the given arguments.
-	
-	## API Description
 	Use this method to get a list of profile pictures for a user. Returns a UserProfilePhotos object.
 	*/
 	public static func getUserProfilePhotos(userID: Int, offset: Int = 0, limit: Int = 100) -> TelegramRequest {

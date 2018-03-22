@@ -35,4 +35,29 @@ public struct SessionRequest {
 		self.sync = SessionRequestSync(tag: tag)
 		self.async = SessionRequestAsync(tag: tag)
 	}
+	
+	/**
+	A convenience function for decoding TelegramResponse data to any given type.
+	*/
+	static public func decodeResponse<T: Decodable>(_ response: TelegramResponse?) -> T? {
+		
+		if response == nil { return nil }
+		if response!.success == false { return nil }
+		
+		if let result = response!.result {
+			do {
+				let data = try result.rawData()
+				let decoder = JSONDecoder()
+				return try decoder.decode(T.self, from: data)
+				
+			} catch {
+				PLog.error("Pelican Response Decode Error: - \(error) - \(error.localizedDescription)")
+				return nil
+			}
+		} else {
+			PLog.error("Unable to decode result, no response")
+			return nil
+		}
+	}
 }
+

@@ -8,9 +8,8 @@
 import Foundation
 
 /**
-Defines the kind of action you wish a chat action to specify.  (This description sucks).
-
-- note: Should be moved to Types+Standard
+Defines a type of chat action you can use via `setChatAction`, if an action your bot is taking will
+take some time but you wish to inform the people using it that the bot is still processing their request.
 */
 public enum ChatAction: String {
 	case typing = "typing"

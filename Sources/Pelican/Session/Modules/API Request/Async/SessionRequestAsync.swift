@@ -29,7 +29,19 @@ public struct SessionRequestAsync {
 	Use this if Pelican hasn't yet implemented a new API method, but also submit an issue [right about here](https://github.com/Takanu/Pelican)
 	here so I can add it 👌👍.
 	*/
-	func customRequest(methodName: String, queries: [String: Codable], callback: ((TelegramResponse) -> ())? ) {
+	func customRequest(methodName: String, queries: [String: Codable], file: MessageFile?, callback: ((TelegramResponse?) -> ())? ) {
+		
+		let request = TelegramRequest()
+		request.method = methodName
+		request.query = queries
+		request.file = file
+		
+		tag.sendAsyncRequest(request) { response in
+			if callback != nil {
+				callback!(response)
+			}
+		}
+		
 		
 	}
 }

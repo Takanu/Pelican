@@ -14,7 +14,7 @@ extension SessionRequestSync {
 	/**
 	Kicks a user from the chat.
 	*/
-	public func kickUser(_ userID: Int, chatID: Int) {
+	public func kickUser(_ userID: Int, chatID: Int) -> Bool {
 		
 		let request = TelegramRequest.kickChatMember(chatID: chatID, userID: userID)
 		_ = tag.sendSyncRequest(request)
