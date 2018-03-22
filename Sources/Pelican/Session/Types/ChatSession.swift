@@ -7,8 +7,8 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 /**
 Holds the information for a bot session, when someone is immediately interacting with the bot
@@ -16,11 +16,9 @@ Ignore this if you want?  What am i, a doctor?
 */
 open class ChatSession: Session {
 	
-	/// Database storage for compatibility with Model in FluentProvider.
-	public var storage = Storage()
-	
-	// CORE TYPES
 	public var tag: SessionTag
+	public var dispatchQueue: SessionDispatchQueue
+	
 	
 	/// The chat ID associated with the session.
 	var chatID: Int
@@ -33,30 +31,27 @@ open class ChatSession: Session {
 	
 	// API REQUESTS
 	// Shortcuts for API requests.
-	public var send: TGSend
-	public var admin: TGAdmin
-	public var edit: TGEdit
-	public var answer: TGAnswer
+	public var requests: SessionRequest
 	
 	
 	// DELEGATES AND CONTROLLERS
-	/// Container for automating markup options and responses.
-	public var prompts: PromptController
-	
 	/// Handler for delayed Telegram API calls and closure execution.
 	public var queue: ChatSessionQueue
 	
 	/// Handles and matches user requests to available bot functions.
-	public var routes: RouteController
+	public var baseRoute: Route
 	
 	/// Stores what Moderator-controlled titles the Chat Session has.
 	public var mod: SessionModerator
 	
 	/// Handles timeout conditions.
-	public var timeout: Timeout
+	public var timeout: TimeoutMonitor
 	
 	/// Handles flood conditions.
-	public var flood: Flood
+	public var flood: FloodMonitor
+	
+	/// Pre-checks and filters unnecessary updates.
+	public var filter: UpdateFilter
 	
 	
 	// MAINTENANCE
@@ -67,56 +62,60 @@ open class ChatSession: Session {
 	public var timeStarted = Date()
 	
 	
-	
 	// Setup the session by passing a function that modifies itself with the required commands.
-	public required init(bot: Pelican, tag: SessionTag, update: Update) {
+	public required init(bot: PelicanBot, tag: SessionTag, update: Update) {
 		
 		self.tag = tag
 		self.chat = update.chat!
 		self.chatID = update.chat!.tgID
 		
-		self.prompts = PromptController(tag: tag, schedule: bot.schedule)
 		self.queue = ChatSessionQueue(chatID: update.chat!.tgID, schedule: bot.schedule, tag: self.tag)
-		self.routes = RouteController()
+		self.baseRoute = Route(name: "base", routes: [])
 		
 		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
-		self.timeout = Timeout(tag: self.tag, schedule: bot.schedule)
-		self.flood = Flood()
+		self.timeout = TimeoutMonitor(tag: self.tag, schedule: bot.schedule)
+		self.flood = FloodMonitor()
+		self.filter = UpdateFilter()
 		
-		self.send = TGSend(chatID: self.chatID, tag: tag)
-		self.admin = TGAdmin(chatID: self.chatID, tag: tag)
-		self.edit = TGEdit(chatID: self.chatID, tag: tag)
-		self.answer = TGAnswer(tag: tag)
+		self.requests = SessionRequest(tag: tag)
+		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.chatsession",qos: .userInitiated)
 	}
 	
 	open func postInit() {
 		
 	}
 	
-	/// Closes the session, deinitialising all modules and removing itself from the associated SessionBuilder.
-	open func close() {
+	open func cleanup() {
 		
+		// Clear all properties
 		self.queue.clear()
+		self.baseRoute.close()
 		self.timeout.close()
-		// Need something for prompt, do it with the refactor
+		self.flood.clearAll()
+		self.dispatchQueue.cancelAll()
+		self.filter.reset()
 	}
 	
 	
 	// Receives a message from the TelegramBot to check whether in the current state anything can be done with it
 	public func update(_ update: Update) {
 		
-		// Bump the timeout controller first so if flood or another process closes the Session, a new timeout event will not be added.
-		timeout.bump(update)
-		
-		// This needs revising, whatever...
-		let handled = routes.handle(update: update)
-		
-		if handled == false {
-			_ = prompts.handle(update)
+		if filter.verifyUpdate(update) == false {
+			self.timeout.bump(update)
+			self.flood.handle(update)
+			return
 		}
 		
-		// Bump the flood controller after
-		flood.bump(update)
+		dispatchQueue.async {
+			// Bump the timeout controller first so if flood or another process closes the Session, a new timeout event will not be added.
+			self.timeout.bump(update)
+			
+			// This needs revising, whatever...
+			_ = self.baseRoute.handle(update)
+			
+			// Pass the update to the flood controller to be handled.
+			self.flood.handle(update)
+		}
 		
 	}
 }

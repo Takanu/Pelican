@@ -6,51 +6,69 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 /**
 Represents a Telegram user or bot.
 */
-final public class User: Model {
-	public var storage = Storage() // The type used for the model to identify between database entries
+final public class User: Codable {
 	public var messageTypeName = "user"
 	
 	/// Unique identifier for the user or bot.
 	public var tgID: Int
+	
+	/// If true, this user is a bot.
+	public var isBot: Bool
+	
 	/// User's or bot's first name.
 	public var firstName: String
-	/// (Optional) User's or bot's last name.
+	
+	/// User's or bot's last name.
 	public var lastName: String?
-	/// (Optional) User's or bot's username.
+	
+	/// User's or bot's username.
 	public var username: String?
-	/// (Optional) IETF language tag of the user's language.
+	
+	/// IETF language tag of the user's language.
 	public var languageCode: String?
 	
-	public init(id: Int, firstName: String) {
+	
+	enum CodingKeys: String, CodingKey {
+		case tgID = "id"
+		case isBot = "is_bot"
+		case firstName = "first_name"
+		case lastName = "last_name"
+		case username = "username"
+		case languageCode = "language_code"
+	}
+	
+	public init(id: Int, isBot: Bool, firstName: String) {
 		self.tgID = id
+		self.isBot = isBot
 		self.firstName = firstName
 	}
 	
-	// NodeRepresentable conforming methods to transist to and from storage.
-	public required init(row: Row) throws {
+	public init(from decoder: Decoder) throws {
+		let values = try decoder.container(keyedBy: CodingKeys.self)
 		
-		// Tries to extract depending on what context is being used (I GET IT NOW, CLEVER)
-		tgID = try row.get("id")
-		firstName = try row.get("first_name")
-		lastName = try row.get("last_name")
-		username = try row.get("username")
-		languageCode = try row.get("language_code")
+		tgID = try values.decode(Int.self, forKey: .tgID)
 		
+		let botValue = try values.decode(Int.self, forKey: .isBot)
+		if botValue <= 0 {
+			isBot = false
+		} else {
+			isBot = true
+		}
+		
+		firstName = try values.decode(String.self, forKey: .firstName)
+		lastName = try values.decodeIfPresent(String.self, forKey: .lastName)
+		username = try values.decodeIfPresent(String.self, forKey: .username)
+		languageCode = try values.decodeIfPresent(String.self, forKey: .languageCode)
 	}
 	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("id", tgID)
-		try row.set("first_name", firstName)
-		try row.set("last_name", lastName)
-		try row.set("username", username)
-		try row.set("language_code", languageCode)
-		return row
-	}
+	
+	
+	
+	
 }

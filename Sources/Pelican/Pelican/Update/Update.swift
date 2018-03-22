@@ -7,22 +7,23 @@
 //
 
 import Foundation
-import Vapor
-
+import SwiftyJSON
 
 /**
 Encapsulates a single update received from a Telegram bot.
 */
 public class Update {
 	
-	
 	// RAW DATA
 	/// The type of data being carried by the update.
 	public var type: UpdateType
+	
 	/// The data package contained in the update as a UpdateModel type.
 	public var data: UpdateModel
-	/// The data package contained in the update as a Node, which you can either access through subscripting the type or directly.
-	public var node: Node
+	
+	/// The data package contained in the update as JSON, which you can either access through subscripting the type or directly.
+	public var json: JSON
+	
 	/// The time the update was received by Pelican.
 	public var time = Date()
 	
@@ -30,10 +31,13 @@ public class Update {
 	// HEADER CONTENT
 	/// Defines the unique identifier for the content (not the ID of the entity that contains the content).
 	public var id: Int
+	
 	/// The basic package of content provided in the update by the sending user, to be used by Route filters.
 	public var content: String
+	
 	/// The user who triggered the update.  This only has the potential to unwrap as nil if the message originated from a channel.
 	public var from: User?
+	
 	/// The chat the update came from, if the update is a Message type.  If it isn't, it'll return nil.
 	public var chat: Chat?
 	
@@ -50,16 +54,15 @@ public class Update {
 	
 	
 	
-	init(withData data: UpdateModel, node: Node) {
+	init(withData data: UpdateModel, json: JSON, type: UpdateType) {
 		
 		self.data = data
-		self.node = node
+		self.json = json
+		self.type = type
 		
 		
 		// Need to ensure the type can be interpreted as other types (edited messages, channel posts)
 		if data is Message {
-			
-			self.type = .message
 			
 			let message = data as! Message
 			self.id = message.tgID
@@ -73,8 +76,6 @@ public class Update {
 			
 		else if data is CallbackQuery {
 			
-			self.type = .callbackQuery
-			
 			let query = data as! CallbackQuery
 			self.id = Int(query.id)!
 			self.from = query.from
@@ -85,8 +86,6 @@ public class Update {
 			
 		else if data is InlineQuery {
 			
-			self.type = .inlineQuery
-			
 			let query = data as! InlineQuery
 			self.id = Int(query.id)!
 			self.content = query.query
@@ -95,8 +94,6 @@ public class Update {
 		}
 			
 		else {
-			
-			self.type = .chosenInlineResult
 			
 			let result = data as! ChosenInlineResult
 			self.id = Int(result.resultID)!
@@ -127,7 +124,6 @@ public class Update {
 	/**
 	
 	*/
-	
 	
 	public func matches(_ pattern: String, types: [String]) -> Bool {
 		

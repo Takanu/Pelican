@@ -6,33 +6,27 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
 
-final public class UserProfilePhotos: Model {
-	public var storage = Storage()
+
+
+final public class UserProfilePhotos: Codable {
+	
+	/// The total number of photos the user has on their profile.
 	public var totalCount: Int
+	
+	/// The requested photos for the user (up to 4 sizes per unique photo).
 	public var photos: [[Photo]] = []
+	
+	/// Coding keys to map values when Encoding and Decoding.
+	enum CodingKeys: String, CodingKey {
+		case totalCount = "total_count"
+		case photos
+	}
 	
 	public init(photoSets: [Photo]...) {
 		for photo in photoSets {
 			photos.append(photo)
 		}
 		totalCount = photos.count
-	}
-	
-	
-	// NodeRepresentable conforming methods
-	public required init(row: Row) throws {
-		totalCount = try row.get("total_count")
-		photos = try row.get("photos")
-	}
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("total_count", totalCount)
-		try row.set("photos", photos)
-		
-		return row
 	}
 }

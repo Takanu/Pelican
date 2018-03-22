@@ -1,232 +1,158 @@
 
 import Dispatch     // Linux thing.
 import Foundation
-import Vapor
-import FluentProvider
-import HTTP
-import FormData
-import Multipart
-
-protocol TelegramParameter: NodeConvertible, JSONConvertible {
-  func getQueryParameter() -> String
-}
-
-/** Required for classes that wish to receive message objects once the upload is complete.
-*/
-public protocol ReceiveUpload {
-	func receiveMessage(message: Message)
-}
-
-// The Dispatch queue for getting updates and serving them to sessions.
-private class UpdateQueue {
-  private let queue = DispatchQueue(label: "TG-Updates",
-                                    qos: .userInteractive,
-                                    target: nil)
-  
-  private let interval: TimeInterval
-	private var startTime: Date
-	private var lastExecuteLength: TimeInterval
-  private let execute: () -> Void
-  private var operation: DispatchWorkItem?
-  
-	init(interval: TimeInterval, execute: @escaping () -> Void) {
-    self.interval = interval
-		self.startTime = Date()
-		self.lastExecuteLength = TimeInterval.init(0)
-    self.execute = execute
-		self.operation = DispatchWorkItem(qos: .userInteractive, flags: .enforceQoS) { [weak self] in
-			
-			// Record the starting time and execute the loop
-			self?.startTime = Date()
-			self?.execute()
-		}
-  }
-	
-	func queueNext() {
-		lastExecuteLength = abs(startTime.timeIntervalSinceNow)
-		
-		// Account for loop time in the asynchronous delay.
-		let delayTime = interval - lastExecuteLength
-		
-		// If the delay time left is below 0, execute the loop immediately.
-		if delayTime <= 0 {
-			PLog.verbose("Update loop executing immediately.")
-			queue.async(execute: self.operation!)
-		}
-			
-			// Otherwise use the built delay time.
-		else {
-			PLog.verbose("Update loop executing at \(DispatchWallTime.now() + delayTime)")
-			queue.asyncAfter(wallDeadline: .now() + delayTime, execute: self.operation!)
-		}
-	}
-  
-  func stop() {
-    operation?.cancel()
-		PLog.warning("Update cycle cancelled")
-  }
-}
+import SwiftyJSON
 
 /**
-Defines the kind of action you wish a chat action to specify.  (This description sucks).
-
-- note: Should be moved to Types+Standard
-*/
-public enum ChatAction: String {
-  case typing = "typing"
-  case photo = "upload_photo"
-  case uploadVideo = "upload_video"
-  case recordVideo = "record_video"
-  case uploadAudio = "upload_audio"
-  case recordAudio = "record_audio"
-  case document = "upload_document"
-  case location = "find_location"
-}
-
-/**
-Errors relating to Pelican setup.
-*/
-enum TGBotError: String, Error {
-  case KeyMissing = "The API key hasn't been provided.  Please provide a \"token\" for Config/pelican.json, containing your bot token."
-  case EntryMissing = "Pelican hasn't been given an session setup closure.  Please provide one using `sessionSetupAction`."
-}
-
-/**
-Errors related to request fetching.
-*/
-enum TGReqError: String, Error {
-  case NoResponse = "The request received no response."
-  case UnknownError = "Something happened, and i'm not sure what!"
-  case BadResponse = "Telegram responded with \"NOT OKAY\" so we're going to trust that it means business."
-  case ResponseNotExtracted = "The request could not be extracted."
-}
-
-/**
-Errors related to update processing.  Might merge the two?
-*/
-enum TGUpdateError: String, Error {
-  case BadUpdate = "The message received from Telegram was malformed or unable to be processed by this bot."
-}
-
-/**
-Motherfucking Vapor.
-*/
-enum TGVaporError: String, Error {
-	case EngineSucks = "Engine is unable to keep an SSL connection going, please use \"foundation\" instead, under your droplet configuration file."
-}
-
-/** 
-A deprecated internal type used to enable models to switch between node-type conversion for response purposes, 
-and that for databasing purposes.
-*/
-public enum TGContext: Context {
-  case response
-  case db
-}
-
-
-
-
-/**
-The Vapor Provider for building Telegram bots!  Interact with this class directly when 
-initialising your Vapor app and setting up your Telegram bot.
+Your own personal pelican for building Telegram bots!
 
 To get started with Pelican, you'll need to place the code below as setup before running the app.
-You'll also need to add your API token as a `token` inside `config/pelican.json` (create it if you don't have the file),
+You'll also need to add your API token as a `token` inside `config.json` (create it if you don't have the file),
 to assign it to your bot and start receiving updates.  You can get your API token from @BotFather.
 
 ## Pelican JSON Contents
 ```
 {
-"token": "INSERT:YOUR-KEY-RIGHT-HERE"
+"bot_token": "INSERT:YOUR-KEY-RIGHT-HERE"
+"payment_token": "INSERT:PAYMENTS-PLZ-DELICIOUS"
 }
 ```
 
 ## Pelican Basic Setup
 
 ```
-// Make sure you set up Pelican manually so you can assign it variables.
-let config = try Config()
-let pelican = try Pelican(config: config)
+// Create a chat session
+class ShinyNewSession: ChatSession {
 
+	override func postInit() {
+		// ROUTING
+		// Add a basic 'lil route.
+		let start = RouteCommand(commands: "start") { update in
 
-// Add Builder
-pelican.addBuilder(SessionBuilder(spawner: Spawn.perChatID(types: nil), idType: .chat, session: TestUser.self, setup: nil) )
+			self.requests.async.sendMessage("Ding!", markup: nil, chatID: self.tag.id)
 
-// Add the provider and run it!
-try config.addProvider(pelican)
-let drop = try Droplet(config)
-try drop.run()
+			return true
+		}
+
+		// Add some more test routes.
+		let taka = RouteCommand(commands: "taka") { update in
+
+			let user = self.requests.sync.getMe()
+			let responseMsg = """
+			HI!  I AM A \(user?.firstName ?? "null") BOT.
+			"""
+			self.requests.async.sendMessage(responseMsg, markup: nil, chatID: self.tag.id)
+
+			return true
+		}
+
+		// This is a blank route that allows any update given it to automatically pass.
+		self.baseRoute = Route(name: "base", action: { update in return false })
+		self.baseRoute.addRoutes(start, taka)
+	}
+
+}
+
+// Create a bot instance
+let pelican = try PelicanBot()
+
+// Add a builder
+pelican.addBuilder(SessionBuilder(spawner: Spawn.perChatID(types: nil), idType: .chat, session: ShinyNewSession.self, setup: nil) )
+
+// Configure the bot polling
+bot.pollInterval = 2
+bot.updateTimeout = 300
+
+// Run it
+try pelican.boot()
 
 ```
 */
-public final class Pelican: Vapor.Provider {
-	public static let repositoryName = "Pelican"
-
-	/// Wait whats this?
-  public let message: String = "Rawr."
-  //public var provided: Providable { return Providable() }
-	
+public final class PelicanBot {
 	
 	// CORE PROPERTIES
 	/// The cache system responsible for handling the re-using of already uploaded files and assets, to preserve system resources.
-  var cache: CacheManager
-	/// The API key assigned to your bot.  PLEASE DO NOT ASSIGN IT HERE, ADD IT TO A JSON FILE INSIDE config/pelican.json as a "token".
-  var apiKey: String
+  var cache: CacheManager!
+	
+	/// A controller that records and manages client connections to Telegram.
+	var client: Client
+	
+	/// The API key assigned to your bot.
+	public var apiKey: String { return _apiKey }
+  private var _apiKey: String
+	
+	/// The Payment key assigned to your bot.  To assign the key, add it to the JSON file inside config/pelican.json as "payment_token".
+	public var paymentKey: String? { return _paymentKey }
+	var _paymentKey: String?
+	
 	/// The combination of the API request URL and your API token.
-  var apiURL: String
-	/// Client Connection with Vapor, to Telegram.
-	var client: ClientProtocol?
-	/// Defines an object to be used for custom data, to be used purely for cloning into newly-created ChatSessions.  DO NOT EDIT CONTENTS.
-  private var customData: NSCopying?
-	
-	
-	/// Returns the API key assigned to your bot.
-	public var getAPIKey: String { return apiKey }
-	/// Returns the combination of the API request URL and your API token.
-	public var getAPIURL: String { return apiURL }
+	public var apiURL: String { return _apiURL }
+  private var _apiURL: String
 	
 	
   // CONNECTION SETTINGS
+	
 	/**
-	(Polling) Identifier of the first update to be returned. Must be greater by one than the highest among the identifiers of previously received updates. By default, updates starting with the earliest unconfirmed update are returned.
+	Identifier of the first update to be returned. Must be greater by one than the highest among the identifiers of previously received updates. By default, updates starting with the earliest unconfirmed update are returned.
 	
 	An update is considered confirmed as soon as getUpdates is called with an offset higher than its update_id. The negative offset can be specified to retrieve updates starting from -offset update from the end of the updates queue. All previous updates will forgotten.
 	
 	- warning: Pelican automatically handles this variable, don't use it unless you want to perform something very specific.
 	*/
-  public var offset: Int = 0
-	/// (Polling) The number of messages that can be received in any given update, between 1 and 100.
-  public var limit: Int = 100
-	// (Polling) The length of time Pelican will hold onto an update connection with Telegram to wait for updates before disconnecting.
-  public var timeout: Int = 1
+  public var updateOffset: Int = 0
+	
+	/// The number of messages that can be received in any given update, between 1 and 100.
+  public var updateLimit: Int = 100
+	
+	/// The length of time Pelican will hold onto an update connection with Telegram to wait for updates before disconnecting.
+  public var updateTimeout: Int = 300
 	
 	/// Defines what update types the bot will receive.  Leave empty if all are allowed, or otherwise specify to optimise the bot.
-  public var allowedUpdates: [UpdateType] = []
+  public var allowedUpdates: [UpdateType] = [.message, .editedMessage, .channelPost, .editedChannelPost, .callbackQuery, .inlineQuery, .chosenInlineResult, .shippingQuery, .preCheckoutQuery]
+	
 	/// If true, the bot will ignore any historic messages it has received while it has been offline.
   public var ignoreInitialUpdates: Bool = true
+	
+	/// Whether the bot has started and is running.
   private var started: Bool = false
+	
+	/// Whether the bot has started and is running.
   public var hasStarted: Bool { return started }
 	
 	
-  // QUEUES
+  // UPDATE QUEUES
+	/// The DispatchQueue system that fetches updates and hands them off to any applicable Sessions to handle independently.
+	private var updateQueue: LoopQueue?
+	
+	/// The DispatchQueue system that checks for any scheduled events and hands the ones it finds to the Session that requested them, on the Session queue.
+	private var scheduleQueue: LoopQueue?
+	
 	/// The time the bot started operating.
-	var timeStarted: Date
+	var timeStarted: Date?
+	
 	/// The time the last update the bot has received from Telegram.
-	var timeLastUpdate: Date
+	var timeLastUpdate: Date?
 	
-  fileprivate var updateQueue: UpdateQueue?
-  var uploadQueue: DispatchQueue
-  var pollInterval: Int = 0
-  var globalTimer: Int = 0        // Used for executing scheduled events.
-  public var getTime: Int { return globalTimer }
-	
+	/// A pre-built request type to be used for fetching updates.
+	var getUpdatesRequest: TelegramRequest {
+		let request = TelegramRequest()
+		request.method = "getUpdates"
+		request.query = [
+			"offset": updateOffset,
+			"limit": updateLimit,
+			"timeout": updateTimeout,
+			//"allowed_updates": allowedUpdates.map { $0.rawValue },
+		]
+		
+		return request
+	}
 	
   // SESSIONS
-	/// The sets of sessions that are currently active, encapsulated within their respective builders.
+	/// The set of sessions that are currently active, encapsulated within their respective builders.
   internal var sessions: [SessionBuilder] = []
+	
 	/// The schedule system for sessions to use to delay the execution of actions.
-	public var schedule = Schedule()
+	public var schedule: Schedule!
 	
 	
   // MODERATION
@@ -237,197 +163,160 @@ public final class Pelican: Vapor.Provider {
 	// ???
 	
 	
-	// Boots the provider?
-	public func boot(_ config: Config) throws {
-		print("*shrug")
-	}
-	
-	
-  // Provider conforming functions
-  public init(config: Config) throws {
+  /**
+	Initialises Pelican.
+	- warning: Pelican will attempt to find your API key at this point, and will fail if it's missing.
+	*/
+  public init() throws {
 		
-		// Obtain the token from pelican.json
-    guard let token = config["pelican", "token"]?.string else {
+		let workingDir = PelicanBot.workingDirectory()
+		if workingDir == "" {
+			throw TGBotError.WorkingDirNotFound
+		}
+		
+		let bundle = Bundle(path: workingDir)
+		if bundle == nil {
+			throw TGBotError.WorkingDirNotFound
+		}
+		
+		let configURL = bundle?.url(forResource: "config", withExtension: "json", subdirectory: nil)
+		if configURL == nil {
+			throw TGBotError.ConfigMissing
+		}
+		
+		let data = try Data(contentsOf: configURL!)
+		let configJSON = try JSON.init(data: data)
+    guard let token = configJSON["bot_token"].string else {
       throw TGBotError.KeyMissing
     }
 		
-		Node.fuzzy = [Row.self, JSON.self, Node.self]
-		/*
-			[Chat.self, Message.self, MessageEntity.self, Photo.self, PhotoSize.self,
-									Audio.self, Document.self, Sticker.self, Video.self, Voice.self, Contact.self, Location.self,
-									Venue.self, UserProfilePhotos.self]
-		*/
+		// Set tokens
+		self._apiKey = token
+		self._apiURL = "https://api.telegram.org/bot" + token
+		self._paymentKey = configJSON["payment_token"].string
 		
 		// Initialise controls and timers
 		self.mod = Moderator()
-    self.cache = CacheManager()
-    self.apiKey = token
-    self.apiURL = "https://api.telegram.org/bot" + apiKey
+    self.cache = try CacheManager(bundlePath: workingDir)
+		self.client = Client(token: token, cache: cache)
+		self.schedule = Schedule(workCallback: self.requestSessionWork)
+  }
+	
+  /**
+	Starts the bot!
+	*/
+  public func boot() throws {
 		
-		// Initialise timers
+		// The main thread needs to do 'something', keep this for later
+		/**
+		// Set the upload queue.
+		updateQueue = LoopQueue(queueLabel: "com.pelican.fetchupdates",
+														qos: .userInteractive,
+														interval: TimeInterval(self.pollInterval)) {
+			
+			PLog.info("Update Starting...")
+			
+			let updates = self.requestUpdates()
+			if updates != nil {
+				self.handleUpdates(updates!)
+			}
+			
+			self.timeLastUpdate = Date()
+			PLog.info("Update Complete.")
+		}
+		*/
+		
+		// Set the schedule queue.
+		scheduleQueue = LoopQueue(queueLabel: "com.pelican.eventschedule",
+															qos: .default,
+															interval: TimeInterval(1)) {
+		
+			self.schedule.run()
+		}
+		
+		// Clear the first set of updates if we're asked to.
+		if ignoreInitialUpdates == true {
+			
+			let request = TelegramRequest()
+			request.method = "getUpdates"
+			request.query = [
+				"offset": updateOffset,
+				"limit": updateLimit,
+				"timeout": 1,
+			]
+			
+			if let response = client.syncRequest(request: request) {
+				let update_count = response.result!.array?.count ?? 0
+				let update_id = response.result![update_count - 1]["update_id"].int ?? -1
+				updateOffset = update_id + 1
+			}
+			
+		}
+		
+		// Boot!
 		self.timeStarted = Date()
 		self.timeLastUpdate = Date()
-		
-		// Initialise upload queue and droplet
-    self.uploadQueue = DispatchQueue(label: "TG-Upload",
-                                     qos: .background,
-                                     target: nil)
-		
-		// Fake-initialise the client
-		//try! cache.setBundlePath(Droplet().config.publicDir)
-		
-		// Ensure that the Foundation Engine is being used.
-		let engine = config["droplet", "client"]?.string ?? ""
-		if engine != "foundation" {
-			print("Hey, sorry but you'll need to use the Foundation Client instead of the Engine Client.  I've tried being friends with it but it's just too stubborn.  Ill remove this once the Engine Client starts working with it <3")
-			throw TGVaporError.EngineSucks
-		}
-  }
-	
-	
-  public func afterInit(_ drop: Droplet) { }
-	
-	/// Occurs "just" before the drop is run itself, after drop.run() is called.
-  public func beforeRun(_ drop: Droplet) {
-		
-    if ignoreInitialUpdates == true {
-      _ = self.requestUpdates()
-    }
-    
-    if allowedUpdates.count == 0 {
-      for type in iterateEnum(UpdateType.self) {
-        allowedUpdates.append(type)
-      }
-    }
-		
 		started = true
-		updateQueue!.queueNext()
-  }
-	
-  /// Perform correct droplet configuration here.
-  public func boot(_ drop: Droplet) {
 		
-		// Setup the client used to send and get requests.
-		self.client = try! drop.client.makeClient(hostname: "api.telegram.org", port: 443, securityLayer: .tls(FoundationClient.defaultTLSContext()), proxy: drop.client.defaultProxy)
+		//updateQueue!.queueNext()
+		scheduleQueue!.queueNext()
 		
-		// Setup the logger.
-		PLog.console = drop.log
+		print("<<<<< Pelican has started. >>>>>")
 		
-		// Setup the cache
-		try! cache.setBundlePath(drop.config.workDir + "/Public")
+		// Run the update queue
+		while 1 == 1 {
+			updateCycle()
+		}
+		
 	}
-
 	
 	/**
-	Sets the frequency at which the bot looks for updates from users to act on.  If a timeout is set,
-	this becomes the length of time it takes after handling a set of updates to request more from Telegram,
-	until the timeout amount is reached.
+	The main run loop for Pelican, responsible for fetching and dispatching updates to Sessions.
 	*/
-  public func setPoll(interval: Int) {
-		updateQueue = UpdateQueue(interval: TimeInterval(interval)) {
-			
-			PLog.verbose("Update Starting...")
-			
-      let updates = self.requestUpdates()
-			if updates != nil { self.filterUpdates(updates: updates!) }
-			self.updateQueue!.queueNext()
-			
-			PLog.verbose("Update Complete.")
-    }
-    
-    pollInterval = interval
-  }
-	
-	/**
-	An internal method for creating an update query string for easy use when requesting updates.
-	*/
-  internal func makeUpdateQuery() -> [String:NodeConvertible] {
-    var keys: [String:NodeConvertible] = [
-      "offset": offset,
-      "limit": limit,
-      "timeout": timeout]
-    
-    var filteredUpdates: [String] = []
-    for item in allowedUpdates {
-      if !filteredUpdates.contains(item.rawValue) {
-        filteredUpdates.append(item.rawValue)
-      }
-    }
-    
-    keys["allowed_updates"] = filteredUpdates
-    return keys
-  }
+	private func updateCycle() {
+		PLog.info("Update Starting...")
+		
+		let updates = self.requestUpdates()
+		if updates != nil {
+			self.handleUpdates(updates!)
+		}
+		
+		self.timeLastUpdate = Date()
+		PLog.info("Update Complete.")
+		
+	}
   
   /**
-	Requests a set of updates from Telegram, based on the poll, offset, timeout and update limit settings
+	Requests a set of updates from Telegram, based on the poll, offset, updateTimeout and update limit settings
 	assigned to Pelican.
 	- returns: A `TelegramUpdateSet` if succsessful, or nil if otherwise.
 	*/
 	public func requestUpdates() -> [Update]? {
 		
-		//print("UPDATE START")
+		var response: TelegramResponse? = nil
 		
-    let query = makeUpdateQuery()
-		PLog.verbose("Contacting Telegram for Updates...")
+		// Build a new request with the correct URI and fetch the other data from the Session Request
+		PLog.info("Contacting Telegram for Updates...")
+		response = client.syncRequest(request: getUpdatesRequest)
 		
-		var response: Response
-		
-		do {
-			// Build a new request with the correct URI and fetch the other data from the Session Request
-			let vaporRequest = Request(method: .post, uri: apiURL + "/getUpdates")
-			
-			vaporRequest.query = try query.makeNode(in: nil)
-			vaporRequest.headers = [HeaderKey.connection: "keep-alive"]
-			response = try client!.respond(to: vaporRequest)
-			
-		} catch {
-			print(error)
-			print(TGReqError.NoResponse.rawValue)
-			return nil
-		}
-
-		let updateResult = self.filterUpdateResponse(response: response.json!)
-		if updateResult != nil {
+		// If we have a response, try and build an update list from it.
+		if response != nil {
+			if response!.status != .ok { return nil }
+			let updateResult = self.generateUpdateTypes(response: response!)
 			return updateResult
 		}
 		
 		return nil
 
-		
-//		// Until Vapor can perform the very basic concept of making repeated client requests without hanging, this is being used.
-//		var request = URLRequest(url: URL(string: apiURL + "/getUpdates" + "?offset=\(offset)")!)
-//		request.httpMethod = "GET"
-//		request.httpShouldHandleCookies = false
-//		let session = URLSession.shared
-//
-//		// Build the task
-//		session.dataTask(with: request) { data, response, error in
-//
-//			if error != nil {
-//				self.updateQueue!.queueNext()
-//				return
-//			}
-//			
-//			else {
-//				let json = try! JSON.init(bytes: data!.makeBytes())
-//				//print(json)
-//
-//				let updateResult = self.filterUpdateResponse(response: json)
-//				if updateResult != nil {
-//					updates = updateResult!
-//					self.filterUpdates(updates: updates)
-//					self.updateQueue!.queueNext()
-//				}
-//			}
-//
-//		}.resume()
 	}
 	
-	public func filterUpdateResponse(response: JSON) -> [Update]? {
+	public func generateUpdateTypes(response: TelegramResponse) -> [Update]? {
 		
     // Get the basic result data
-		let results = response["result"]?.array ?? []
+		let results = response.result?.array ?? []
     let messageCount = results.count
+		
+		if response.result == nil { return nil }
 
     // Make the collection types
 		var updates: [Update] = []
@@ -435,185 +324,152 @@ public final class Pelican: Vapor.Provider {
 
     // Iterate through the collected messages
     for i in 0..<messageCount {
-      let update_id = response["result", i, "update_id"]?.int ?? -1
-
+      let update_id = response.result![i]["update_id"].int ?? -1
+			let responseSlice = response.result![i]
 
       // This is just a plain old message
       if allowedUpdates.contains(UpdateType.message) {
-        if (response["result", i, "message"]) != nil {
-
-					// Find and build a node based on the search.
-					guard let messageNode = response.makeNode(in: nil)["result", i, "message"] else {
-            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? Message(row: Row(messageNode)) else {
-            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-
-					// Check that the update should be used before adding it.
-					if mod.checkBlacklist(chatID: message.chat.tgID) == false {
-						if mod.checkBlacklist(userID: message.from!.tgID) == false {
-							updates.append(Update(withData: message as UpdateModel, node: messageNode))
-						}
+        if (responseSlice["message"]) != JSON.null {
+					
+					let update = unwrapIncomingUpdate(json: responseSlice["message"],
+																						dataType: Message.self,
+																						updateType: .message)
+					
+					if update != nil {
+						updates.append(update!)
 					}
         }
       }
 
-			/*
       // This is if a message was edited
       if allowedUpdates.contains(UpdateType.editedMessage) {
-        if (response.data["result", i, "edited_message"]) != nil {
-          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "edited_message"] else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? Message(row: Row(messageNode)) else {
-						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						offset = update_id + 1
-						continue
+        if (responseSlice["edited_message"]) != JSON.null {
+					let update = unwrapIncomingUpdate(json: responseSlice["edited_message"],
+																						dataType: Message.self,
+																						updateType: .editedMessage)
+					
+					if update != nil {
+						updates.append(update!)
 					}
-
-					updates.append(Update(withData: message as UpdateModel, node: messageNode))
         }
       }
 
       // This is for a channel post
       if allowedUpdates.contains(UpdateType.channelPost) {
-        if (response.data["result", i, "channel_post"]) != nil {
-          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "channel_post"] else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? Message(row: Row(messageNode)) else {
-						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						offset = update_id + 1
-						continue
+        if (responseSlice["channel_post"]) != JSON.null {
+					let update = unwrapIncomingUpdate(json: responseSlice["channel_post"],
+																						dataType: Message.self,
+																						updateType: .channelPost)
+					
+					if update != nil {
+						updates.append(update!)
 					}
-
-          updates.append(Update(withData: message as UpdateModel, node: messageNode))
         }
       }
 
       // This is for an edited channel post
       if allowedUpdates.contains(UpdateType.editedChannelPost) {
-        if (response.data["result", i, "edited_channel_post"]) != nil {
-          guard let messageNode = response.json?.makeNode(in: nil)["result", i, "edited_channel_post"] else {
-            drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? Message(row: Row(messageNode)) else {
-						drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						offset = update_id + 1
-						continue
+        if (responseSlice["edited_channel_post"]) != JSON.null {
+					let update = unwrapIncomingUpdate(json: responseSlice["edited_channel_post"],
+																						dataType: Message.self,
+																						updateType: .editedChannelPost)
+					
+					if update != nil {
+						updates.append(update!)
 					}
-
-          updates.append(Update(withData: message as UpdateModel, node: messageNode))
         }
       }
-			*/
 
       // COME BACK TO THESE LATER
       // This type is for when someone tries to search something in the message box for this bot
       if allowedUpdates.contains(UpdateType.inlineQuery) {
-        if (response["result", i, "inline_query"]) != nil {
-          guard let messageNode = response.makeNode(in: nil)["result", i, "inline_query"] else {
-            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						//print("inline_query")
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? InlineQuery(row: Row(messageNode)) else {
-						//drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						//print("inline_query")
-						offset = update_id + 1
-						continue
-					}
-
-					// Check that the update should be used before adding it.
-					if mod.checkBlacklist(userID: message.from.tgID) == false {
-						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+        if (responseSlice["inline_query"]) != JSON.null {
+					let update = unwrapIncomingUpdate(json: responseSlice["inline_query"],
+																						dataType: InlineQuery.self,
+																						updateType: .inlineQuery)
+					
+					if update != nil {
+						updates.append(update!)
 					}
         }
       }
 
       // This type is for when someone has selected an search result from the inline query
       if allowedUpdates.contains(UpdateType.chosenInlineResult) {
-        if (response["result", i, "chosen_inline_result"]) != nil {
-          guard let messageNode = response.makeNode(in: nil)["result", i, "chosen_inline_result"] else {
-            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						//print("Chosen Inline Result")
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? ChosenInlineResult(row: Row(messageNode)) else {
-						//drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						//print("Chosen Inline Result")
-						offset = update_id + 1
-						continue
-					}
-
-					// Check that the update should be used before adding it.
-					if mod.checkBlacklist(userID: message.from.tgID) == false {
-						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+        if (responseSlice["chosen_inline_result"]) != JSON.null {
+					let update = unwrapIncomingUpdate(json: responseSlice["chosen_inline_result"],
+																						dataType: ChosenInlineResult.self,
+																						updateType: .chosenInlineResult)
+					
+					if update != nil {
+						updates.append(update!)
 					}
         }
       }
 
       /// Callback Query handling (receiving button presses for inline buttons with callback data)
       if allowedUpdates.contains(UpdateType.callbackQuery) {
-        if (response["result", i, "callback_query"]) != nil {
-          guard let messageNode = response.makeNode(in: nil)["result", i, "callback_query"] else {
-            //drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						//print("Callback Query")
-            offset = update_id + 1
-            continue
-          }
-
-					guard let message = try? CallbackQuery(row: Row(messageNode)) else {
-						//drop.console.error(TGUpdateError.BadUpdate.rawValue, newLine: true)
-						//print("Callback Query")
-						offset = update_id + 1
-						continue
-					}
-
-					// Check that the update should be used before adding it.
-					if mod.checkBlacklist(userID: message.from.tgID) == false {
-						updates.append(Update(withData: message as UpdateModel, node: messageNode))
+        if (responseSlice["callback_query"]) != JSON.null {
+					let update = unwrapIncomingUpdate(json: responseSlice["callback_query"],
+																						dataType: CallbackQuery.self,
+																						updateType: .callbackQuery)
+					
+					if update != nil {
+						updates.append(update!)
 					}
         }
       }
 
-      offset = update_id + 1
+      updateOffset = update_id + 1
     }
 
     return updates
   }
 	
-	
+	/**
+	Attempts to unwrap a slice of the response to the desired type, returning it as an Update.
+	*/
+	internal func unwrapIncomingUpdate<T: UpdateModel>(json: JSON, dataType: T.Type, updateType: UpdateType) -> Update? {
+		
+		// Setup the decoder
+		let decoder = JSONDecoder()
+		
+		// Attempt to decode
+		do {
+			let data = try json.rawData()
+			let result = try decoder.decode(dataType, from: data)
+			let update = Update(withData: result, json: json, type: updateType)
+			
+			// Check that the update isn't on any blacklists.
+			if update.chat != nil {
+				if mod.checkBlacklist(chatID: update.chat!.tgID) == true {
+					return nil
+				}
+			}
+			
+			if update.from != nil {
+				if mod.checkBlacklist(chatID: update.from!.tgID) == true {
+					return nil
+				}
+			}
+			
+			// Now we can return
+			return update
+			
+			
+		} catch {
+			PLog.error("Pelican Error (Decoding message from updates) - \n\n\(error)\n")
+			return nil
+		}
+	}
 	
   /**
 	Used by the in-built long polling solution to match updates to sessions.
 	### EDIT/REMOVE IN UPCOMING REFACTOR
 	*/
-	internal func filterUpdates(updates: [Update]) {
+	internal func handleUpdates(_ updates: [Update]) {
 		
-    // Check the global timer for any scheduled events
-    globalTimer += pollInterval
-    //checkChatSessionQueues()
-		PLog.verbose("Handling updates...")
+		PLog.info("Handling updates...")
 		
 		// Filter the update to the current builders.
 		for update in updates {
@@ -667,16 +523,9 @@ public final class Pelican: Vapor.Provider {
 			}
 		}
 		
-		//print(updates)
-		
-		
-		// Check the schedule.
-		schedule.run()
-		
-		
 		// Update the last active time.
 		timeLastUpdate = Date()
-		PLog.verbose("Updates handled.")
+		PLog.info("Updates handled.")
 		
   }
 	
@@ -690,7 +539,7 @@ public final class Pelican: Vapor.Provider {
 		var generator = Xoroshiro()
 		
 		var id = 0
-		while id == 0 || sessions.contains(where: {$0.getID == id}) == true {
+		while id == 0 || sessions.contains(where: {$0.id == id}) == true {
 			id = Int(generator.random32())
 		}
 		

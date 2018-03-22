@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Defines a return result for the SessionBuilder's `collision` function, that determines how it will operate if the update that it captured

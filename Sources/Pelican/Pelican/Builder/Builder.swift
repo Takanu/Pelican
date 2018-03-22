@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import Vapor
+
 
 /**
 Defines a class that will be used by Pelican to automatically generate Sessions based on two key components:
@@ -24,19 +24,21 @@ public class SessionBuilder {
 	
 	/** The identifier for the Builder, to allow Pelican to identify and send events to it from an individual Session.
 	This is an internal ID and should not be changed. */
-	var id: Int = 0
-	public var getID: Int { return id }
-	
+	var _id: Int = 0
+	public var id: Int { return _id }
 	
 	/// A function that checks an update to see whether or not it matches given criteria in that function, returning a non-nil value if true.
 	var spawner: (Update) -> Int?
+	
 	/// The type of identification the spawner function generates, which is then used to identify a Session.
 	var idType: SessionIDType
-	/// The session type that's created using the builder.
+	
+	/// The session type that the builder creates for handling updates.
 	var session: Session.Type
+	
 	/** An optional function type that can be used to initialise a Session type in a custom way, such as if it has any additional initialisation paramaters. 
 	If left empty, the default Session initialiser will be used. */
-	var setup: ((Pelican, SessionTag, Update) -> (Session))?
+	var setup: ((PelicanBot, SessionTag, Update) -> (Session))?
 	
 	/** An optional closure designed to resolve "collisions", when two or more builders capture the same update.
 	The closure must return a specific enumerator that determines whether based on the collision, the builder will either not 
@@ -44,7 +46,7 @@ public class SessionBuilder {
 	
 	- note: If left unused, the builder will always execute an update it has successfully captured, even if another builder has also captured it.
 	*/
-	public var collision: ((Pelican, Update) -> (BuilderCollision))?
+	public var collision: ((PelicanBot, Update) -> (BuilderCollision))?
 	
 	/// The number of sessions the builder can have active at any given time.  Leave at 0 for no limit.
 	var maxSessions: Int = 0
@@ -52,6 +54,7 @@ public class SessionBuilder {
 	/// The sessions that have been spawned by the builder and are currently active.
 	var sessions: [Int:Session] = [:]
 	
+	/// Returns the number of sessions being managed by the builder.
 	public var getSessionCount: Int { return sessions.count }
 	
 	
@@ -61,7 +64,7 @@ public class SessionBuilder {
 	- parameter setup: An optional function type that can be used to setup Sessions when created to be given anything else that isn't available during
 	initialisation, such as specific Flood Limits and Timeouts.
 	*/
-	public init(spawner: @escaping (Update) -> Int?, idType: SessionIDType, session: Session.Type, setup: ((Pelican, SessionTag, Update) -> (Session))?) {
+	public init(spawner: @escaping (Update) -> Int?, idType: SessionIDType, session: Session.Type, setup: ((PelicanBot, SessionTag, Update) -> (Session))?) {
 		self.spawner = spawner
 		self.idType = idType
 		self.session = session
@@ -73,7 +76,7 @@ public class SessionBuilder {
 	This should only be used by Pelican once it receives a builder, and nowhere else. 
 	*/
 	func setID(_ id: Int) {
-		self.id = id
+		self._id = id
 	}
 	
 	/**
@@ -90,11 +93,11 @@ public class SessionBuilder {
 	}
 	
 	/**
-	Attempts to return a session based on a given update.
+	Attempts to return a session belonging to the builder based on a given update.  If one doesn't exist, it will be created.
 	- returns: A session that corresponds with the given update if the Builder can handle it,
 	and nil if it could not.
 	*/
-	func getSession(bot: Pelican, update: Update) -> Session? {
+	func getSession(bot: PelicanBot, update: Update) -> Session? {
 		
 		/// Check if our spawner gives us a non-nil value
 		if let id = spawner(update) {
@@ -108,8 +111,6 @@ public class SessionBuilder {
 				
 			// If not, build one
 			else {
-				
-				print("BUILDING SESSION - \(id)")
 				
 				// If the setup function exists, use it
 				if setup != nil {
@@ -136,11 +137,26 @@ public class SessionBuilder {
 	}
 	
 	/**
+	Attempts to return a session based on the given SessionTag.
+	- returns: A session that corresponds with the given update if the Builder can handle it,
+	and nil if it could not.
+	*/
+	func findBuilder(tag: SessionTag) -> Session? {
+		if self.id != tag.builderID { return nil }
+		
+		if let session = sessions[tag.id] {
+			return session
+		} else {
+			return nil
+		}
+	}
+	
+	/**
 	Attempts to generate or use a session with the builder using a given update object.
 	- parameter update: The update to use to see if a session can be built with it.
 	- returns: True if the update was successfully used, and false if not.
 	*/
-	func execute(bot: Pelican, update: Update) -> Bool {
+	func execute(bot: PelicanBot, update: Update) -> Bool {
 		
 		if let session = getSession(bot: bot, update: update) {
 			
@@ -157,12 +173,11 @@ public class SessionBuilder {
 	*/
 	func removeSession(tag: SessionTag) {
 		
-		if tag.getBuilderID != self.id { return }
+		if tag.builderID != self.id { return }
 		
-		if let session = sessions[tag.getSessionID] {
-			session.close()
-			sessions.removeValue(forKey: tag.getSessionID)
-			print("SESSION REMOVED - \(tag.getSessionID)")
+		if let session = sessions[tag.id] {
+			session.cleanup()
+			sessions.removeValue(forKey: tag.id)
 		}
 	}
 	

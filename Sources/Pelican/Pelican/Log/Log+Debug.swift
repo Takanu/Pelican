@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Vapor
 
-extension Pelican {
+
+extension PelicanBot {
 	
 }

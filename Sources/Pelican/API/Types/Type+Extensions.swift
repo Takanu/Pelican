@@ -2,12 +2,12 @@
 //  Type+Extensions.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 31/08/2017.
+//  Created by Takanu Kyriako on 31/08/2017.
 //
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 /*
 An extension used to switch from snake to camel case and back again
@@ -84,29 +84,3 @@ extension String {
 	}
 }
 
-
-extension Row {
-	
-	/**
-	Strips row data of any entries that have a value of "null", including any nested data.
-	Useful for constructing queries and requests where null values are not compatible.
-	*/
-	mutating func removeNullEntries() throws {
-		
-		if self.object != nil {
-			for row in self.object! {
-				
-				if row.value.isNull == true {
-					self.removeKey(row.key)
-				}
-					
-				else if row.value.object != nil {
-					var newRow = row.value
-					try newRow.removeNullEntries()
-					self.removeKey(row.key)
-					try self.set(row.key, newRow)
-				}
-			}
-		}
-	}
-}

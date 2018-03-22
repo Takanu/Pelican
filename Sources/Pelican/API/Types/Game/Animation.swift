@@ -2,42 +2,46 @@
 //  Animation.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 31/08/2017.
+//  Created by Takanu Kyriako on 31/08/2017.
 //
 
 import Foundation
-import Vapor
-import FluentProvider
 
-/** You can provide an animation for your game so that it looks stylish in chats (check out Lumberjack for an example). This object represents an animation file to be displayed in the message containing a game.
+
+
+/** 
+This object represents an animation file to be displayed in a Telegram message containing a game, used for additional visual flair and to better preview what your game is to 
 */
-final public class Animation: Model {
-	public var storage = Storage()
+final public class Animation: Codable {
 	
-	public var fileID: String      // Unique file identifier.
-	public var thumb: Photo?   // Animation thumbnail as defined by the sender.
-	public var fileName: String?   // Original animation filename as defined by the sender.
-	public var mimeType: String?   // MIME type of the file as defined by sender.
-	public var fileSize: Int?      // File size.
+	/// A unique file identifier for the animation.
+	public var fileID: String
+	
+	/// Animation thumbnail as defined by the sender.
+	public var thumb: Photo?
+	
+	/// Original animation filename as defined by the sender.
+	public var fileName: String?
+	
+	/// MIME type of the file as defined by sender.
+	public var mimeType: String?
+	
+	/// File size.
+	public var fileSize: Int?
 	
 	
-	// NodeRepresentable conforming methods
-	required public init(row: Row) throws {
-		fileID = try row.get("file_id")
-		thumb = try row.get("thumb")
-		fileName = try row.get("file_name")
-		mimeType = try row.get("mime_type")
-		fileSize = try row.get("file_size")
+	/// Coding keys to map values when Encoding and Decoding.
+	enum CodingKeys: String, CodingKey {
+		case fileID = "file_id"
+		case thumb
+		case fileName = "file_name"
+		case mimeType = "mime_type"
+		case fileSize = "file_size"
 	}
 	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("file_id", fileID)
-		try row.set("thumb", thumb)
-		try row.set("file_name", fileName)
-		try row.set("mime_type", mimeType)
-		try row.set("file_size", fileSize)
-		
-		return row
+	
+	init(fileID: String) {
+		self.fileID = fileID
 	}
+	
 }

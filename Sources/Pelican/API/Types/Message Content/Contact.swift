@@ -6,21 +6,36 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 final public class Contact: TelegramType, MessageContent {
 	
 	// STORAGE AND IDENTIFIERS
-	public var storage = Storage()
-	public var contentType: String = "contact" // MessageType conforming variable for Message class filtering.
-	public var method: String = "sendContact" // SendType conforming variable for use when sent
+	public var contentType: String = "contact"
+	public var method: String = "sendContact"
 	
 	// PARAMETERS
+	/// The contact's phone number.
 	public var phoneNumber: String
+	
+	/// The contact's first name.
 	public var firstName: String
+	
+	/// The contact's last name
 	public var lastName: String?
+	
+	/// The contact's user ID
 	public var userID: Int?
+	
+	/// Coding keys to map values when Encoding and Decoding.
+	enum CodingKeys: String, CodingKey {
+		case phoneNumber = "phone_number"
+		case firstName = "first_name"
+		case lastName = "last_name"
+		case userID = "user_id"
+		
+	}
 	
 	public init(phoneNumber: String, firstName: String, lastName: String? = nil, userID: Int? = nil) {
 		self.phoneNumber = phoneNumber
@@ -29,9 +44,10 @@ final public class Contact: TelegramType, MessageContent {
 		self.userID = userID
 	}
 	
+	
 	// SendType conforming methods to send itself to Telegram under the provided method.
-	public func getQuery() -> [String:NodeConvertible] {
-		var keys: [String:NodeConvertible] = [
+	public func getQuery() -> [String: Codable] {
+		var keys: [String: Codable] = [
 			"phone_number": phoneNumber,
 			"first_name": firstName
 		]
@@ -39,23 +55,5 @@ final public class Contact: TelegramType, MessageContent {
 		if lastName != nil { keys["last_name"] = lastName }
 		
 		return keys
-	}
-	
-	// NodeRepresentable conforming methods
-	public required init(row: Row) throws {
-		phoneNumber = try row.get("phone_number")
-		firstName = try row.get("first_name")
-		lastName = try row.get("last_name")
-		userID = try row.get("user_id")
-	}
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("phone_number", phoneNumber)
-		try row.set("first_name", firstName)
-		try row.set("last_name", lastName)
-		try row.set("user_id", userID)
-		
-		return row
 	}
 }

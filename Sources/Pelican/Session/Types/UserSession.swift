@@ -7,52 +7,53 @@
 //
 
 import Foundation
-import Vapor
 
 /**
 A high-level class for managing states and information for each user that attempts to interact with your bot
-(and that isn't immediately blocked by the bot's blacklist).  Features embedded permission lists populated by Moderator,
-the chat sessions the user is actively participating in and other key pieces of information.
+(and that isn't immediately blocked by the bot's blacklist).
 
-UserSession is also used to handle InlineQuery and ChosenInlineResult routes, as only UserSessions will receive inline updates.
+UserSession is also used to handle InlineQuery and ChosenInlineResult routes, as ChatSessions cannot receive inline updates.
 */
 open class UserSession: Session {
 	
-	
 	//  CORE INTERNAL VARIABLES
 	public var tag: SessionTag
-	
+	public var dispatchQueue: SessionDispatchQueue
 	
 	/// The user information associated with this session.
 	public var info: User
+	
 	/// The ID of the user associated with this session.
 	public var userID: Int
-	/// The chat sessions the user is currently actively occupying.
-	public var chatSessions: [ChatSession] = []
-	/** A user-defined type assigned by Pelican on creation, used to cleanly associate custom functionality and
-	variables to an individual user session.
-	*/
+	
+	/// The chat sessions this user is currently actively occupying.
+	/// -- Not currently functional, undecided if it will be implemented
+	//public var chatSessions: [SessionTag] = []
+
 	
 	// API REQUESTS
 	// Shortcuts for API requests.
-	public var answer: TGAnswer
+	public var requests: SessionRequest
+	
 	
 	// DELEGATES / CONTROLLERS
-	
 	/// Handles and matches user requests to available bot functions.
-	public var routes: RouteController
+	public var baseRoute: Route
 	
 	/// Stores what Moderator-controlled permissions the User Session has.
 	public var mod: SessionModerator
 	
 	/// Handles timeout conditions.
-	public var timeout: Timeout
+	public var timeout: TimeoutMonitor
 	
 	/// Handles flood conditions.
-	public var flood: Flood
+	public var flood: FloodMonitor
 	
 	/// Stores a link to the schedule, that allows events to be executed at a later date.
 	public var schedule: Schedule
+	
+	/// Pre-checks and filters unnecessary updates.
+	public var filter: UpdateFilter
 	
 	
 	// TIME AND ACTIVITY
@@ -61,21 +62,23 @@ open class UserSession: Session {
 	public var timeoutLength: Int = 0
 	
 	
-	public required init(bot: Pelican, tag: SessionTag, update: Update) {
+	public required init(bot: PelicanBot, tag: SessionTag, update: Update) {
 		
 		self.tag = tag
 		
 		self.info = update.from!
 		self.userID = update.from!.tgID
-		self.routes = RouteController()
+		self.baseRoute = Route(name: "base", routes: [])
 		
 		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
-		self.timeout = Timeout(tag: tag, schedule: bot.schedule)
-		self.flood = Flood()
+		self.timeout = TimeoutMonitor(tag: tag, schedule: bot.schedule)
+		self.flood = FloodMonitor()
+		self.filter = UpdateFilter()
 		
 		self.schedule = bot.schedule
 		
-		self.answer = TGAnswer(tag: tag)
+		self.requests = SessionRequest(tag: tag)
+		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.usersession",qos: .userInitiated)
 	}
 	
 	
@@ -83,23 +86,36 @@ open class UserSession: Session {
 		
 	}
 	
-	/// Closes the session, deinitialising all modules and removing itself from the associated SessionBuilder.
-	open func close() {
-		
+	open func cleanup() {
+		self.baseRoute.close()
 		self.timeout.close()
+		self.flood.clearAll()
+		self.dispatchQueue.cancelAll()
+		self.filter.reset()
 	}
 	
 	
 	public func update(_ update: Update) {
 		
-		// Bump the timeout controller first so if flood or another process closes the Session, a new timeout event will not be added.
-		timeout.bump(update)
+		if filter.verifyUpdate(update) == false {
+			self.timeout.bump(update)
+			self.flood.handle(update)
+			return
+			
+		}
 		
-		// This needs revising, whatever...
-		let handled = routes.handle(update: update)
+		dispatchQueue.async {
+			
+			// Bump the timeout controller first so if flood or another process closes the Session, a new timeout event will not be added.
+			self.timeout.bump(update)
+			
+			// This needs revising, whatever...
+			_ = self.baseRoute.handle(update)
+			
+			// Bump the flood controller after
+			self.flood.handle(update)
+		}
 		
-		// Bump the flood controller after
-		flood.bump(update)
 		
 	}
 }

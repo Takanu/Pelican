@@ -6,8 +6,6 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
 
 /**
 A set of identifying information belonging to a Session, given to itself and it's delegates to both perform basic callbacks to Pelican
@@ -19,48 +17,62 @@ Pelican in basic ways (such as removing the Session from active use if a Timeout
 public struct SessionTag: Equatable {
 	
 	// DATA
-	/// The relative identifying ID for a session.  Could be a user ID, chat ID or other types of session identification.
-	var sessionID: Int
-	/// The type of Session the Tag and ID refer to.
-	var sessionType: Session.Type
-	/// The type of ID the session is represented by, used for more specific tasks such as Moderation.
-	var sessionIDType: SessionIDType
-	/// The identifier for the Builder ID, assigned by Pelican at it's creation.
-	var builderID: Int
+	/// The relative identifying ID for a session.  Could be a user ID, chat ID or a different, arbitrary type of session identification.
+	public var id: Int { return _id }
+	private var _id: Int
 	
+	/// The instance type that this session tag belongs to.
+	public var sessionType: Session.Type { return _sessionType }
+	var _sessionType: Session.Type
 	
-	// GETTERS
-	public var getSessionID: Int { return sessionID }
-	public var getSessionType: Session.Type { return sessionType }
-	public var getSessionIDType: SessionIDType { return sessionIDType }
-	public var getBuilderID: Int { return builderID }
+	/// The type of ID the session is represented by, utilised by types like the Moderator.
+	public var idType: SessionIDType { return _idType }
+	private var _idType: SessionIDType
+	
+	/// The identifier of the Builder that created this session.
+	public var builderID: Int { return _builderID }
+	private var _builderID: Int
 	
 	
 	// CALLBACKS
-	var sendRequestCallback: (TelegramRequest) -> (TelegramResponse)
-	var sendEventCallback: (SessionEvent) -> ()
+	/// A callback connected to Client that allows synchronous requests to be made to Telegram.
+	private var sendSyncRequestCallback: (TelegramRequest) -> (TelegramResponse?)
+	
+	/// A callback connected to Client that allows asynchronous requests to be made to Telegram.
+	private var sendAsyncRequestCallback: (TelegramRequest, ((TelegramResponse?) -> ())? ) -> ()
+	
+	/// A callback connected to Pelican that can be used to notify it of key session life-cycle events.
+	private var sendEventCallback: (SessionEvent) -> ()
 	
 	
-	init(bot: Pelican, builder: SessionBuilder, id: Int) {
+	init(bot: PelicanBot, builder: SessionBuilder, id: Int) {
 		
-		self.sessionID = id
-		self.sessionType = builder.session
-		self.sessionIDType = builder.idType
-		self.builderID = builder.getID
+		self._id = id
+		self._sessionType = builder.session
+		self._idType = builder.idType
+		self._builderID = builder.id
 		
-		
-		self.sendRequestCallback = bot.sendRequest(_:)
+		self.sendSyncRequestCallback = bot.client.syncRequest
+		self.sendAsyncRequestCallback = bot.client.asyncRequest
 		self.sendEventCallback = bot.sendEvent(_:)
 		
 	}
 	
 	/**
-	Sends a TelegramRequest to Pelican, to be sent as a bot API request.
-	- returns: A response from Telegram.
+	Sends a TelegramRequest.
+	- returns: A TelegramResponse containing the data received if successful.
 	*/
-	public func sendRequest(_ request: TelegramRequest) -> TelegramResponse {
+	public func sendSyncRequest(_ request: TelegramRequest) -> TelegramResponse? {
 		
-		return sendRequestCallback(request)
+		return sendSyncRequestCallback(request)
+	}
+	
+	/**
+	Sends a TelegramRequest from Pelican asynchronously.
+	*/
+	public func sendAsyncRequest(_ request: TelegramRequest, callback: ((TelegramResponse?) -> ())? ) {
+		
+		sendAsyncRequestCallback(request, callback)
 	}
 	
 	/**
@@ -75,7 +87,9 @@ public struct SessionTag: Equatable {
 	
 	public static func ==(lhs: SessionTag, rhs: SessionTag) -> Bool {
 		
-		if lhs.sessionID == rhs.sessionID &&
+		if lhs.id == rhs.id &&
+			lhs.sessionType == rhs.sessionType &&
+			lhs.idType == rhs.idType &&
 			lhs.builderID == rhs.builderID { return true }
 		
 		return false

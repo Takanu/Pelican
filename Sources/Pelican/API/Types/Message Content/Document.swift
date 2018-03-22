@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 /**
 Represents a generic file type, typically not covered by other Telegram file types (like Audio, Voice or Photo).
@@ -15,7 +15,6 @@ Represents a generic file type, typically not covered by other Telegram file typ
 final public class Document: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
-	public var storage = Storage()
 	public var contentType: String = "document"
 	public var method: String = "sendDocument" 
 	
@@ -26,15 +25,29 @@ final public class Document: TelegramType, MessageFile {
 	// PARAMETERS
 	/// Document thumbnail.
 	public var thumb: Photo?
+	
 	/// Original filename.
 	public var fileName: String?
+	
 	/// MIME type of the file.
 	public var mimeType: String?
+	
 	/// File size.
-	public var fileSize: String?
+	public var fileSize: Int?
+	
+	/// Coding keys to map values when Encoding and Decoding.
+	enum CodingKeys: String, CodingKey {
+		case fileID = "file_id"
+		case url
+		
+		case thumb = "thumb"
+		case fileName = "file_name"
+		case mimeType = "mime_type"
+		case fileSize = "file_size"
+	}
 	
 	
-	public init(fileID: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: String? = nil) {
+	public init(fileID: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
 		self.fileID = fileID
 		self.thumb = thumb
 		self.fileName = fileName
@@ -42,7 +55,7 @@ final public class Document: TelegramType, MessageFile {
 		self.fileSize = fileSize
 	}
 	
-	public init?(url: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: String? = nil) {
+	public init?(url: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
 		
 		if url.checkURLValidity(acceptedExtensions: []) == false { return nil }
 		
@@ -54,33 +67,11 @@ final public class Document: TelegramType, MessageFile {
 	}
 	
 	// SendType conforming methods
-	public func getQuery() -> [String:NodeConvertible] {
-		let keys: [String:NodeConvertible] = [
+	public func getQuery() -> [String: Codable] {
+		let keys: [String: Codable] = [
 			"document": fileID]
 		
 		return keys
-	}
-	
-	// NodeRepresentable conforming methods
-	public required init(row: Row) throws {
-		fileID = try row.get("file_id")
-		if let thumbRow = row["thumb"] {
-			self.thumb = try .init(row: Row(thumbRow)) as Photo
-		}
-		fileName = try row.get("file_name")
-		mimeType = try row.get("mime_type")
-		fileSize = try row.get("file_size")
-	}
-	
-	public func makeRow() throws -> Row {
-		var row = Row()
-		try row.set("file_id", fileID)
-		try row.set("thumb", thumb)
-		try row.set("file_name", fileName)
-		try row.set("mime_type", mimeType)
-		try row.set("file_size", fileSize)
-		
-		return row
 	}
 	
 }

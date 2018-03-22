@@ -1,7 +1,7 @@
 
 import Foundation
-import Vapor
-import FluentProvider
+
+
 
 
 /***
@@ -52,10 +52,11 @@ class File: Model {
 }
 */
 
+// Currently out of date and has no place in the current API type collection
 
-
+/**
 // Contains information about why a request was unsuccessful.
-final public class ResponseParameters: Model {
+final public class ResponseParameters {
 	public var storage = Storage()
   public var migrateToChatID: Int? // ???
   public var retryAfter: Int? // ???
@@ -78,5 +79,5 @@ final public class ResponseParameters: Model {
 		return row
 	}
 }
-
+*/
 

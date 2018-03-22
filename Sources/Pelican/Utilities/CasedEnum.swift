@@ -2,7 +2,7 @@
 //  CasedEnum.swift
 //  Pelican
 //
-//  Created by Ido Constantine on 20/10/2017.
+//  Created by Takanu Kyriako on 20/10/2017.
 //
 
 import Foundation

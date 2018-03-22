@@ -8,11 +8,10 @@ let package = Package(
 			.library(name: "Pelican", targets: ["Pelican"]),
     ],
     dependencies: [
-			.package(url: "https://github.com/vapor/vapor.git", .upToNextMajor(from: "2.1.0")),
-			.package(url: "https://github.com/vapor/fluent-provider.git", .upToNextMajor(from: "1.2.0")),
+			.package(url: "https://github.com/SwiftyJSON/SwiftyJSON.git", .upToNextMajor(from: "4.0.0"))
     ],
     targets: [
-			.target(name: "Pelican", dependencies: ["Vapor", "FluentProvider"]),
+			.target(name: "Pelican", dependencies: ["SwiftyJSON"]),
     ]
 )
 
