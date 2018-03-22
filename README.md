@@ -8,7 +8,7 @@ If you’ve never heard of [Telegram](https://telegram.org) it’s an awesome no
 
 Pelican is a framework I've developed personally for my own Telegram games and has a lot of great features:
 
-- Pelican automates the handling and distribution of updates through a unique session system that you can customise for your own specific needs.
+- Pelican automates the handling and distribution of updates through a unique session system that you can customise for your own specific needs - no need to make your own.
 - It's multi-threaded by default, with thread-safe session update handling and quick APIs for delaying code and Telegram API calls.
 - Features modular, tree-based routing systems for more advanced and interchangeable update sorting.
 
