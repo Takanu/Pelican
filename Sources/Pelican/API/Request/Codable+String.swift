@@ -10,8 +10,8 @@ import Foundation
 extension Encodable {
 	
 	/**
-	A convenience method to convert any codable type into a JSON format.
-	If the type is a standard Swift type, string substitutes will be used.
+	A convenience method to convert any codable type into a JSON format, or a single descriptive
+	string of the type if it contains only one variable.
 	*/
 	func encodeToUTF8() throws -> String? {
 

@@ -14,6 +14,19 @@ Adds an extension that deals in fetching information from Telegram.
 */
 extension TelegramRequest {
 	
+	/* Use this method for your bot to leave a group, supergroup or channel. Returns True on success. */
+	public func leaveChat(chatID: Int, userID: Int) {
+		
+		query = [
+			"chat_id":chatID,
+			"user_id": userID
+		]
+		
+		// Set the Request, Method and Content
+		method = "leaveChat"
+		
+	}
+	
 	
 	/**
 	Builds and returns a TelegramRequest for the API method with the given arguments.

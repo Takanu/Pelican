@@ -83,5 +83,79 @@ public class TelegramRequest {
 		if urlRequest == nil { throw TelegramRequestError.unableToMakeURLRequest }
 		else { return urlRequest! }
 	}
+	
+	
+	/**
+	Convenience function for encoding data from an API type to Data.
+	- parameter data: The instance you wish to convert into JSON data.
+	- returns: The converted type if true, or nil if not.
+	- note: The function will log an error to `PLog` if it didn't succeed.
+	*/
+	static public func encodeDataToUTF8<T: Encodable>(_ object: T) -> String? {
+		var jsonData = Data()
+		
+		do {
+			jsonData = try JSONEncoder().encode(object)
+		} catch {
+			PLog.error("Telegram Request Serialisation Error - \(error)")
+			return nil
+		}
+		
+		return String(data: jsonData, encoding: .utf8)
+	}
+	
+	static func encodeMarkupTypeToUTF8(_ markup: MarkupType) -> String? {
+		var jsonData = Data()
+		
+		if markup is MarkupInline {
+			let object = markup as! MarkupInline
+			do {
+				jsonData = try JSONEncoder().encode(object)
+			} catch {
+				PLog.error("Telegram Request Serialisation Error - \(error)")
+				return nil
+			}
+			
+			return String(data: jsonData, encoding: .utf8)
+		}
+			
+		else if markup is MarkupKeyboard {
+			let object = markup as! MarkupKeyboard
+			do {
+				jsonData = try JSONEncoder().encode(object)
+			} catch {
+				PLog.error("Telegram Request Serialisation Error - \(error)")
+				return nil
+			}
+			
+			return String(data: jsonData, encoding: .utf8)
+		}
+			
+		else if markup is MarkupKeyboardRemove {
+			let object = markup as! MarkupKeyboardRemove
+			do {
+				jsonData = try JSONEncoder().encode(object)
+			} catch {
+				PLog.error("Telegram Request Serialisation Error - \(error)")
+				return nil
+			}
+			
+			return String(data: jsonData, encoding: .utf8)
+		}
+			
+		else if markup is MarkupForceReply {
+			let object = markup as! MarkupForceReply
+			do {
+				jsonData = try JSONEncoder().encode(object)
+			} catch {
+				PLog.error("Telegram Request Serialisation Error - \(error)")
+				return nil
+			}
+			
+			return String(data: jsonData, encoding: .utf8)
+		}
+		
+		return nil
+	}
 }
 
