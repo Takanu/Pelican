@@ -52,38 +52,7 @@ extension TelegramRequest {
 		
 		return request
 	}
-	
-	/*
-	/** Builds and returns a TelegramRequest for the API method with the given arguments.
-	
-	## Builder Description
-	Sends a file based on the given "SendType", which defines both the ID of the file and 
-	*/
-	public func sendFile(chatID: Int, file: SendType, markup: MarkupType?, caption: String = "", disableNotification: Bool = false, replyMessageID: Int = 0) {
-		
-		query = [
-			"chat_id":chatID
-		]
-		
-		// Ensure only the files that can have caption types get a caption query
-		let captionTypes = ["audio", "photo", "video", "document", "voice"]
-		if caption != "" && captionTypes.index(of: file.messageTypeName) != nil { query["caption"] = caption }
-		
-		// Check whether any other query needs to be added
-		if markup != nil { query["reply_markup"] = markup!.getQuery() }
-		if replyMessageID != 0 { query["reply_to_message_id"] = replyMessageID }
-		if disableNotification != false { query["disable_notification"] = disableNotification }
-		
-		// Combine the query built above with the one the file provides
-		let finalQuery = query.reduce(file.getQuery(), { r, e in var r = r; r[e.0] = e.1; return r })
-		
-		// Set the Request, Method and Content
-		method = file.method
-		content = file as Any
-		
-	}
-	*/
-	
+
 	/**
 	Builds and returns a TelegramRequest for the API method with the given arguments.
 	
@@ -93,8 +62,7 @@ extension TelegramRequest {
 	- note: Ensure the MessageFile being sent either has a valid File ID or url to a local or remote resource, or otherwise nothing will be sent
 	
 	- parameter file: The file to be uploaded.  The MessageFile protocol is adopted by all API types that require the uploading of files, such as `Audio`, `Photo` and `VideoNote`.
-	- parameter callback: TBA
-	- parameter chatID: The chat you wish to send the file to
+	- parameter chatID: The chat you wish to send the file to.
 	- parameter caption: Provide an optional caption that will sit below the uploaded file in a Telegram chat.  Note that this only works with Audio,
 	Photo, Video, Document and Voice message file types - you wont see a caption appear with any other uploaded file type.
 	*/

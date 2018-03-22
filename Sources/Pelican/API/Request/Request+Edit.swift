@@ -8,9 +8,6 @@
 
 import Foundation
 
-
-
-
 /**
 Adds an extension that deals in creating requests for editing messages in a chat.
 */
