@@ -10,8 +10,11 @@ import Foundation
 
 
 /** 
-Defines a class that acts as a proxy for the Pelican-managed Schedule class, thats used to delay the execution of functions.
-This class includes many helper and convenience functions to make
+Defines a class that acts as a proxy for the Pelican-managed Schedule class, used to delay the execution
+of closures and API requests.
+
+When a closure or API request is delayed, it will still be executed on the DispatchQueue belonging to the Session
+that called it, ensuring thread safety.
 */
 public class ChatSessionQueue {
 	

@@ -4,10 +4,10 @@ import Dispatch     // Required on Linux platforms.
 
 
 /**
-The king-daddy of Pelican, Sessions encapsulate an interaction point between you and a type of interaction point on Telegram.
+The king-daddy of Pelican, Sessions encapsulates communication between you and a type of interaction point on Telegram.
 
 The protocol is a shell that defines the minimum amount of content required in order to function.  Extend it's functionality
-by adding modules to your own custom sessions.
+by adding modules to your own custom sessions.  Alternatively, use `ChatSession` and `UserSession` which cover most common bot use cases.
 */
 public protocol Session {
 	
@@ -17,8 +17,7 @@ public protocol Session {
 	
 	
 	// DISPATCH QUEUE
-	/**
-	The queue that Pelican will use to asynchronously dispatch update handling to, if the update should be handled by this session.
+	/**  The queue that Pelican will use to asynchronously dispatch update handling to, if the update should be handled by this session.
 	The queue is serialised which means that updates given to a specific session will be processed in a First In, First Out (FIFO)
 	order, but that update handling across different Sessions can be processed at the same time.
 	
@@ -36,18 +35,27 @@ public protocol Session {
 	var timeStarted: Date { get }
 	
 	
-	/** A standard initialiser for a Session, which includes all the required information to setup any delegates it might have. */
+	/**
+	A standard initialiser for a Session, which includes all the required information to setup any delegates it might have.
+	*/
 	init(bot: PelicanBot, tag: SessionTag, update: Update)
 	
-	/** Performs any post-initialiser setup, like setting initial routes. */
+	/**
+	Performs any post-initialiser setup, like setting initial routes.
+	*/
 	func postInit()
 	
-	/** TEMP NAME, PLEASE CHANGE ME.  Performs any functions required to prepare the Session for removal from the Builder, which can occur when a Session or one
-	of it's delegates requests Pelican to remove it.  This function should never send the closure event itself, use this to clean up any custom types before the Session is removed.*/
+	/**
+	TEMP NAME, PLEASE CHANGE ME.
+	Performs any functions required to prepare the Session for removal from the Builder, which can occur when a Session or one
+	of it's delegates requests Pelican to remove it.  This function should never send the closure event itself, use this to clean up any custom types before the Session is removed.
+	*/
 	func cleanup()
 	
-	/** Receives updates from Pelican to be used to find matching Routes and Prompts (in ChatSessions only).  Returns SessionRequest which
-	Pelican uses to make requests to Telegram with. */
+	/**
+	Receives updates from Pelican to be used to find matching Routes and Prompts (in ChatSessions only).  Returns SessionRequest which
+	Pelican uses to make requests to Telegram with.
+	*/
 	func update(_ update: Update)
 	
 }

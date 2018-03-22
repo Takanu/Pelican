@@ -10,7 +10,7 @@ import Dispatch     // Required on Linux platforms.
 
 /**
 Encapsulates a DispatchQueue with a synchronised array of all work currently queued to it.
-Allows for all work queued on a DispatchQueue to be cancelled without race conditions or manual work comparison.
+Allows for all work queued on a DispatchQueue to be executed without race conditions or manual work comparison.
 */
 public class SessionDispatchQueue {
 	

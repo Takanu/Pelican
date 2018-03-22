@@ -12,7 +12,8 @@ import Foundation
 /**
 The base class for filtering incoming updates either to functions or other routes for further filtering.
 
-This base route class will handle all updates and perform no filtering, for pre-built Routes that do filter and cover all common use-cases, see `RoutePass`, `RouteCommand`, `RouteListen` and `RouteManual`.
+This base route class will handle all updates and perform no filtering, for pre-built Routes that do filter and
+cover all common use-cases, see `RoutePass`, `RouteCommand`, `RouteListen` and `RouteManual`.
 */
 open class Route {
 	

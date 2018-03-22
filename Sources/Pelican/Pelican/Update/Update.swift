@@ -21,7 +21,7 @@ public class Update {
 	/// The data package contained in the update as a UpdateModel type.
 	public var data: UpdateModel
 	
-	/// The data package contained in the update as a Node, which you can either access through subscripting the type or directly.
+	/// The data package contained in the update as JSON, which you can either access through subscripting the type or directly.
 	public var json: JSON
 	
 	/// The time the update was received by Pelican.
@@ -124,7 +124,6 @@ public class Update {
 	/**
 	
 	*/
-	
 	
 	public func matches(_ pattern: String, types: [String]) -> Bool {
 		

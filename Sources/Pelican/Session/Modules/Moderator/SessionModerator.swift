@@ -159,7 +159,7 @@ public class SessionModerator {
 	
 	This continues until the ID is removed from the blacklist.
 	
-	- note: This does not deinitialize the Session, to avoid scenarios where the Session potentially needs 
+	- note: This does not immediately deinitialize the Session, to avoid scenarios where the Session potentially needs
 	to be used by another operation at or near the timeframe where this occurs.
 	*/
 	public func blacklist() {

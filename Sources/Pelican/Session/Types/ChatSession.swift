@@ -45,10 +45,13 @@ open class ChatSession: Session {
 	public var mod: SessionModerator
 	
 	/// Handles timeout conditions.
-	public var timeout: Timeout
+	public var timeout: TimeoutMonitor
 	
 	/// Handles flood conditions.
-	public var flood: Flood
+	public var flood: FloodMonitor
+	
+	/// Pre-checks and filters unnecessary updates.
+	public var filter: UpdateFilter
 	
 	
 	// MAINTENANCE
@@ -70,8 +73,9 @@ open class ChatSession: Session {
 		self.baseRoute = Route(name: "base", routes: [])
 		
 		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
-		self.timeout = Timeout(tag: self.tag, schedule: bot.schedule)
-		self.flood = Flood()
+		self.timeout = TimeoutMonitor(tag: self.tag, schedule: bot.schedule)
+		self.flood = FloodMonitor()
+		self.filter = UpdateFilter()
 		
 		self.requests = SessionRequest(tag: tag)
 		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.chatsession",qos: .userInitiated)
@@ -89,11 +93,18 @@ open class ChatSession: Session {
 		self.timeout.close()
 		self.flood.clearAll()
 		self.dispatchQueue.cancelAll()
+		self.filter.reset()
 	}
 	
 	
 	// Receives a message from the TelegramBot to check whether in the current state anything can be done with it
 	public func update(_ update: Update) {
+		
+		if filter.verifyUpdate(update) == false {
+			self.timeout.bump(update)
+			self.flood.handle(update)
+			return
+		}
 		
 		dispatchQueue.async {
 			// Bump the timeout controller first so if flood or another process closes the Session, a new timeout event will not be added.

@@ -8,13 +8,11 @@
 
 import Foundation
 
-
 /**
 A high-level class for managing states and information for each user that attempts to interact with your bot
-(and that isn't immediately blocked by the bot's blacklist).  Features embedded permission lists populated by Moderator,
-the chat sessions the user is actively participating in and other key pieces of information.
+(and that isn't immediately blocked by the bot's blacklist).
 
-UserSession is also used to handle InlineQuery and ChosenInlineResult routes, as only UserSessions will receive inline updates.
+UserSession is also used to handle InlineQuery and ChosenInlineResult routes, as ChatSessions cannot receive inline updates.
 */
 open class UserSession: Session {
 	
@@ -29,9 +27,8 @@ open class UserSession: Session {
 	public var userID: Int
 	
 	/// The chat sessions this user is currently actively occupying.
-	/// Not currently functional, undecided if it will be implemented
+	/// -- Not currently functional, undecided if it will be implemented
 	//public var chatSessions: [SessionTag] = []
-	
 
 	
 	// API REQUESTS
@@ -47,13 +44,16 @@ open class UserSession: Session {
 	public var mod: SessionModerator
 	
 	/// Handles timeout conditions.
-	public var timeout: Timeout
+	public var timeout: TimeoutMonitor
 	
 	/// Handles flood conditions.
-	public var flood: Flood
+	public var flood: FloodMonitor
 	
 	/// Stores a link to the schedule, that allows events to be executed at a later date.
 	public var schedule: Schedule
+	
+	/// Pre-checks and filters unnecessary updates.
+	public var filter: UpdateFilter
 	
 	
 	// TIME AND ACTIVITY
@@ -71,8 +71,9 @@ open class UserSession: Session {
 		self.baseRoute = Route(name: "base", routes: [])
 		
 		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
-		self.timeout = Timeout(tag: tag, schedule: bot.schedule)
-		self.flood = Flood()
+		self.timeout = TimeoutMonitor(tag: tag, schedule: bot.schedule)
+		self.flood = FloodMonitor()
+		self.filter = UpdateFilter()
 		
 		self.schedule = bot.schedule
 		
@@ -90,17 +91,26 @@ open class UserSession: Session {
 		self.timeout.close()
 		self.flood.clearAll()
 		self.dispatchQueue.cancelAll()
+		self.filter.reset()
 	}
 	
 	
 	public func update(_ update: Update) {
 		
+		if filter.verifyUpdate(update) == false {
+			self.timeout.bump(update)
+			self.flood.handle(update)
+			return
+			
+		}
+		
 		dispatchQueue.async {
+			
 			// Bump the timeout controller first so if flood or another process closes the Session, a new timeout event will not be added.
 			self.timeout.bump(update)
 			
 			// This needs revising, whatever...
-			let handled = self.baseRoute.handle(update)
+			_ = self.baseRoute.handle(update)
 			
 			// Bump the flood controller after
 			self.flood.handle(update)

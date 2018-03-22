@@ -11,10 +11,10 @@ import Foundation
 /**
 Used for monitoring and controlling updates sent to a session by a user.
 */
-public class Flood {
+public class FloodMonitor {
 	
 	/// The currently active set of limits.
-	var monitors: [FloodMonitor] = []
+	var limits: [FloodLimit] = []
 	
 	init() { }
 	
@@ -24,10 +24,10 @@ public class Flood {
 	*/
 	public func add(type: [UpdateType], hits: Int, duration: Duration, action: @escaping () -> ()) {
 		
-		let monitor = FloodMonitor(type: type, hits: hits, duration: duration, action: action)
-		if monitors.contains(monitor) { return }
+		let limit = FloodLimit(type: type, hits: hits, duration: duration, action: action)
+		if limits.contains(limit) { return }
 		
-		monitors.append(monitor)
+		limits.append(limit)
 		
 	}
 	
@@ -36,21 +36,21 @@ public class Flood {
 	*/
 	public func handle(_ update: Update) {
 		
-		monitors.forEach( { $0.bump(update) } )
+		limits.forEach( { $0.bump(update) } )
 	}
 	
 	/**
 	Clears all flood monitors currently being stored.
 	*/
 	public func clearAll() {
-		monitors.removeAll()
+		limits.removeAll()
 	}
 }
 
 /**
 Defines a set of rules that a FloodLimit class can check for.
 */
-public class FloodMonitor: Equatable {
+public class FloodLimit: Equatable {
 	
 	// CRITERIA
 	/// The type of update to look for when incrementing the hit counter.
@@ -118,7 +118,7 @@ public class FloodMonitor: Equatable {
 	}
 	
 	
-	public static func ==(lhs: FloodMonitor, rhs: FloodMonitor) -> Bool {
+	public static func ==(lhs: FloodLimit, rhs: FloodLimit) -> Bool {
 		
 		if lhs.type == rhs.type &&
 			lhs.hits == rhs.hits &&

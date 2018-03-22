@@ -11,7 +11,7 @@ import Foundation
 /**
 Used to monitor timeout conditions for a session.
 */
-public class Timeout {
+public class TimeoutMonitor {
 	
 	// CALLBACKS
 	var tag: SessionTag
