@@ -12,7 +12,7 @@ extension SessionRequestAsync {
 	/**
 	A basic function for testing authorisation tokens, that returns your bot as a user if successful.
 	*/
-	func getMe(callback: ((User?) -> ())? ) {
+	func getMe(callback: ((User?) -> ())? = nil) {
 		
 		let request = TelegramRequest.getMe()
 		tag.sendAsyncRequest(request) { response in
@@ -66,11 +66,15 @@ extension SessionRequestAsync {
 														 fromChatID: Int,
 														 fromMessageID: Int,
 														 disableNotification: Bool = false,
-														 callback: ((Message?) -> ())? ) {
+														 callback: ((Message?) -> ())? = nil) {
 		
 		let request = TelegramRequest.forwardMessage(toChatID: toChatID, fromChatID: fromChatID, fromMessageID: fromMessageID, disableNotification: disableNotification)
-		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response!)
+		tag.sendAsyncRequest(request) { response in
+			
+			if callback != nil {
+				callback!(SessionRequest.decodeResponse(response))
+			}
+		}
 	}
 	
 	/**
@@ -101,20 +105,13 @@ extension SessionRequestAsync {
 		
 		tag.sendAsyncRequest(request!) { response in
 			
-			// Define the type we wish to decode and see if we can make it happen.
-			let message: Message?
-			if response != nil {
-				message = SessionRequest.decodeResponse(response!)
-			} else {
-				message = nil
-			}
-			
 			// If we have a callback, return whatever the result was.
 			if callback != nil {
-				callback!(message)
+				callback!(SessionRequest.decodeResponse(response!))
 			}
 		}
 	}
+	
 	
 	/**
 	Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status).
@@ -132,6 +129,41 @@ extension SessionRequestAsync {
 			// If we have a callback, return whatever the result was.
 			if callback != nil {
 				callback!(returnValue)
+			}
+		}
+	}
+	
+	
+	/**
+	Returns a list of profile pictures for the specified user.
+	*/
+	public func getUserProfilePhotos(userID: Int,
+																	 offset: Int = 0,
+																	 limit: Int = 100,
+																	 callback: ((UserProfilePhotos?) -> ())? = nil) {
+		
+		let request = TelegramRequest.getUserProfilePhotos(userID: userID, offset: offset, limit: limit)
+		tag.sendAsyncRequest(request) { response in
+			
+			if callback != nil {
+				callback!(SessionRequest.decodeResponse(response))
+			}
+		}
+	}
+	
+	/**
+	Use this method to get basic info about a file and prepare it for downloading. For the moment, bots can download files of up to 20MB in size. On success, a File object is returned. The file can then be downloaded via the link
+	https://api.telegram.org/file/bot<token>/<file_path>, where <file_path> is taken from the response. It is guaranteed that the link will be valid for at least 1 hour. When the link expires, a new one can be requested by calling
+	getFile again.
+	*/
+	public func getFile(fileID: String,
+											callback: ((FileDownload?) -> ())? = nil) {
+		
+		let request = TelegramRequest.getFile(fileID: fileID)
+		tag.sendAsyncRequest(request) { response in
+			
+			if callback != nil {
+				callback!(SessionRequest.decodeResponse(response))
 			}
 		}
 	}

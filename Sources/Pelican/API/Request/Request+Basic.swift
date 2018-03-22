@@ -155,6 +155,32 @@ extension TelegramRequest {
 		
 	}
 	
+	/**
+	Builds and returns a TelegramRequest for the API method with the given arguments.
+	
+	## API Description
+	Use this method to get a list of profile pictures for a user. Returns a UserProfilePhotos object.
+	*/
+	public static func getUserProfilePhotos(userID: Int, offset: Int = 0, limit: Int = 100) -> TelegramRequest {
+		
+		let request = TelegramRequest()
+		
+		// I know this could be neater, figure something else later
+		let adjustedLimit = max(0, min(100, limit))
+		
+		request.query = [
+			"user_id": userID,
+			"offset": offset,
+			"limit": adjustedLimit
+		]
+		
+		// Set the Request, Method and Content
+		request.method = "getUserProfilePhotos"
+		
+		return request
+	}
+	
+	
 	/* Use this method to kick a user from a group or a supergroup. In the case of supergroups, the user will not be able to return to the group on their own using invite links, etc., unless unbanned first. The bot must be an administrator in the group for this to work. Returns True on success. */
 	public static func sendChatAction(action: ChatAction, chatID: Int) -> TelegramRequest {
 		
@@ -170,5 +196,29 @@ extension TelegramRequest {
 		request.content = action as Any
 		
 		return request
+	}
+	
+	/**
+	Builds and returns a TelegramRequest for the API method with the given arguments.
+	
+	## API Description
+	Use this method to get basic info about a file and prepare it for downloading. For the moment, bots can download files of up to 20MB in size. On success, a File object is returned. The file can then be downloaded via the link
+	https://api.telegram.org/file/bot<token>/<file_path>, where <file_path> is taken from the response. It is guaranteed that the link will be valid for at least 1 hour. When the link expires, a new one can be requested by calling
+	getFile again.
+	*/
+	public static func getFile(fileID: String) -> TelegramRequest {
+		
+		let request = TelegramRequest()
+		
+		request.query = [
+			"file_id": fileID
+		]
+		
+		// Set the Request, Method and Content
+		request.method = "getFile"
+		request.content = fileID as Any
+		
+		return request
+		
 	}
 }

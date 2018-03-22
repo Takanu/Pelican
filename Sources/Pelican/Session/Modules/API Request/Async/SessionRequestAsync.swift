@@ -16,6 +16,9 @@ the result of a request.
 */
 public struct SessionRequestAsync {
 	
+	public typealias CallbackBoolean = ((Bool) -> ())?
+	public typealias CallbackString = ((String?) -> ())?
+	
 	/// The tag of the session that this request instance belongs to.
 	var tag: SessionTag
 	

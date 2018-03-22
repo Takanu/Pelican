@@ -73,6 +73,7 @@ extension SessionRequestSync {
 		return SessionRequest.decodeResponse(response)
 	}
 	
+	
 	/**
 	Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status).
 	- returns: True on success.
@@ -82,5 +83,28 @@ extension SessionRequestSync {
 		let request = TelegramRequest.sendChatAction(action: actionType, chatID: chatID)
 		let response = tag.sendSyncRequest(request)
 		return SessionRequest.decodeResponse(response) ?? false
+	}
+	
+	
+	/**
+	Returns a list of profile pictures for the specified user.
+	*/
+	public func getUserProfilePhotos(userID: Int, offset: Int = 0, limit: Int = 100) -> UserProfilePhotos? {
+		
+		let request = TelegramRequest.getUserProfilePhotos(userID: userID, offset: offset, limit: limit)
+		let response = tag.sendSyncRequest(request)
+		return SessionRequest.decodeResponse(response)
+	}
+	
+	/**
+	Use this method to get basic info about a file and prepare it for downloading. For the moment, bots can download files of up to 20MB in size. On success, a File object is returned. The file can then be downloaded via the link
+	https://api.telegram.org/file/bot<token>/<file_path>, where <file_path> is taken from the response. It is guaranteed that the link will be valid for at least 1 hour. When the link expires, a new one can be requested by calling
+	getFile again.
+	*/
+	public func getFile(fileID: String) -> FileDownload? {
+		
+		let request = TelegramRequest.getFile(fileID: fileID)
+		let response = tag.sendSyncRequest(request)
+		return SessionRequest.decodeResponse(response)
 	}
 }
