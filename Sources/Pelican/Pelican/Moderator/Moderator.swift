@@ -205,7 +205,6 @@ public class Moderator {
 			
 			if chatBlacklist.contains(id) == false {
 				chatBlacklist.append(id)
-				print("ADDED TO BLACKLIST - \(id)")
 			}
 		}
 	}

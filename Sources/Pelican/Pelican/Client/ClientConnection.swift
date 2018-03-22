@@ -22,8 +22,9 @@ final public class ClientConnection {
 	/// The length of time a normal data task will remain open before the connection automatically closes.
 	var timeout = 60.sec
 	
+	// (Will be revisited in 0.9, outside the scope of 0.8)
 	/// The amount of times a connection will attempt to re-connect before giving up and returning nil.
-	var reconnectAttempts = 3
+	private var reconnectAttempts = 0
 	
 	
 	// REQUEST DATA
@@ -117,13 +118,11 @@ final public class ClientConnection {
 					currentReconnectAttempts += 1
 					
 					if currentReconnectAttempts < reconnectAttempts {
-						print("ClientConnection - Timed out, retrying...")
 						self.dataTask?.cancel()
 						return try openSync(session: session)
 					}
 					
 					else {
-						print("ClientConnection - Run out of reconnection attempts")
 						throw PortalError.timedOut
 					}
 				}
@@ -144,7 +143,6 @@ final public class ClientConnection {
 		self.dataTask = session.dataTask(with: request) { (data, urlResponse, error) in
 			
 			if let error = error {
-				print(error)
 				return
 			}
 			
@@ -154,8 +152,6 @@ final public class ClientConnection {
 				do {
 					let httpResponse = urlResponse as! HTTPURLResponse
 					let response = try TelegramResponse(data: data, urlResponse: httpResponse)
-					
-					print("ClientConnection - Task Complete.")
 					
 					if callback != nil {
 						callback!(response)
@@ -181,7 +177,8 @@ final public class ClientConnection {
 	func clean() {
 		currentReconnectAttempts = 0
 	}
-		
+	
+	// This work will be re-visited in 0.9.
 	/**
 	Overridden to catch timeout errors.
 	*/

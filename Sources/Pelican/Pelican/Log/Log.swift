@@ -21,12 +21,15 @@ class PLog {
 	
 	init() {}
 	
+	
+	// Disabled until controls can be added to prevent unwanted levels being shown.
 	/**
 	Attempts to print the text based on what kind of debug it's associated with.
 	Privately used from the convenience methods laid out in Debug+Prints.
 	*/
 	static internal func addPrint(level: LogLevel, text: String, file: String, function: String, line: Int) {
-		print("\(function) : \(line) ===\n\(text)")
+		return
+		//print("[\(function) : \(line)]: \(text)")
 
 //			console!.log(level, message: text, file: file, function: function, line: line)
 			// *shrug*

@@ -112,8 +112,6 @@ public class SessionBuilder {
 			// If not, build one
 			else {
 				
-				print("BUILDING SESSION - \(id)")
-				
 				// If the setup function exists, use it
 				if setup != nil {
 					
@@ -180,8 +178,6 @@ public class SessionBuilder {
 		if let session = sessions[tag.id] {
 			session.cleanup()
 			sessions.removeValue(forKey: tag.id)
-			
-			print("SESSION REMOVED - \(tag.id)")
 		}
 	}
 	

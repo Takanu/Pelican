@@ -21,11 +21,47 @@ to assign it to your bot and start receiving updates.  You can get your API toke
 ## Pelican Basic Setup
 
 ```
+// Create a chat session
+class ShinyNewSession: ChatSession {
+
+	override func postInit() {
+		// ROUTING
+		// Add a basic 'lil route.
+		let start = RouteCommand(commands: "start") { update in
+
+			self.requests.async.sendMessage("Ding!", markup: nil, chatID: self.tag.id)
+
+			return true
+		}
+
+		// Add some more test routes.
+		let taka = RouteCommand(commands: "taka") { update in
+
+			let user = self.requests.sync.getMe()
+			let responseMsg = """
+			HI!  I AM A \(user?.firstName ?? "null") BOT.
+			"""
+			self.requests.async.sendMessage(responseMsg, markup: nil, chatID: self.tag.id)
+
+			return true
+		}
+
+		// This is a blank route that allows any update given it to automatically pass.
+		self.baseRoute = Route(name: "base", action: { update in return false })
+		self.baseRoute.addRoutes(start, taka)
+	}
+
+}
+
 // Create a bot instance
 let pelican = try PelicanBot()
 
 // Add a builder
-pelican.addBuilder(SessionBuilder(spawner: Spawn.perChatID(types: nil), idType: .chat, session: TestUser.self, setup: nil) )
+pelican.addBuilder(SessionBuilder(spawner: Spawn.perChatID(types: nil), idType: .chat, session: ShinyNewSession.self, setup: nil) )
+
+// Configure the bot polling
+bot.pollInterval = 2
+bot.updateTimeout = 300
 
 // Run it
 try pelican.boot()
@@ -55,11 +91,9 @@ public final class PelicanBot {
 	
 	
   // CONNECTION SETTINGS
-	/// Sets the frequency at which the bot looks for updates from users to act on once a previous update has been fetched.  This must be set before Telegram is able to run.
-	public var pollInterval: Int = -1
 	
 	/**
-	(Polling) Identifier of the first update to be returned. Must be greater by one than the highest among the identifiers of previously received updates. By default, updates starting with the earliest unconfirmed update are returned.
+	Identifier of the first update to be returned. Must be greater by one than the highest among the identifiers of previously received updates. By default, updates starting with the earliest unconfirmed update are returned.
 	
 	An update is considered confirmed as soon as getUpdates is called with an offset higher than its update_id. The negative offset can be specified to retrieve updates starting from -offset update from the end of the updates queue. All previous updates will forgotten.
 	
@@ -67,10 +101,10 @@ public final class PelicanBot {
 	*/
   public var updateOffset: Int = 0
 	
-	/// (Polling) The number of messages that can be received in any given update, between 1 and 100.
+	/// The number of messages that can be received in any given update, between 1 and 100.
   public var updateLimit: Int = 100
 	
-	/// (Polling) The length of time Pelican will hold onto an update connection with Telegram to wait for updates before disconnecting.
+	/// The length of time Pelican will hold onto an update connection with Telegram to wait for updates before disconnecting.
   public var updateTimeout: Int = 300
 	
 	/// Defines what update types the bot will receive.  Leave empty if all are allowed, or otherwise specify to optimise the bot.
@@ -173,10 +207,8 @@ public final class PelicanBot {
 	*/
   public func boot() throws {
 		
-		if pollInterval == -1 {
-			throw TGBotError.NoPollingInterval
-		}
-		
+		// The main thread needs to do 'something', keep this for later
+		/**
 		// Set the upload queue.
 		updateQueue = LoopQueue(queueLabel: "com.pelican.fetchupdates",
 														qos: .userInteractive,
@@ -192,6 +224,7 @@ public final class PelicanBot {
 			self.timeLastUpdate = Date()
 			PLog.info("Update Complete.")
 		}
+		*/
 		
 		// Set the schedule queue.
 		scheduleQueue = LoopQueue(queueLabel: "com.pelican.eventschedule",
@@ -225,13 +258,32 @@ public final class PelicanBot {
 		self.timeLastUpdate = Date()
 		started = true
 		
-		updateQueue!.queueNext()
+		//updateQueue!.queueNext()
 		scheduleQueue!.queueNext()
 		
-		// Until we add terminal commands, hooooold!
+		print("<<<<< Pelican has started. >>>>>")
+		
+		// Run the update queue
 		while 1 == 1 {
-			continue
+			updateCycle()
 		}
+		
+	}
+	
+	/**
+	The main run loop for Pelican, responsible for fetching and dispatching updates to Sessions.
+	*/
+	private func updateCycle() {
+		PLog.info("Update Starting...")
+		
+		let updates = self.requestUpdates()
+		if updates != nil {
+			self.handleUpdates(updates!)
+		}
+		
+		self.timeLastUpdate = Date()
+		PLog.info("Update Complete.")
+		
 	}
   
   /**

@@ -76,8 +76,6 @@ public class TelegramRequest {
 		else {
 			guard let url = uri.url else { throw TelegramRequestError.unableToMakeFoundationURL }
 			urlRequest = try cache.getRequestData(forFile: file!, query: query, url: url)
-			print("FILE PREPARED.  OOOOOOOOOOOO!")
-			
 		}
 		
 		if urlRequest == nil { throw TelegramRequestError.unableToMakeURLRequest }

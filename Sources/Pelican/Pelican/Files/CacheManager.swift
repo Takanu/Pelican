@@ -142,7 +142,6 @@ public class CacheManager {
 			var urlRequest = URLRequest(url: url)
 			urlRequest.httpMethod = "POST"
 			urlRequest.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-			print(query)
 			
 			var body: Data
 			do {
@@ -213,7 +212,6 @@ public class CacheManager {
 		body.append("Content-Disposition: form-data; name=\"\(typeName)\"; filename=\"\(fileName)\"\(lineBreak)")
 		body.append("Content-Type: \(mimeType + lineBreak + lineBreak)")
 		
-		print(String.init(data: body, encoding: .utf8)!)
 		body.append(fileData)
 		body.append(lineBreak)
 		
