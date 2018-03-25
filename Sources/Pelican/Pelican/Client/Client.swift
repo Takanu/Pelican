@@ -44,10 +44,10 @@ class Client {
 		self.token = token
 		self.cache = cache
 		
-		let config = URLSessionConfiguration.ephemeral
+		let config = URLSessionConfiguration.default
 		config.httpCookieStorage = nil
 		config.httpMaximumConnectionsPerHost = 30
-		//config.isDiscretionary = false
+		//config.isDiscretionary = false  // Not Linux-compatible currently.
 		config.networkServiceType = .default
 		//config.timeoutIntervalForRequest = 20
 		//config.shouldUseExtendedBackgroundIdleMode = false
