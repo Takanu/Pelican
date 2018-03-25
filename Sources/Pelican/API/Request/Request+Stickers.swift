@@ -110,12 +110,12 @@ extension TelegramRequest {
 	## Function Description
 	Use this method to delete a sticker from a set created by the bot. Returns True on success.
 	*/
-	public static func deleteStickerFromSet(stikerID: String) -> TelegramRequest {
+	public static func deleteStickerFromSet(stickerID: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
 		request.query = [
-			"stiker": stikerID
+			"sticker": stickerID
 		]
 		
 		// Set the Request, Method and Content
@@ -129,12 +129,12 @@ extension TelegramRequest {
 	## Function Description
 	Use this method to move a sticker in a set created by the bot to a specific position . Returns True on success.
 	*/
-	public static func setStickerPositionInSet(stikerID: String, position: Int) -> TelegramRequest {
+	public static func setStickerPositionInSet(stickerID: String, position: Int) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
 		request.query = [
-			"stiker": stikerID,
+			"sticker": stickerID,
 			"position": position
 		]
 		
