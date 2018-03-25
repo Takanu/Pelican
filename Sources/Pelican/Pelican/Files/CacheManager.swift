@@ -72,14 +72,23 @@ public class CacheManager {
 	*/
 	
 	/** Attempts to retrieve the raw data for the requested resource.
-	- parameter upload: The file you wish to get raw data for.
+	- parameter path: The path to file you want get. If `path` contains "file://", it will be loaded with `FileManager`, othewise with `Bundle`.
 	*/
 	func fetchFile(path: String) throws -> Data {
 		
 		if path.contains("://") {
+			guard let url = URL(string: path) else {
+				throw CacheError.BadPath
+			}
 			
+			// Try getting the bytes
+			do {
+				return try Data(contentsOf: url)
+			} catch {
+				PLog.error(error.localizedDescription)
+				throw CacheError.LocalNotFound
+			}
 		}
-			
 		else {
 			if bundle == nil {
 				throw CacheError.BadBundle
