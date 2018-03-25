@@ -240,6 +240,28 @@ public extension SynchronizedArray where Element: Equatable {
 		queue.sync { result = self.array.contains(element) }
 		return result
 	}
+	
+	/**
+	Removes the first element that is equatable to the given element.
+	
+	- parameter element: The element to find in the sequence.
+	- returns: True if the element was found in the sequence, otherwise false.
+	*/
+	func remove(_ element: Element, completion: ((Bool) -> Void)? = nil)  {
+		
+		queue.async(flags: .barrier) {
+			var result = false
+			
+			if let index = self.array.index(of: element) {
+				self.array.remove(at: index)
+				result = true
+			}
+			
+			DispatchQueue.main.async {
+				completion?(result)
+			}
+		}
+	}
 }
 
 // MARK: - Infix operators

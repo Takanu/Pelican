@@ -74,8 +74,7 @@ public class TelegramRequest {
 		
 		/// If we have message content, get the information as part of an HTTP header/body setup instead.
 		else {
-			guard let url = uri.url else { throw TelegramRequestError.unableToMakeFoundationURL }
-			urlRequest = try cache.getRequestData(forFile: file!, query: query, url: url)
+			urlRequest = try cache.getRequestData(forFile: file!, query: query, uri: uri)
 		}
 		
 		if urlRequest == nil { throw TelegramRequestError.unableToMakeURLRequest }

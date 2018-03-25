@@ -40,7 +40,7 @@ public class Spawn {
 	}
 	
 	/**
-	A spawner that returns Chat IDs if they both match the inclusion list, and that match the defines update and chat types.
+	A spawner that returns Chat IDs if they both match the inclusion list and the defined update and chat types.
 	- parameter include: The Chat IDs that are allowed to pass-through this spawner.
 	- parameter updateType: The update types the spawner is looking for.  If nil, all update types will be accepted.
 	- parameter chatType: The types of chat the update originated from that the spawner is looking for.  If nil, all chat types will be accepted.

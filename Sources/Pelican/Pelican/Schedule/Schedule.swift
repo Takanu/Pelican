@@ -18,7 +18,7 @@ Updates by the scheduler are dispatched to the DispatchQueue of the session it b
 public class Schedule {
 	
 	/// A sorted list of events, sorted from the shortest delay to the longest.
-	var queue: [ScheduleEvent] = []
+	var queue = SynchronizedArray<ScheduleEvent>()
 	
 	/// The time the run loop was last called at (used for popExpiredEvent)
 	var runTime: Date = Date()
@@ -57,10 +57,7 @@ public class Schedule {
 	Removes an event from the queue if it matches the event used as an argument.
 	*/
 	func remove(_ event: ScheduleEvent) {
-		
-		if let index = queue.index(where: { $0 == event } ) {
-			queue.remove(at: index)
-		}
+		queue.remove(event)
 	}
 	
 	/** 
@@ -70,8 +67,10 @@ public class Schedule {
 		
 		if queue.count == 0 { return nil }
 		
-		if queue[0].executeTime.timeIntervalSince1970 < runTime.timeIntervalSince1970 + fluctuationRange {
-			return queue.remove(at: 0)
+		if queue[0]!.executeTime.timeIntervalSince1970 < runTime.timeIntervalSince1970 + fluctuationRange {
+			let event = queue[0]!
+			queue.remove(at: 0)
+			return event
 		}
 		
 		return nil
@@ -86,7 +85,7 @@ public class Schedule {
 		runTime = Date()
 		
 		while let event = popExpiredEvent() {
-			event.action()
+			requestExecution(event.tag, event.action)
 		}
 	}
 	

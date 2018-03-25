@@ -119,24 +119,35 @@ public class CacheManager {
 
 	- returns: An header tuple containing the correct header field and value, and a body data type containing the body that should be supplied to the URLRequest.
 	*/
-	func getRequestData(forFile file: MessageFile, query: [String: Encodable], url: URL) throws -> URLRequest? {
+	func getRequestData(forFile file: MessageFile, query: [String: Encodable], uri: URLComponents) throws -> URLRequest? {
 		
-		// If there's a file ID, send the ID as part of the body.
+		// If there's a file ID, just use URL queries.
 		if file.fileID != nil {
 			
-			let boundary = generateBoundary()
-			var urlRequest = URLRequest(url: url)
-			urlRequest.httpMethod = "POST"
+			var newURI = URLComponents()
+			newURI.scheme = uri.scheme
+			newURI.host = uri.host
+			newURI.port = uri.port
+			newURI.path = uri.path
 			
-			// Using setValue instead of addValue ensures that if the header field already exists, it is overwritten.
-			urlRequest.setValue("text/html; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-			urlRequest.httpBody = try createDataBody(withParameters: query, file: nil, boundary: boundary)
-			if urlRequest.httpBody == nil { throw CacheError.NoBytes }
-			return urlRequest
+			var querySets: [URLQueryItem] = []
+			
+			for item in query {
+				let value = try item.value.encodeToUTF8()
+				querySets.append(URLQueryItem(name: item.key, value: value))
+			}
+			querySets.append(URLQueryItem(name: file.contentType, value: file.fileID!))
+			
+			newURI.queryItems = querySets
+			guard let url = newURI.url else { throw CacheError.unableToMakeFoundationURL }
+			return URLRequest(url: url)
 		}
 		
+			
 		// If theres a URL, we need to fetch or validate the file.
 		else if file.url != nil {
+			
+			guard let url = uri.url else { throw CacheError.unableToMakeFoundationURL }
 			
 			let boundary = generateBoundary()
 			var urlRequest = URLRequest(url: url)
@@ -155,6 +166,7 @@ public class CacheManager {
 			urlRequest.httpShouldHandleCookies = false
 			return urlRequest
 		}
+		
 		
 		// Otherwise, throw a niiiiice big error.
 		throw CacheFormError.LinkNotFound
@@ -178,7 +190,7 @@ public class CacheManager {
 	- parameter file: The file to be turned into body data.
 	- parameter boundary:
 	*/
-	private func createDataBody(withParameters params: [String: Encodable]?, file: MessageFile?, boundary: String) throws -> Data {
+	private func createDataBody(withParameters params: [String: Encodable]?, file: MessageFile, boundary: String) throws -> Data {
 		
 		let lineBreak = "\r\n"
 		var body = Data()
@@ -195,16 +207,12 @@ public class CacheManager {
 			}
 		}
 		
-		// Fetch the contents of the file
-		if file == nil { return body }
-		if file!.url == nil { return body }
-		
 		// Fetch the file data and break up the path into names.
-		let fullFileName = file!.url?.components(separatedBy: "/").last ?? ""
+		let fullFileName = file.url?.components(separatedBy: "/").last ?? ""
 		let fileName = fullFileName.components(separatedBy: ".").first ?? ""
 		
-		let typeName = file!.contentType
-		let fileData = try fetchFile(path: file!.url!)
+		let typeName = file.contentType
+		let fileData = try fetchFile(path: file.url!)
 		let mimeType = "text/plain"			// Can be upgraded later once MessageType is more sophisticated.
 		
 		// Build the body
