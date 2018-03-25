@@ -47,7 +47,7 @@ class Client {
 		let config = URLSessionConfiguration.ephemeral
 		config.httpCookieStorage = nil
 		config.httpMaximumConnectionsPerHost = 30
-		config.isDiscretionary = false
+		//config.isDiscretionary = false
 		config.networkServiceType = .default
 		//config.timeoutIntervalForRequest = 20
 		//config.shouldUseExtendedBackgroundIdleMode = false
