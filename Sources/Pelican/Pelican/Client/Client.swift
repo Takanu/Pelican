@@ -22,8 +22,9 @@ class Client {
 	/// The URLSession to be used for data tasks
 	var session: URLSession!
 	
+	// WILL BE RE-IMPLEMENTED LATER
 	/// The length of time any client connection is allowed to be active before it's cancelled and the client makes another attempt.
-	var connectionTimeout: Duration = 3.sec
+	//var connectionTimeout: Duration = 3.sec
 	
 	/// The data task currently being performed
 	var dataTask: URLSessionDataTask?
@@ -48,7 +49,7 @@ class Client {
 		config.httpMaximumConnectionsPerHost = 30
 		config.isDiscretionary = false
 		config.networkServiceType = .default
-		config.timeoutIntervalForRequest = 20
+		//config.timeoutIntervalForRequest = 20
 		//config.shouldUseExtendedBackgroundIdleMode = false
 		//config.waitsForConnectivity = true
 		

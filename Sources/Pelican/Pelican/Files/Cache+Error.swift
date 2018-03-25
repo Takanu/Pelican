@@ -14,6 +14,7 @@ enum CacheError: String, Error {
 	case LocalNotFound = "The local resource you attempted to upload could not be found."
 	case RemoteNotFound = "The remote resource you attempted to upload could not be found."
 	case NoBytes = "The resource could not be obtained."
+	case unableToMakeFoundationURL
 }
 
 enum CacheFormError: String, Error {
