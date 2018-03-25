@@ -60,7 +60,7 @@ public class TelegramResponse {
 		}
 		
 		self.headers = newHeaders
-		self.body = try JSON(data: data)
+		self.body = JSON(data: data)
 		
 		self.success = body["ok"].bool ?? false
 		self.responseCode = body["error_code"].string

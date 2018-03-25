@@ -8,7 +8,7 @@ let package = Package(
 			.library(name: "Pelican", targets: ["Pelican"]),
     ],
     dependencies: [
-			.package(url: "https://github.com/SwiftyJSON/SwiftyJSON.git", .upToNextMajor(from: "4.0.0"))
+			.package(url: "https://github.com/IBM-Swift/SwiftyJSON.git", .upToNextMajor(from: "17.0.0"))
     ],
     targets: [
 			.target(name: "Pelican", dependencies: ["SwiftyJSON"]),

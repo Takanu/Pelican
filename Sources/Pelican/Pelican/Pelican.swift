@@ -185,7 +185,7 @@ public final class PelicanBot {
 		}
 		
 		let data = try Data(contentsOf: configURL!)
-		let configJSON = try JSON.init(data: data)
+		let configJSON = JSON.init(data: data)
     guard let token = configJSON["bot_token"].string else {
       throw TGBotError.KeyMissing
     }
