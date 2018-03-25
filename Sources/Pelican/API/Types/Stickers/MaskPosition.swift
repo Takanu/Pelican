@@ -33,5 +33,10 @@ public class MaskPosition: Codable {
 		case maskScale = "scale"
 	}
 	
-	
+	public init(point: MaskPositionPoint, offsetX: Float, offsetY: Float, maskScale: Float) {
+		self.point = point
+		self.offsetX = offsetX
+		self.offsetY = offsetY
+		self.maskScale = maskScale
+	}
 }

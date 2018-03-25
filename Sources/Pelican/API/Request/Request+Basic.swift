@@ -126,7 +126,7 @@ extension TelegramRequest {
 		request.query["chat_id"] = chatID
 		
 		// Check whether any other query needs to be added as form data.
-		let captionTypes = ["audio", "photo", "video", "document", "voice"]
+		let captionTypes = ["audio", "photo", "video", "document", "voice", "sticker"]
 		
 		if caption != "" && captionTypes.contains(file.contentType) {
 			request.query["caption"] = caption

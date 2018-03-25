@@ -69,7 +69,7 @@ final public class Sticker: TelegramType, MessageFile {
 	
 	public init?(url: String, width: Int? = nil, height: Int? = nil, thumb: Photo? = nil, emoji: String? = nil, fileSize: Int? = nil) {
 		
-		if url.checkURLValidity(acceptedExtensions: ["webp", "jpg"]) == false { return nil }
+		if url.checkURLValidity(acceptedExtensions: ["webp", "jpg", "png"]) == false { return nil }
 		
 		self.url = url
 		self.width = width
