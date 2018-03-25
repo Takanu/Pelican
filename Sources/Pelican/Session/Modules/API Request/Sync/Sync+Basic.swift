@@ -24,7 +24,7 @@ extension SessionRequestSync {
 	*/
 	@discardableResult
 	public func sendMessage(_ message: String,
-													markup: MarkupType?,
+													markup: MarkupType? = nil,
 													chatID: Int,
 													parseMode: MessageParseMode = .markdown,
 													replyID: Int = 0,
