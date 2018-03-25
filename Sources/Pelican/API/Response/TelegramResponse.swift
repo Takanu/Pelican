@@ -19,30 +19,30 @@ public class TelegramResponse {
 	//public var version: Version
 	
 	/// The status of the request.
-	public var status: Status
+	public private(set) var status: Status
 	
 	/// HTTP response headers.
-	public var headers: [String: String]
+	public private(set) var headers: [String: String]
 
 	/// The date the response was received.
-	var date = Date()
+	public private(set) var date = Date()
 	
 	/// The body of the response.
-	var body: JSON
+	public private(set) var body: JSON
 	
 	
 	// TELEGRAM INFO
 	/// If true, the request was a success.
-	var success: Bool
+	public private(set) var success: Bool
 	
 	/// The Telegram code sent back.
-	var responseCode: String?
+	public private(set) var responseCode: String?
 	
 	/// The error description, if the request was unsuccessful.
-	var responseStatus: String?
+	public private(set) var responseStatus: String?
 	
 	/// The result of the request, if successful.
-	public var result: JSON?
+	public private(set) var result: JSON?
 	
 
 	/**
