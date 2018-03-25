@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Dispatch     // Linux thing.
 
 /// A thread-safe array.
 public class SynchronizedArray<Element> {
