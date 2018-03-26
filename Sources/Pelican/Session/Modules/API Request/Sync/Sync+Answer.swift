@@ -12,30 +12,43 @@ extension SessionRequestSync {
 	/**
 	???
 	*/
+	@discardableResult
 	public func answerCallbackQuery(queryID: String,
 																	text: String?,
 																	showAlert: Bool,
 																	url: String = "",
-																	cacheTime: Int = 0) {
+																	cacheTime: Int = 0) -> Bool {
 		
 		let request = TelegramRequest.answerCallbackQuery(queryID: queryID, text: text, showAlert: showAlert, url: url, cacheTime: cacheTime)
-		_ = tag.sendSyncRequest(request)
+		let response = tag.sendSyncRequest(request)
+		return SessionRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
 	???
 	*/
+	@discardableResult
 	public func answerInlineQuery(queryID: String,
 																results: [InlineResult],
 																cacheTime: Int = 0,
 																isPersonal: Bool = false,
 																nextOffset: String?,
 																switchPM: String?,
-																switchPMParam: String?) {
+																switchPMParam: String?)  -> Bool {
 		
-		let request = TelegramRequest.answerInlineQuery(queryID: queryID, results: results, cacheTime: cacheTime, isPersonal: isPersonal, nextOffset: nextOffset, switchPM: switchPM, switchPMParam: switchPMParam)
+		let request = TelegramRequest.answerInlineQuery(queryID: queryID,
+																										results: results,
+																										cacheTime: cacheTime,
+																										isPersonal: isPersonal,
+																										nextOffset: nextOffset,
+																										switchPM: switchPM,
+																										switchPMParam: switchPMParam)
+		
 		if request != nil {
-			_ = tag.sendSyncRequest(request!)
+			let response = tag.sendSyncRequest(request!)
+			return SessionRequest.decodeResponse(response) ?? false
 		}
+		
+		return false
 	}
 }
