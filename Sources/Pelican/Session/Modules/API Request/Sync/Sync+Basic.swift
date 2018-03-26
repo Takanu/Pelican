@@ -24,12 +24,12 @@ extension SessionRequestSync {
 	*/
 	@discardableResult
 	public func sendMessage(_ message: String,
-													markup: MarkupType?,
-													chatID: Int,
-													parseMode: MessageParseMode = .markdown,
-													replyID: Int = 0,
-													useWebPreview: Bool = false,
-													disableNotification: Bool = false) -> Message? {
+				markup: MarkupType? = nil,
+				chatID: Int,
+				parseMode: MessageParseMode = .markdown,
+				replyID: Int = 0,
+				useWebPreview: Bool = false,
+				disableNotification: Bool = false) -> Message? {
 		
 		let request = TelegramRequest.sendMessage(chatID: chatID,
 																							text: message,

@@ -30,7 +30,7 @@ extension TelegramRequest {
 		]
 		
 		// Set the Request, Method and Content
-		request.method = "getChatMember"
+		request.method = "kickChatMember"
 		return request
 		
 	}
