@@ -119,8 +119,6 @@ public class CacheManager {
 				throw CacheError.LocalNotFound
 			}
 		}
-		
-		throw CacheError.NoBytes
 	}
 	
 	/**

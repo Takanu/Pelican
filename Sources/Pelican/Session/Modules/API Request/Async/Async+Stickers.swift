@@ -12,13 +12,13 @@ extension SessionRequestAsync {
 	/**
 	Returns a StickerSet type for the name of the sticker set given, if successful.
 	*/
-	public func getStickerSet(_ name: String, callback: ((StickerSet) -> ())? ) {
+	public func getStickerSet(_ name: String, callback: ((StickerSet?) -> ())? ) {
 		
 		let request = TelegramRequest.getStickerSet(name: name)
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(SessionRequest.decodeResponse(nil))
 			}
 		}
 	}
@@ -27,20 +27,21 @@ extension SessionRequestAsync {
 	Use this method to upload a .png file with a sticker for later use in createNewStickerSet and addStickerToSet
 	methods (can be used multiple times).
 	*/
-	public func uploadStickerFile(_ sticker: Sticker, userID: Int, callback: ((StickerSet) -> ())? ) {
+	public func uploadStickerFile(_ sticker: Sticker, userID: Int, callback: ((FileDownload?) -> ())? ) {
 		
 		guard let request = TelegramRequest.uploadStickerFile(userID: userID, sticker: sticker) else {
 			PLog.error("Can't create uploadStickerFile request.")
 				
 				if callback != nil {
-					callback!(SessionRequest.decodeResponse(response) ?? false)
+					callback!(nil)
 				}
+			return
 		}
 		
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(SessionRequest.decodeResponse(response))
 			}
 		}
 	}
