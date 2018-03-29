@@ -16,6 +16,9 @@ If you want to see any logs before the Droplet is initialised, add "-DPELICAN_DE
 */
 class PLog {
 	
+	/// Use this to set entities that will be logged during testing.
+	static var displayLogTypes: [LogLevel] = []
+	
 	/// A callback to the console logger associated with the first droplet run.
 //	static var console: LogProtocol?
 	
@@ -28,10 +31,9 @@ class PLog {
 	Privately used from the convenience methods laid out in Debug+Prints.
 	*/
 	static internal func addPrint(level: LogLevel, text: String, file: String, function: String, line: Int) {
-		return
-		//print("[\(function) : \(line)]: \(text)")
-
-//			console!.log(level, message: text, file: file, function: function, line: line)
-			// *shrug*
+		
+		if displayLogTypes.contains(level) == true {
+			print("[\(function) : \(line)]: \(text)")
+		}
 	}
 }
