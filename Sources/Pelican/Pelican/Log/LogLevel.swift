@@ -10,7 +10,7 @@ import Foundation
 /**
 ???
 */
-enum LogLevel: String, CasedEnum {
+public enum LogLevel: String, CasedEnum {
 	
 	/// The update/upload/responce thread cycles
 	case verbose

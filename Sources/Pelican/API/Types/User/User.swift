@@ -53,22 +53,12 @@ final public class User: Codable {
 		let values = try decoder.container(keyedBy: CodingKeys.self)
 		
 		tgID = try values.decode(Int.self, forKey: .tgID)
-		
-		let botValue = try values.decode(Int.self, forKey: .isBot)
-		if botValue <= 0 {
-			isBot = false
-		} else {
-			isBot = true
-		}
+		isBot = try values.decodeIfPresent(Bool.self, forKey: .isBot) ?? false
 		
 		firstName = try values.decode(String.self, forKey: .firstName)
 		lastName = try values.decodeIfPresent(String.self, forKey: .lastName)
 		username = try values.decodeIfPresent(String.self, forKey: .username)
 		languageCode = try values.decodeIfPresent(String.self, forKey: .languageCode)
 	}
-	
-	
-	
-	
 	
 }

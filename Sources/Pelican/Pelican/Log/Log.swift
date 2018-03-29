@@ -14,10 +14,10 @@ while also ensuring the logs don't get included in any release builds.
 
 If you want to see any logs before the Droplet is initialised, add "-DPELICAN_DEBUG" as a custom Swift compile flag.
 */
-class PLog {
+public class PLog {
 	
 	/// Use this to set entities that will be logged during testing.
-	static var displayLogTypes: [LogLevel] = []
+	public static var displayLogTypes: [LogLevel] = []
 	
 	/// A callback to the console logger associated with the first droplet run.
 //	static var console: LogProtocol?
