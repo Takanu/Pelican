@@ -13,3 +13,6 @@ Pelican is a framework I've developed personally for my own Telegram games and h
 - Features modular, tree-based routing systems for more advanced and interchangeable update sorting.
 
 The code has extensive API documentation to help you use it, and I will include up-to-date tests and demo code soon.  If you have any questions, feel free to message me on GitHub or on Telegram [@takanu](https://t.me/takanu).
+
+
+If you're interested in creating games with Pelican, I've also made a great game framework called [TrashBoat](https://github.com/Takanu/TrashBoat).
