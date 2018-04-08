@@ -1,25 +1,20 @@
-//
-//  SessionRequest+Edit.swift
-//  Pelican
-//
-//  Created by Takanu Kyriako on 16/12/2017.
-//
+
 
 import Foundation
 
-extension SessionRequestSync {
+extension SessionRequestAsync {
 	
 	/**
 	Edits a text based message.
 	*/
-	@discardableResult
 	public func editMessage(_ message: String,
 													messageID: Int?,
 													inlineMessageID: Int?,
 													markup: MarkupType? = nil,
 													chatID: Int,
 													parseMode: MessageParseMode = .markdown,
-													disableWebPreview: Bool = false) -> Bool {
+													disableWebPreview: Bool = false,
+													callback: CallbackBoolean) {
 		
 		let request = TelegramRequest.editMessageText(chatID: chatID,
 																									messageID: messageID,
@@ -29,39 +24,52 @@ extension SessionRequestSync {
 																									parseMode: parseMode,
 																									disableWebPreview: disableWebPreview)
 		
-		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		tag.sendAsyncRequest(request) { response in
+			
+			if callback != nil {
+				callback!(SessionRequest.decodeResponse(response) ?? false)
+			}
+		}
 	}
 	
 	/**
 	Edits the caption on a media/file based message.
 	*/
-	@discardableResult
 	public func editCaption(messageID: Int = 0,
 													caption: String,
 													markup: MarkupType? = nil,
-													chatID: Int) -> Bool {
+													chatID: Int,
+													callback: CallbackBoolean) {
 		
 		let request = TelegramRequest.editMessageCaption(chatID: chatID,
 																										 messageID: messageID,
 																										 caption: caption,
 																										 markup: markup)
-		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+
+		tag.sendAsyncRequest(request) { response in
+			
+			if callback != nil {
+				callback!(SessionRequest.decodeResponse(response) ?? false)
+			}
+		}
 	}
 	
 	/**
 	Edits the inline markup options assigned to any type of message.
 	*/
-	@discardableResult
-	public func editReplyMarkup(_ markup: MarkupType,
+	public func editReplyMarkup(_ markup: MarkupType?,
 															messageID: Int = 0,
 															inlineMessageID: Int = 0,
-															chatID: Int) -> Bool {
+															chatID: Int,
+															callback: CallbackBoolean) {
 		
 		let request = TelegramRequest.editMessageReplyMarkup(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, markup: markup)
-		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		tag.sendAsyncRequest(request) { response in
+			
+			if callback != nil {
+				callback!(SessionRequest.decodeResponse(response) ?? false)
+			}
+		}
 	}
 	
 	/**
@@ -72,12 +80,15 @@ extension SessionRequestSync {
 	- If the bot is an administrator of a group, it can delete any message there.
 	- If the bot has can_delete_messages permission in a supergroup or a channel, it can delete any message there.
 	*/
-	@discardableResult
-	public func deleteMessage(_ messageID: Int, chatID: Int) -> Bool {
+	public func deleteMessage(_ messageID: Int, chatID: Int, callback: CallbackBoolean) {
 		
 		let request = TelegramRequest.deleteMessage(chatID: chatID, messageID: messageID)
-		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		tag.sendAsyncRequest(request) { response in
+			
+			if callback != nil {
+				callback!(SessionRequest.decodeResponse(response) ?? false)
+			}
+		}
 	}
 	
 }
