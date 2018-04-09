@@ -4,15 +4,18 @@ import Dispatch     // Required on Linux platforms.
 
 
 /**
-The king-daddy of Pelican, Sessions encapsulates communication between you and a type of interaction point on Telegram.
+The king-daddy of Pelican, Sessions encapsulates communication between you and a type of
+interaction point on Telegram such as a chat or user.
 
-The protocol is a shell that defines the minimum amount of content required in order to function.  Extend it's functionality
-by adding modules to your own custom sessions.  Alternatively, use `ChatSession` and `UserSession` which cover most common bot use cases.
+The protocol is a shell that defines the minimum amount of content required in order to function.
+Extend it's functionality by adding modules to your own custom sessions.  Alternatively, use
+`ChatSession` and `UserSession` which cover most common bot use cases.
 */
 public protocol Session {
 	
 	// CORE DATA
-	/// The "tag" of a session, holding key identifying details that allow it to be identified by Pelican, and is also passed to delegates for both identification and callback events.
+	/** The "tag" of a session, holding key identifying details that allow it to be identified by
+	Pelican, and is also passed to delegates for both identification and callback events. */
 	var tag: SessionTag { get }
 	
 	
@@ -21,12 +24,13 @@ public protocol Session {
 	The queue is serialised which means that updates given to a specific session will be processed in a First In, First Out (FIFO)
 	order, but that update handling across different Sessions can be processed at the same time.
 	
-	If your code enables more than one session to modify data on any given session, ensure that the properties are thread-safe.*/
+	If your code enables more than one session to modify properties on any given session, ensure that those properties are thread-safe. */
 	var dispatchQueue: SessionDispatchQueue { get }
 	
 	
 	// DELEGATES AND CONTROLLERS
-	/// The initial route that all updates to this session will be sent to.  Routes are used to handle and matches user requests to available bot functions based on user-defined patterns and behaviours.
+	/** The initial route that all updates to this session will be sent to.  Routes are used to
+	handle and match user requests to available bot functions based on defined patterns and behaviours. */
 	var baseRoute: Route { get }
 	
 	
@@ -48,7 +52,8 @@ public protocol Session {
 	/**
 	TEMP NAME, PLEASE CHANGE ME.
 	Performs any functions required to prepare the Session for removal from the Builder, which can occur when a Session or one
-	of it's delegates requests Pelican to remove it.  This function should never send the closure event itself, use this to clean up any custom types before the Session is removed.
+	of it's delegates requests Pelican to remove it.  This function should never send the closure event itself, use this
+	to clean up any custom types before the Session is removed.
 	*/
 	func cleanup()
 	
@@ -75,8 +80,11 @@ extension Session {
 		
 	}
 	
+	/**
+	The equatable implementation for Session only uses the tag, as it is designed to be completely unique between
+	any two sessions.
+	*/
 	public static func ==(lhs: Self, rhs: Self) -> Bool {
-		
 		if lhs.tag == rhs.tag { return true }
 		
 		return false

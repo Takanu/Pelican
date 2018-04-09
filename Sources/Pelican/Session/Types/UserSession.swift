@@ -1,5 +1,5 @@
 //
-//  UserChatSession.swift
+//  UserSession.swift
 //  party
 //
 //  Created by Takanu Kyriako on 26/06/2017.
@@ -17,14 +17,14 @@ UserSession is also used to handle InlineQuery and ChosenInlineResult routes, as
 open class UserSession: Session {
 	
 	//  CORE INTERNAL VARIABLES
-	public var tag: SessionTag
-	public var dispatchQueue: SessionDispatchQueue
+	public private(set) var tag: SessionTag
+	public private(set) var dispatchQueue: SessionDispatchQueue
 	
 	/// The user information associated with this session.
-	public var info: User
+	public private(set) var info: User
 	
 	/// The ID of the user associated with this session.
-	public var userID: Int
+	public private(set) var userID: Int
 	
 	/// The chat sessions this user is currently actively occupying.
 	/// -- Not currently functional, undecided if it will be implemented
@@ -33,33 +33,31 @@ open class UserSession: Session {
 	
 	// API REQUESTS
 	// Shortcuts for API requests.
-	public var requests: SessionRequest
+	public private(set) var requests: SessionRequest
 	
 	
 	// DELEGATES / CONTROLLERS
 	/// Handles and matches user requests to available bot functions.
-	public var baseRoute: Route
+	public private(set) var baseRoute: Route
 	
 	/// Stores what Moderator-controlled permissions the User Session has.
-	public var mod: SessionModerator
+	public private(set) var mod: SessionModerator
 	
 	/// Handles timeout conditions.
-	public var timeout: TimeoutMonitor
+	public private(set) var timeout: TimeoutMonitor
 	
 	/// Handles flood conditions.
-	public var flood: FloodMonitor
+	public private(set) var flood: FloodMonitor
 	
 	/// Stores a link to the schedule, that allows events to be executed at a later date.
-	public var schedule: Schedule
+	public private(set) var schedule: Schedule
 	
 	/// Pre-checks and filters unnecessary updates.
-	public var filter: UpdateFilter
+	public private(set) var filter: UpdateFilter
 	
 	
 	// TIME AND ACTIVITY
-	public var timeStarted = Date()
-	public var timeLastActive = Date()
-	public var timeoutLength: Int = 0
+	public private(set) var timeStarted = Date()
 	
 	
 	public required init(bot: PelicanBot, tag: SessionTag, update: Update) {
@@ -78,7 +76,7 @@ open class UserSession: Session {
 		self.schedule = bot.schedule
 		
 		self.requests = SessionRequest(tag: tag)
-		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.usersession",qos: .userInitiated)
+		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.usersession_\(tag.sessionID)",qos: .userInitiated)
 	}
 	
 	

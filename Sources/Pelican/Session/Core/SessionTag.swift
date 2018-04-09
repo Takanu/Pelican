@@ -17,7 +17,7 @@ Pelican in basic ways (such as removing the Session from active use if a Timeout
 public struct SessionTag: Equatable {
 	
 	// DATA
-	/// The relative identifying ID for a session.  Could be a user ID, chat ID or a different, arbitrary type of session identification.
+	/// The "communication" ID that a session represents.  Could be a user ID, chat ID or a different, arbitrary type of session identification.
 	public private(set) var id: Int
 	
 	/// The type of ID the session is represented by, utilised by types like the Moderator.
@@ -25,6 +25,9 @@ public struct SessionTag: Equatable {
 	
 	/// The instance type that this session tag belongs to.
 	public private(set) var sessionType: Session.Type
+	
+	/// The unique identifier for a Session, this is what is used to identify and find it.
+	public private(set) var sessionID: UUID
 	
 	/// The identifier of the Builder that created this session.
 	public private(set) var builderID: UUID
@@ -44,8 +47,9 @@ public struct SessionTag: Equatable {
 	init(bot: PelicanBot, builder: SessionBuilder, id: Int) {
 		
 		self.id = id
-		self.sessionType = builder.session
 		self.idType = builder.idType
+		self.sessionType = builder.session
+		self.sessionID = UUID()
 		self.builderID = builder.id
 		
 		self.sendSyncRequestCallback = bot.client.syncRequest

@@ -8,57 +8,53 @@
 
 import Foundation
 
-
-
 /**
 Holds the information for a bot session, when someone is immediately interacting with the bot
 Ignore this if you want?  What am i, a doctor?
 */
 open class ChatSession: Session {
 	
-	public var tag: SessionTag
-	public var dispatchQueue: SessionDispatchQueue
 	
+	public private(set) var tag: SessionTag
+	public private(set) var dispatchQueue: SessionDispatchQueue
 	
 	/// The chat ID associated with the session.
-	var chatID: Int
-	public var getChatID: Int { return chatID }
+	public private(set) var chatID: Int
 	
 	/// The chat associated with the session, if one exists.
-	var chat: Chat?
-	public var getChat: Chat? { return chat }
+	public private(set) var chat: Chat?
 	
 	
 	// API REQUESTS
 	// Shortcuts for API requests.
-	public var requests: SessionRequest
+	public private(set) var requests: SessionRequest
 	
 	
 	// DELEGATES AND CONTROLLERS
 	/// Handler for delayed Telegram API calls and closure execution.
-	public var queue: ChatSessionQueue
+	public private(set) var queue: ChatSessionQueue
 	
 	/// Handles and matches user requests to available bot functions.
-	public var baseRoute: Route
+	public private(set) var baseRoute: Route
 	
 	/// Stores what Moderator-controlled titles the Chat Session has.
-	public var mod: SessionModerator
+	public private(set) var mod: SessionModerator
 	
 	/// Handles timeout conditions.
-	public var timeout: TimeoutMonitor
+	public private(set) var timeout: TimeoutMonitor
 	
 	/// Handles flood conditions.
-	public var flood: FloodMonitor
+	public private(set) var flood: FloodMonitor
 	
 	/// Pre-checks and filters unnecessary updates.
-	public var filter: UpdateFilter
+	public private(set) var filter: UpdateFilter
 	
 	
 	// MAINTENANCE
 	/// A command to be used when the session ends.
 	public var sessionEndAction: ((ChatSession) -> ())?
 	
-	// Time and Activity
+	// TIME AND ACTIVITY
 	public var timeStarted = Date()
 	
 	
@@ -78,7 +74,7 @@ open class ChatSession: Session {
 		self.filter = UpdateFilter()
 		
 		self.requests = SessionRequest(tag: tag)
-		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.chatsession",qos: .userInitiated)
+		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.chatsession_\(tag.sessionID)",qos: .userInitiated)
 	}
 	
 	open func postInit() {
