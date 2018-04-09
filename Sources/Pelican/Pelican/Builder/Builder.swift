@@ -110,7 +110,7 @@ public class SessionBuilder {
 			}
 				
 			// If not, see if we are able to build one within the limit.
-			if getSessionCount >= maxSessions {
+			if getSessionCount >= maxSessions && maxSessions != 0 {
 				return nil
 			}
 				
