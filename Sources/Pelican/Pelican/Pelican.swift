@@ -60,7 +60,6 @@ let pelican = try PelicanBot()
 pelican.addBuilder(SessionBuilder(spawner: Spawn.perChatID(types: nil), idType: .chat, session: ShinyNewSession.self, setup: nil) )
 
 // Configure the bot polling
-bot.pollInterval = 2
 bot.updateTimeout = 300
 
 // Run it
@@ -78,16 +77,13 @@ public final class PelicanBot {
 	var client: Client
 	
 	/// The API key assigned to your bot.
-	public var apiKey: String { return _apiKey }
-  private var _apiKey: String
+	public private(set) var apiKey: String
 	
 	/// The Payment key assigned to your bot.  To assign the key, add it to the JSON file inside config/pelican.json as "payment_token".
-	public var paymentKey: String? { return _paymentKey }
-	var _paymentKey: String?
+	public private(set) var paymentKey: String?
 	
 	/// The combination of the API request URL and your API token.
-	public var apiURL: String { return _apiURL }
-  private var _apiURL: String
+	public private(set) var apiURL: String
 	
 	
   // CONNECTION SETTINGS
@@ -191,9 +187,9 @@ public final class PelicanBot {
     }
 		
 		// Set tokens
-		self._apiKey = token
-		self._apiURL = "https://api.telegram.org/bot" + token
-		self._paymentKey = configJSON["payment_token"].string
+		self.apiKey = token
+		self.apiURL = "https://api.telegram.org/bot" + token
+		self.paymentKey = configJSON["payment_token"].string
 		
 		// Initialise controls and timers
 		self.mod = Moderator()
@@ -533,18 +529,10 @@ public final class PelicanBot {
 	/**
 	Adds a new builder to the bot, enabling the automated creation and filtering of updates to your defined Session types.
 	*/
-	public func addBuilder(_ builder: SessionBuilder) {
+	public func addBuilder(_ builders: SessionBuilder...) {
 		
-		// Create a generator for the Builder ID and cycle through until we can make sure it's unique
-		var generator = Xoroshiro()
-		
-		var id = 0
-		while id == 0 || sessions.contains(where: {$0.id == id}) == true {
-			id = Int(generator.random32())
+		for builder in builders {
+			sessions.append(builder)
 		}
-		
-		// Set the ID and add the builder
-		builder.setID(id)
-		sessions.append(builder)
 	}
 }

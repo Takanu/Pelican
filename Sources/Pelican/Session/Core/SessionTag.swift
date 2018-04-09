@@ -18,39 +18,35 @@ public struct SessionTag: Equatable {
 	
 	// DATA
 	/// The relative identifying ID for a session.  Could be a user ID, chat ID or a different, arbitrary type of session identification.
-	public var id: Int { return _id }
-	private var _id: Int
-	
-	/// The instance type that this session tag belongs to.
-	public var sessionType: Session.Type { return _sessionType }
-	var _sessionType: Session.Type
+	public private(set) var id: Int
 	
 	/// The type of ID the session is represented by, utilised by types like the Moderator.
-	public var idType: SessionIDType { return _idType }
-	private var _idType: SessionIDType
+	public private(set) var idType: SessionIDType
+	
+	/// The instance type that this session tag belongs to.
+	public private(set) var sessionType: Session.Type
 	
 	/// The identifier of the Builder that created this session.
-	public var builderID: Int { return _builderID }
-	private var _builderID: Int
+	public private(set) var builderID: UUID
 	
 	
 	// CALLBACKS
 	/// A callback connected to Client that allows synchronous requests to be made to Telegram.
-	private var sendSyncRequestCallback: (TelegramRequest) -> (TelegramResponse?)
+	public private(set) var sendSyncRequestCallback: (TelegramRequest) -> (TelegramResponse?)
 	
 	/// A callback connected to Client that allows asynchronous requests to be made to Telegram.
-	private var sendAsyncRequestCallback: (TelegramRequest, ((TelegramResponse?) -> ())? ) -> ()
+	public private(set) var sendAsyncRequestCallback: (TelegramRequest, ((TelegramResponse?) -> ())? ) -> ()
 	
 	/// A callback connected to Pelican that can be used to notify it of key session life-cycle events.
-	private var sendEventCallback: (SessionEvent) -> ()
+	public private(set) var sendEventCallback: (SessionEvent) -> ()
 	
 	
 	init(bot: PelicanBot, builder: SessionBuilder, id: Int) {
 		
-		self._id = id
-		self._sessionType = builder.session
-		self._idType = builder.idType
-		self._builderID = builder.id
+		self.id = id
+		self.sessionType = builder.session
+		self.idType = builder.idType
+		self.builderID = builder.id
 		
 		self.sendSyncRequestCallback = bot.client.syncRequest
 		self.sendAsyncRequestCallback = bot.client.asyncRequest
