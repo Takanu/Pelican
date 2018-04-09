@@ -46,7 +46,7 @@ extension PelicanBot {
 	func requestSessionWork(tag: SessionTag, work: @escaping () -> ()) {
 		
 		sessions.forEach { builder in
-			if let session = builder.findBuilder(tag: tag) {
+			if let session = builder.findSession(tag: tag) {
 				session.dispatchQueue.async(work)
 				return
 			}

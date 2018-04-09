@@ -497,8 +497,8 @@ public final class PelicanBot {
 						let response = capture.collision!(self, update)
 						
 						if response == .include || response == .all {
-							let session = capture.getSession(bot: self, update: update)!
-							update.linkedSessions.append(session)
+							let sessions = capture.getSessions(forUpdate: update, bot: self)!
+							update.linkedSessions.append(contentsOf: sessions)
 						}
 						
 						if response == .execute || response == .all {

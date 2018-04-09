@@ -50,8 +50,9 @@ public class SessionBuilder {
 	/// The number of sessions the builder can have active at any given time.  Leave at 0 for no limit.
 	public var maxSessions: Int = 0
 	
-	/// The sessions that have been spawned by the builder and are currently active.
-	var sessions: [Int:Session] = [:]
+	/** The sessions that have been spawned by the builder and are currently active.  Sessions are categorised by their
+	Telegram ID, followed by their UUID if more than one session has been created for the same Telegram ID. */
+	var sessions: [Int: [Session]] = [:]
 	
 	/// Returns the number of sessions being managed by the builder.
 	public var getSessionCount: Int { return sessions.count }
@@ -92,19 +93,20 @@ public class SessionBuilder {
 	}
 	
 	/**
-	Attempts to return a session belonging to the builder based on a given update.  If one doesn't exist, it will be created.
+	Attempts to return a session belonging to the builder based on a given update, using the update's Telegram ID.
+	If one doesn't exist, it will be created.
 	
-	- returns: A session that corresponds with the given update if the Builder either has it or is able
+	- returns: All the sessions that corresponds with an update's Telegram ID if the Builder either has it or is able
 	to spawn it, or nil if not.
 	*/
-	func getSession(bot: PelicanBot, update: Update) -> Session? {
+	func getSessions(forUpdate update: Update, bot: PelicanBot) -> [Session]? {
 		
 		/// Check if our spawner gives us a non-nil value
 		if let id = spawner(update) {
 			
 			/// Check if we can get a session.
-			if let session = sessions[id] {
-				return session
+			if let sessions = sessions[id] {
+				return sessions
 			}
 				
 			// If not, see if we are able to build one within the limit.
@@ -120,8 +122,8 @@ public class SessionBuilder {
 					
 					let tag = SessionTag(bot: bot, builder: self, id: id)
 					let session = setup!(bot, tag, update)
-					sessions[id] = session
-					return session
+					sessions[id] = [session]
+					return [session]
 				}
 					
 				// If it doesn't, use the default initialiser.
@@ -130,8 +132,8 @@ public class SessionBuilder {
 					let session = self.session.init(bot: bot, tag: tag, update: update)
 					session.postInit()
 					
-					sessions[id] = session
-					return session
+					sessions[id] = [session]
+					return [session]
 				}
 			}
 		}
@@ -145,27 +147,32 @@ public class SessionBuilder {
 	- returns: A session that corresponds with the given tag if it both matches the Builder ID and
 	if the Builder has the Session being asked for.
 	*/
-	func findBuilder(tag: SessionTag) -> Session? {
+	func findSession(tag: SessionTag) -> Session? {
 		if self.id != tag.builderID { return nil }
 		
-		if let session = sessions[tag.id] {
-			return session
-		} else {
-			return nil
+		if let foundSessions = sessions[tag.id] {
+			for session in foundSessions {
+				if session.tag == tag {
+					return session
+				}
+			}
 		}
+		
+		return nil
 	}
 	
 	/**
-	Attempts to generate or use a session with the builder using a given update object.
+	Attempts to generate or use any sessions the builder has that match the update's Telegram ID.
 	
 	- parameter update: The update to use to see if a session can be built with it.
 	- returns: True if the update was successfully used, and false if not.
 	*/
 	func execute(bot: PelicanBot, update: Update) -> Bool {
 		
-		if let session = getSession(bot: bot, update: update) {
-			
-			session.update(update)
+		if let sessions = getSessions(forUpdate: update, bot: bot) {
+			sessions.forEach {
+				$0.update(update)
+			}
 			return true
 		}
 		
@@ -180,8 +187,11 @@ public class SessionBuilder {
 		
 		if tag.builderID != self.id { return }
 		
-		if let session = sessions[tag.id] {
-			session.cleanup()
+		if let foundSessions = sessions[tag.id] {
+			foundSessions.forEach {
+				$0.cleanup()
+			}
+			
 			sessions.removeValue(forKey: tag.id)
 		}
 	}
