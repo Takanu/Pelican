@@ -12,7 +12,7 @@ import Foundation
 /**
 Represents a different type of location, for venue-like venuing.
 */
-final public class Venue: TelegramType, MessageContent {
+public struct Venue: TelegramType, MessageContent {
 	
 	// STORAGE AND IDENTIFIERS
 	public var contentType: String = "venue"

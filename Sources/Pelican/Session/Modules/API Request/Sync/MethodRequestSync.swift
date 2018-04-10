@@ -1,5 +1,5 @@
 //
-//  SessionRequestync.swift
+//  MethodRequestync.swift
 //  Pelican
 //
 //  Created by Ido Constantine on 18/03/2018.
@@ -15,10 +15,10 @@ Useful if an event requires a result from Telegram like receiving the result of 
 needs to do something with it immediately afterwards.
 
 - note: If you only need to make a request to Telegram and can either deal with the result later or don't need to know the results,
-use the `async` property that can be found in `SessionRequest`, as it will improve the responsiveness and performance of
+use the `async` property that can be found in `MethodRequest`, as it will improve the responsiveness and performance of
 your app.
 */
-public struct SessionRequestSync {
+public struct MethodRequestSync {
 	
 	/// The tag of the session that this request instance belongs to.
 	var tag: SessionTag

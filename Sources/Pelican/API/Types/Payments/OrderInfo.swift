@@ -11,7 +11,7 @@ import Foundation
 /**
 This object represents information about an order for the Telegram Payment API.
 */
-public class OrderInfo: Codable {
+public struct OrderInfo: Codable {
 	
 	/// The user's name
 	var name: String?

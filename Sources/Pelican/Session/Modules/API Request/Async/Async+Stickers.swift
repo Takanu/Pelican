@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension SessionRequestAsync {
+extension MethodRequestAsync {
 	
 	/**
 	Returns a StickerSet type for the name of the sticker set given, if successful.
@@ -18,7 +18,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(nil))
+				callback!(MethodRequest.decodeResponse(nil))
 			}
 		}
 	}
@@ -41,7 +41,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response))
+				callback!(MethodRequest.decodeResponse(response))
 			}
 		}
 	}
@@ -68,7 +68,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -87,7 +87,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -101,7 +101,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -115,7 +115,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}

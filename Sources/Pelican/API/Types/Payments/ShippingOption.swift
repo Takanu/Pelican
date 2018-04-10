@@ -11,7 +11,7 @@ import Foundation
 /**
 Represents one shipping option for the Telegram Payment API.
 */
-public class ShippingOption: Codable {
+public struct ShippingOption: Codable {
 	
 	/// The shipping option identifier.
 	var id: String = ""

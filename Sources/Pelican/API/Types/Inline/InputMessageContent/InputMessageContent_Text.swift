@@ -10,7 +10,7 @@ import Foundation
 /**
 Represents the content of a text message to be sent as the result of an inline query.
 */
-final public class InputMessageContent_Text: InputMessageContent_Any {
+public struct InputMessageContent_Text: InputMessageContent_Any {
 	
 	// The type of the input content, used for Codable.
 	public static var type: InputMessageContentType = .text

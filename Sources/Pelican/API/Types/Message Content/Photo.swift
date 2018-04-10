@@ -13,7 +13,7 @@ import Foundation
 /**
 Represents one size of a photo sent from a message, a photo you want to send to a chat, or a file/sticker.
 */
-final public class Photo: TelegramType, MessageFile {
+public struct Photo: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
 	public var contentType: String = "photo"

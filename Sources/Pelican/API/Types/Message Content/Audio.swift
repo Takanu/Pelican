@@ -12,7 +12,7 @@ import Foundation
 /**
 Represents an audio file to be treated as music by the Telegram clients.
 */
-final public class Audio: TelegramType, MessageFile {
+public struct Audio: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
 	/// The content type it represents, used by Telegram to interpret what is being sent.

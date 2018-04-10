@@ -15,7 +15,7 @@ By default, this sticker will be sent by the user. Alternatively, you can use th
 
 Stickers can only ever be cached, you cannot currently define an external URL link to a sticker as an inline result.
 */
-struct InlineResultSticker: InlineResult {
+public struct InlineResultSticker: InlineResult {
 	
 	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
 	public var metatype: InlineResultType = .sticker

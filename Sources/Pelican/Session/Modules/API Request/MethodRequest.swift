@@ -19,21 +19,21 @@ The delegate will attempt to process the response received from Telegram into a 
 - note: Due to the unpredictability of networking, server up-time and maintenance there is always a chance that a request
 may not succeed.  Make sure to account for this when writing your own bots.
 */
-public struct SessionRequest {
+public struct MethodRequest {
 	
 	/// The tag of the session that this request instance belongs to.
 	var tag: SessionTag
 	
 	/// Contains all API methods you can use to make a synchronous API request, where your code execution will wait until a response from Telegram is received.
-	public var sync: SessionRequestSync
+	public var sync: MethodRequestSync
 	
 	/// Contains all API methods you can use to make an asynchronous API request, where your code execution will continue immediately after the request is made and sent.
-	public var async: SessionRequestAsync
+	public var async: MethodRequestAsync
 	
 	public init(tag: SessionTag) {
 		self.tag = tag
-		self.sync = SessionRequestSync(tag: tag)
-		self.async = SessionRequestAsync(tag: tag)
+		self.sync = MethodRequestSync(tag: tag)
+		self.async = MethodRequestAsync(tag: tag)
 	}
 	
 	/**

@@ -30,7 +30,7 @@ public class Update {
 	
 	// HEADER CONTENT
 	/// Defines the unique identifier for the content (not the ID of the entity that contains the content).
-	public var id: Int
+	public var id: String
 	
 	/// The basic package of content provided in the update by the sending user, to be used by Route filters.
 	public var content: String
@@ -42,19 +42,8 @@ public class Update {
 	public var chat: Chat?
 	
 	
-	// LINKED SESSIONS
-	/** Defines any sessions that were linked to this update.  This occurs when more than one SessionBuilder
-	captures the same update, and through the optional `collision` function type on a SessionBuilder, a Builder 
-	wanted the relevant session to be linked in the update rather than executed.
-	*/
-	public var linkedSessions: [Session] = []
 	
-	/// Contains basic information about the update depending on the
-	//public var header: [String:String] = [:]
-	
-	
-	
-	init(withData data: UpdateModel, json: JSON, type: UpdateType) {
+	init?(withData data: UpdateModel, json: JSON, type: UpdateType) {
 		
 		self.data = data
 		self.json = json
@@ -65,7 +54,7 @@ public class Update {
 		if data is Message {
 			
 			let message = data as! Message
-			self.id = message.tgID
+			self.id = String(message.tgID)
 			self.content = message.text ?? ""
 			self.chat = message.chat
 			
@@ -77,7 +66,7 @@ public class Update {
 		else if data is CallbackQuery {
 			
 			let query = data as! CallbackQuery
-			self.id = Int(query.id)!
+			self.id = query.id
 			self.from = query.from
 			self.chat = query.message?.chat
 			self.content = query.data ?? ""
@@ -87,18 +76,38 @@ public class Update {
 		else if data is InlineQuery {
 			
 			let query = data as! InlineQuery
-			self.id = Int(query.id)!
+			self.id = query.id
 			self.content = query.query
 			self.from = query.from
 			
 		}
 			
-		else {
+		else if data is ShippingQuery {
+			
+			let query = data as! ShippingQuery
+			self.id = query.id
+			self.content = query.invoicePayload
+			self.from = query.from
+		}
+		
+		else if data is PreCheckoutQuery {
+			
+			let query = data as! PreCheckoutQuery
+			self.id = query.id
+			self.content = query.invoicePayload
+			self.from = query.from
+		}
+			
+		else if data is ChosenInlineResult {
 			
 			let result = data as! ChosenInlineResult
-			self.id = Int(result.resultID)!
+			self.id = result.resultID
 			self.content = result.query
 			self.from = result.from
+		}
+		
+		else {
+			return nil
 		}
 	}
 	

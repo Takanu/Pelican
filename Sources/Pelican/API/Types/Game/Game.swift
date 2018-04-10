@@ -12,7 +12,7 @@ import Foundation
 /**
 This object represents a game. Use BotFather to create and edit games, their short names will act as unique identifiers.
 */
-final public class Game: Codable {
+public struct Game: Codable {
 	
 	/// Title of the game.
 	public var title: String

@@ -10,7 +10,7 @@ import Foundation
 /**
 Represents a video to be sent in the context of an album.
 */
-class InputMediaVideo: InputMedia {
+struct InputMediaVideo: InputMedia {
 	
 	// PROTOCOL INHERITANCE
 	public var type = "video"

@@ -1,5 +1,5 @@
 //
-//  SessionRequest+Ad,om.swift
+//  MethodRequest+Ad,om.swift
 //  Pelican
 //
 //  Created by Takanu Kyriako on 16/12/2017.
@@ -10,7 +10,7 @@ import Foundation
 /**
 This extension handles any kinds of operations involving group moderation and how the group details are presented and changed.
 */
-extension SessionRequestSync {
+extension MethodRequestAsync {
 	
 	/**
 	Kicks a user from the chat.
@@ -20,7 +20,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.kickChatMember(chatID: chatID, userID: userID)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -31,7 +31,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.unbanChatMember(chatID: chatID, userID: userID)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -45,7 +45,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.restrictChatMember(chatID: chatID, userID: userID, restrictUntil: restrictUntil, restrictions: restrictions)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -58,7 +58,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.promoteChatMember(chatID: chatID, userID: userID, rights: rights)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -68,7 +68,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.exportChatInviteLink(chatID: chatID)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response)
+		return MethodRequest.decodeResponse(response)
 	}
 	
 	/**
@@ -79,7 +79,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.setChatPhoto(chatID: chatID, file: file)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -90,7 +90,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.deleteChatPhoto(chatID: chatID)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -101,7 +101,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.setChatTitle(chatID: chatID, title: title)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -112,7 +112,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.setChatDescription(chatID: chatID, description: description)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -123,7 +123,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.pinChatMessage(chatID: chatID, messageID: messageID, disableNotification: disableNotification)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -134,6 +134,6 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.unpinChatMessage(chatID: chatID)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 }

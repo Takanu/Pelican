@@ -1,5 +1,5 @@
 //
-//  SessionRequest+Stickers.swift
+//  MethodRequest+Stickers.swift
 //  Pelican
 //
 //  Created by Takanu Kyriako on 17/12/2017.
@@ -10,7 +10,7 @@ import Foundation
 /**
 This extension handles any kinds of operations involving stickers (including setting group sticker packs).
 */
-extension SessionRequestSync {
+extension MethodRequestAsync {
 	
 	/**
 	Returns a StickerSet type for the name of the sticker set given, if successful.
@@ -19,7 +19,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.getStickerSet(name: name)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response)
+		return MethodRequest.decodeResponse(response)
 	}
 	
 	/**
@@ -34,7 +34,7 @@ extension SessionRequestSync {
 		}
 		
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response)
+		return MethodRequest.decodeResponse(response)
 	}
 	
 	/**
@@ -57,7 +57,7 @@ extension SessionRequestSync {
 																											containsMasks: containsMasks,
 																											maskPosition: maskPosition)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -72,7 +72,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.addStickerToSet(userID: userID, name: name, pngSticker: pngSticker, emojis: emojis, maskPosition: maskPosition)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -83,7 +83,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.setStickerPositionInSet(stickerID: stickerID, position: newPosition)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -94,6 +94,6 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.deleteStickerFromSet(stickerID: stickerID)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 }

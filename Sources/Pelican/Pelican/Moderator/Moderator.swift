@@ -10,14 +10,14 @@ enabling the creation of custom user lists for flexible permission and other cus
 public class Moderator {
 	
 	/// Holds the main bot class to ensure access to Chat and User Session lists.
-	var chatTitles: [String:[Int]] = [:]
-	var userTitles: [String:[Int]] = [:]
+	var chatTitles: [String: [String]] = [:]
+	var userTitles: [String: [String]] = [:]
 	
-	var chatBlacklist: [Int] = []
-	var userBlacklist: [Int] = []
+	var chatBlacklist: [String] = []
+	var userBlacklist: [String] = []
 	
-	var getChats: [String:[Int]] { return chatTitles }
-	var getUsers: [String:[Int]] { return userTitles }
+	var getChats: [String: [String]] { return chatTitles }
+	var getUsers: [String: [String]] { return userTitles }
   
 	public init() { }
 	
@@ -26,11 +26,11 @@ public class Moderator {
 	/**
 	An internal function to do the heavy lifting for tag changes.
 	*/
-	func switchTitle(type: SessionIDType, title: String, ids: [Int], remove: Bool) {
+	func switchTitle(type: SessionIDType, title: String, ids: [String], remove: Bool) {
 		
-		func editList(ids: [Int], list: [Int], remove: Bool) -> [Int] {
+		func editList(ids: [String], list: [String], remove: Bool) -> [String] {
 			
-			var mutableList: [Int] = list
+			var mutableList: [String] = list
 			
 			if remove == true {
 				
@@ -108,7 +108,7 @@ public class Moderator {
 	/**
 	Returns the titles associated to a specific ID.
 	*/
-	public func getTitles(forID id: Int, type: SessionIDType) -> [String] {
+	public func getTitles(forID id: String, type: SessionIDType) -> [String] {
 		
 		var titles: [String] = []
 		
@@ -134,7 +134,7 @@ public class Moderator {
 	/**
 	Returns the IDs associated to a specific title.
 	*/
-	public func getIDs(forTitle title: String, type: SessionIDType) -> [Int]? {
+	public func getIDs(forTitle title: String, type: SessionIDType) -> [String]? {
 		
 		switch type {
 			
@@ -161,7 +161,7 @@ public class Moderator {
 	/**
 	Adds a given set of IDs to a specific title.
 	*/
-	public func addIDs(forTitle title: String, type: SessionIDType, ids: Int...) {
+	public func addIDs(forTitle title: String, type: SessionIDType, ids: String...) {
 		
 		switchTitle(type: type, title: title, ids: ids, remove: false)
 	}
@@ -169,7 +169,7 @@ public class Moderator {
 	/**
 	Removes a given set of IDs from a specific title.
 	*/
-	public func removeIDs(forTitle title: String, type: SessionIDType, ids: Int...) {
+	public func removeIDs(forTitle title: String, type: SessionIDType, ids: String...) {
 		
 		switchTitle(type: type, title: title, ids: ids, remove: true)
 	}
@@ -182,7 +182,7 @@ public class Moderator {
 	Adds the given users to the blacklist, preventing their updates from being received by or propogating any sessions.
 	As this function does not remove and close the Session, this is an internal type only.
 	*/
-	func addToBlacklist(userIDs: Int...) {
+	func addToBlacklist(userIDs: String...) {
 		
 		// Add the users to the blacklist if they aren't already there
 		for id in userIDs {
@@ -198,7 +198,7 @@ public class Moderator {
 	Adds the given chats to the blacklist, preventing their updates from being received by or propogating any sessions.
 	As this function does not remove and close the Session, this is an internal type only.
 	*/
-	func addToBlacklist(chatIDs: Int...) {
+	func addToBlacklist(chatIDs: String...) {
 		
 		// Add the chats to the blacklist if they aren't already there
 		for id in chatIDs {
@@ -212,7 +212,7 @@ public class Moderator {
 	/**
 	Removes the given users from the blacklist, allowing updates they make to be received by the bot.
 	*/
-	public func removeFromBlacklist(userIDs: Int...) {
+	public func removeFromBlacklist(userIDs: String...) {
 		
 		// Remove the users from the blacklist if they ended up there
 		for id in userIDs {
@@ -226,7 +226,7 @@ public class Moderator {
 	/**
 	Removes the given chat from the blacklist, allowing updates they make to be received by the bot.
 	*/
-	public func removeFromBlacklist(chatIDs: Int...) {
+	public func removeFromBlacklist(chatIDs: String...) {
 		
 		// Remove the chats from the blacklist if they ended up there
 		for id in chatIDs {
@@ -241,7 +241,7 @@ public class Moderator {
 	Checks to see if the given user ID is in the blacklist.
 	- returns: True if they are in the blacklist, false if not.
 	*/
-	public func checkBlacklist(userID: Int) -> Bool	{
+	public func checkBlacklist(userID: String) -> Bool	{
 		
 		if userBlacklist.contains(userID) == true {
 			return true
@@ -254,7 +254,7 @@ public class Moderator {
 	Checks to see if the given chat ID is in the blacklist.
 	- returns: True if they are in the blacklist, false if not.
 	*/
-	public func checkBlacklist(chatID: Int) -> Bool	{
+	public func checkBlacklist(chatID: String) -> Bool	{
 		
 		if chatBlacklist.contains(chatID) == true {
 			return true

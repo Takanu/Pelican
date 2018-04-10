@@ -10,7 +10,7 @@ import Foundation
 /**
 This extension handles any kinds of operations involving group moderation and how the group details are presented and changed.
 */
-extension SessionRequestAsync {
+extension MethodRequestAsync {
 	
 	/**
 	Kicks a user from the chat.
@@ -21,7 +21,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -35,7 +35,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -53,7 +53,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -70,7 +70,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -84,7 +84,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response))
+				callback!(MethodRequest.decodeResponse(response))
 			}
 		}
 	}
@@ -98,7 +98,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -112,7 +112,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -126,7 +126,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -140,7 +140,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -154,7 +154,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -168,7 +168,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 //
-//  SessionRequest+Admin.swift
+//  MethodRequest+Admin.swift
 //  Pelican
 //
 //  Created by Takanu Kyriako on 16/12/2017.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension SessionRequestSync {
+extension MethodRequestAsync {
 	
 	/**
 	A basic function for testing authorisation tokens, that returns your bot as a user if successful.
@@ -16,7 +16,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.getMe()
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response)
+		return MethodRequest.decodeResponse(response)
 	}
 	
 	/**
@@ -40,7 +40,7 @@ extension SessionRequestSync {
 																							replyMessageID: replyID)
 		
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response!)
+		return MethodRequest.decodeResponse(response!)
 	}
 	
 	/**
@@ -51,7 +51,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.forwardMessage(toChatID: toChatID, fromChatID: fromChatID, fromMessageID: fromMessageID, disableNotification: disableNotification)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response!)
+		return MethodRequest.decodeResponse(response!)
 	}
 	
 	/**
@@ -70,7 +70,7 @@ extension SessionRequestSync {
 		if request == nil { return nil }
 		
 		let response = tag.sendSyncRequest(request!)
-		return SessionRequest.decodeResponse(response)
+		return MethodRequest.decodeResponse(response)
 	}
 	
 	
@@ -82,7 +82,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.sendChatAction(action: actionType, chatID: chatID)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	
@@ -93,7 +93,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.getUserProfilePhotos(userID: userID, offset: offset, limit: limit)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response)
+		return MethodRequest.decodeResponse(response)
 	}
 	
 	/**
@@ -105,6 +105,6 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.getFile(fileID: fileID)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response)
+		return MethodRequest.decodeResponse(response)
 	}
 }

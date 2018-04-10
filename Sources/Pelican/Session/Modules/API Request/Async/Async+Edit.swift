@@ -2,7 +2,7 @@
 
 import Foundation
 
-extension SessionRequestAsync {
+extension MethodRequestAsync {
 	
 	/**
 	Edits a text based message.
@@ -27,7 +27,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -49,7 +49,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -67,7 +67,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -86,7 +86,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}

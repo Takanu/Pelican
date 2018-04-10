@@ -15,7 +15,7 @@ By default, this video will be sent by the user with an optional caption. Altern
 
 - note: If an InlineQueryResultVideo message contains an embedded video (e.g., YouTube), you must replace its content using the `content` property.
 */
-struct InlineResultVideo: InlineResult {
+public struct InlineResultVideo: InlineResult {
 	
 	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
 	public var metatype: InlineResultType = .video

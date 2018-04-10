@@ -10,7 +10,7 @@ import Foundation
 /**
 Represents the content of a message to be sent as a result of an inline query.  This contains all types
 */
-public class InputMessageContent: Codable {
+public struct InputMessageContent: Codable {
 	
 	public var type: InputMessageContentType
 	public var base: InputMessageContent_Any
@@ -40,7 +40,7 @@ public class InputMessageContent: Codable {
 	}
 	
 	
-	public required init(from decoder: Decoder) throws {
+	public init(from decoder: Decoder) throws {
 		
 		// This decoder attempts to find a unique and required key from the given content, and uses that to
 		// initialise the correct

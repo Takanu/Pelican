@@ -20,7 +20,7 @@ public class ChatSessionQueue {
 	
 	/// DATA
 	/// The chat ID of the session this queue belongs to.
-	public var chatID: Int
+	public var chatID: String
 	
 	/// A callback to the Pelican `sendRequest` method, enabling the class to send it's own requests.
 	public var tag: SessionTag
@@ -49,7 +49,7 @@ public class ChatSessionQueue {
 	/**
 	Initialises the Queue class with a Pelican-derived Schedule.
 	*/
-	public init(chatID: Int, schedule: Schedule, tag: SessionTag) {
+	public init(chatID: String, schedule: Schedule, tag: SessionTag) {
 		
 		self.chatID = chatID
 		self.tag = tag

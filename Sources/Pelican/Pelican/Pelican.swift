@@ -144,12 +144,11 @@ public final class PelicanBot {
 	}
 	
   // SESSIONS
-	/// The set of sessions that are currently active, encapsulated within their respective builders.
-  internal var sessions: [SessionBuilder] = []
+	/// A manager that handles all sessionManager assigned to Pelican, and thats used by Sessions to find or create other Sessions.
+	internal var sessionManager = SessionManager()
 	
 	/// The schedule system for sessions to use to delay the execution of actions.
 	public var schedule: Schedule!
-	
 	
   // MODERATION
 	/// The moderator system, used for blacklisting and whitelisting users and chats to either prevent or allow them to use the bot.
@@ -434,29 +433,36 @@ public final class PelicanBot {
 		do {
 			let data = try json.rawData()
 			let result = try decoder.decode(dataType, from: data)
-			let update = Update(withData: result, json: json, type: updateType)
 			
-			// Check that the update isn't on any blacklists.
-			if update.chat != nil {
-				if mod.checkBlacklist(chatID: update.chat!.tgID) == true {
-					return nil
+			if let update = Update(withData: result, json: json, type: updateType) {
+				// Check that the update isn't on any blacklists.
+				if update.chat != nil {
+					if mod.checkBlacklist(chatID: update.chat!.tgID) == true {
+						return nil
+					}
 				}
+				
+				if update.from != nil {
+					if mod.checkBlacklist(chatID: update.from!.tgID) == true {
+						return nil
+					}
+				}
+				
+				// Now we can return
+				return update
 			}
 			
-			if update.from != nil {
-				if mod.checkBlacklist(chatID: update.from!.tgID) == true {
-					return nil
-				}
+			else {
+				PLog.error("Pelican Error (Unable to create Update)\n")
 			}
-			
-			// Now we can return
-			return update
 			
 			
 		} catch {
 			PLog.error("Pelican Error (Decoding message from updates) - \n\n\(error)\n")
 			return nil
 		}
+		
+		return nil
 	}
 	
   /**
@@ -466,58 +472,10 @@ public final class PelicanBot {
 	internal func handleUpdates(_ updates: [Update]) {
 		
 		PLog.info("Handling updates...")
-		
-		// Filter the update to the current builders.
-		for update in updates {
+		sessionManager.handleUpdates(updates, bot: self)
 			
-			// Collect a list of builders that will accept the update.
-			var captures: [SessionBuilder] = []
-			
-			for builder in sessions {
-				
-				if builder.checkUpdate(update) == true {
-					captures.append(builder)
-				}
-			}
-			
-			
-			// If the list is longer than 1, decide based on the optional
-			// collision function type what should happen to Session that qualifies
-			// for the update.
-			var executables: [SessionBuilder] = []
-			
-			if captures.count > 1 {
-				
-				for capture in captures {
-					
-					if capture.collision == nil { executables.append(capture) }
-					
-					else {
-						
-						let response = capture.collision!(self, update)
-						
-						if response == .include || response == .all {
-							let sessions = capture.getSessions(forUpdate: update, bot: self)!
-							update.linkedSessions.append(contentsOf: sessions)
-						}
-						
-						if response == .execute || response == .all {
-							executables.append(capture)
-						}
-					}
-				}
-			}
-			
-			else {
-					executables = captures
-			}
-			
-			
-			// Execute what executables are left
-			for builder in executables {
-				_ = builder.execute(bot: self, update: update)
-			}
-		}
+		// Collect a list of sessionManager that will accept the update.
+		var captures: [SessionBuilder] = []
 		
 		// Update the last active time.
 		timeLastUpdate = Date()
@@ -527,12 +485,9 @@ public final class PelicanBot {
 	
 	
 	/**
-	Adds a new builder to the bot, enabling the automated creation and filtering of updates to your defined Session types.
+	Add new sessionManager to the bot, enabling the automated creation and filtering of updates to your defined Session types.
 	*/
-	public func addBuilder(_ builders: SessionBuilder...) {
-		
-		for builder in builders {
-			sessions.append(builder)
-		}
+	public func addBuilder(_ incomingBuilders: SessionBuilder...) {
+		sessionManager.addBuilders(incomingBuilders)
 	}
 }

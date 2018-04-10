@@ -45,7 +45,7 @@ This button will contain a description of the game that will be launched when th
 This button will allow the user to pay for something.  **This only appears when using the sendInvoice method, and cannot be sent to Telegram as part of a different request.**  This button is always the first button in the first row.
 
 */
-final public class MarkupInlineKey: Codable, Equatable {
+public struct MarkupInlineKey: Codable, Equatable {
 	
 	public var text: String // Label text
 	public var data: String

@@ -13,7 +13,7 @@ import Foundation
 Represents a special action that when sent with a message, will remove any `MarkupKeyboard`
 currently active, for either all of or a specified group of users.
 */
-final public class MarkupKeyboardRemove: MarkupType, Codable, Equatable {
+public struct MarkupKeyboardRemove: MarkupType, Codable, Equatable {
 	
 	/// Requests clients to remove the custom keyboard (user will not be able to summon this keyboard)
 	var removeKeyboard: Bool = true

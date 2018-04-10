@@ -1,5 +1,5 @@
 //
-//  SessionRequest+Edit.swift
+//  MethodRequest+Edit.swift
 //  Pelican
 //
 //  Created by Takanu Kyriako on 16/12/2017.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension SessionRequestSync {
+extension MethodRequestAsync {
 	
 	/**
 	Edits a text based message.
@@ -30,7 +30,7 @@ extension SessionRequestSync {
 																									disableWebPreview: disableWebPreview)
 		
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -47,7 +47,7 @@ extension SessionRequestSync {
 																										 caption: caption,
 																										 markup: markup)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -61,7 +61,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.editMessageReplyMarkup(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, markup: markup)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -77,7 +77,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.deleteMessage(chatID: chatID, messageID: messageID)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 }

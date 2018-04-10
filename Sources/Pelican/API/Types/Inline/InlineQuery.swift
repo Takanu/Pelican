@@ -11,7 +11,7 @@ import Foundation
 /**
 Represents an incoming inline query. When the user sends an empty query, your bot could return some default or trending results.
 */
-final public class InlineQuery: UpdateModel, Codable {
+public struct InlineQuery: UpdateModel, Codable {
 	
 	// Unique identifier for this query.
 	public var id: String

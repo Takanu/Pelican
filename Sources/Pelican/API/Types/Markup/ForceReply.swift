@@ -11,7 +11,7 @@ import Foundation
 Represents a special action that when sent with a message, will force Telegram clients to display
 a reply interface to all or a selected group of people in the chat.
 */
-final public class MarkupForceReply: MarkupType, Codable {
+public struct MarkupForceReply: MarkupType, Codable {
 	
 	/// Shows reply interface to the user, as if they manually selected the bot‘s message and tapped ’Reply'
 	public var forceReply: Bool = true

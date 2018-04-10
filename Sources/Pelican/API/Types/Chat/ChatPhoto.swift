@@ -8,7 +8,7 @@
 import Foundation
 
 
-public class ChatPhoto: Codable {
+public struct ChatPhoto: Codable {
 	
 	/// Unique file identifier of small (160x160) chat photo. This file_id can be used only for photo download.
 	public var smallFileID: String

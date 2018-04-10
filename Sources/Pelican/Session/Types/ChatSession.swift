@@ -14,12 +14,11 @@ Ignore this if you want?  What am i, a doctor?
 */
 open class ChatSession: Session {
 	
-	
 	public private(set) var tag: SessionTag
 	public private(set) var dispatchQueue: SessionDispatchQueue
 	
 	/// The chat ID associated with the session.
-	public private(set) var chatID: Int
+	public private(set) var chatID: String
 	
 	/// The chat associated with the session, if one exists.
 	public private(set) var chat: Chat?
@@ -27,12 +26,15 @@ open class ChatSession: Session {
 	
 	// API REQUESTS
 	// Shortcuts for API requests.
-	public private(set) var requests: SessionRequest
+	public private(set) var requests: MethodRequest
 	
 	
 	// DELEGATES AND CONTROLLERS
 	/// Handler for delayed Telegram API calls and closure execution.
 	public private(set) var queue: ChatSessionQueue
+	
+	/// Delegate for creating, modifying and getting other Sessions.
+	public private(set) var sessions: SessionRequest
 	
 	/// Handles and matches user requests to available bot functions.
 	public private(set) var baseRoute: Route
@@ -59,13 +61,16 @@ open class ChatSession: Session {
 	
 	
 	// Setup the session by passing a function that modifies itself with the required commands.
-	public required init(bot: PelicanBot, tag: SessionTag, update: Update) {
+	public required init?(bot: PelicanBot, tag: SessionTag) {
+		
+		if tag.chat == nil { return nil }
 		
 		self.tag = tag
-		self.chat = update.chat!
-		self.chatID = update.chat!.tgID
+		self.chat = tag.chat!
+		self.chatID = tag.chat!.tgID
 		
-		self.queue = ChatSessionQueue(chatID: update.chat!.tgID, schedule: bot.schedule, tag: self.tag)
+		self.queue = ChatSessionQueue(chatID: tag.chat!.tgID, schedule: bot.schedule, tag: self.tag)
+		self.sessions = SessionRequest(bot: bot)
 		self.baseRoute = Route(name: "base", routes: [])
 		
 		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
@@ -73,7 +78,7 @@ open class ChatSession: Session {
 		self.flood = FloodMonitor()
 		self.filter = UpdateFilter()
 		
-		self.requests = SessionRequest(tag: tag)
+		self.requests = MethodRequest(tag: tag)
 		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.chatsession_\(tag.sessionID)",qos: .userInitiated)
 	}
 	

@@ -17,8 +17,15 @@ Pelican in basic ways (such as removing the Session from active use if a Timeout
 public struct SessionTag: Equatable {
 	
 	// DATA
-	/// The "communication" ID that a session represents.  Could be a user ID, chat ID or a different, arbitrary type of session identification.
-	public private(set) var id: Int
+	/// The Telegram ID that a session represents.  Could be a user ID, chat ID or a different, arbitrary type of session identification.
+	public private(set) var id: String
+	
+	/// If the Telegram ID corresponds to a chat or user query, this is the user of that chat.
+	public private(set) var user: User?
+	
+	/// If the Telegram ID corresponds to a chat, this is the chat information.
+	public private(set) var chat: Chat?
+	
 	
 	/// The type of ID the session is represented by, utilised by types like the Moderator.
 	public private(set) var idType: SessionIDType
@@ -44,11 +51,15 @@ public struct SessionTag: Equatable {
 	public private(set) var sendEventCallback: (SessionEvent) -> ()
 	
 	
-	init(bot: PelicanBot, builder: SessionBuilder, id: Int) {
+	init(bot: PelicanBot,
+			 builder: SessionBuilder,
+			 id: String,
+			 user: User? = nil,
+			 chat: Chat? = nil) {
 		
 		self.id = id
 		self.idType = builder.idType
-		self.sessionType = builder.session
+		self.sessionType = builder.sessionType
 		self.sessionID = UUID()
 		self.builderID = builder.id
 		

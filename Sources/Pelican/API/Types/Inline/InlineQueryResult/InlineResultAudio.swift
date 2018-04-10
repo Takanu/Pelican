@@ -10,13 +10,13 @@ import Foundation
 /**
 Represents either a link to a MP3 audio file stored on the Telegram servers, or an external URL link to one.
 */
-struct InlineResultAudio: InlineResult {
+public struct InlineResultAudio: InlineResult {
 	
 	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
 	public var metatype: InlineResultType = .audio
 	
 	// Type of the result being given.
-	var type: String = "audio"
+	public var type: String = "audio"
 	
 	// Unique Identifier for the result, 1-64 bytes.
 	var id: String

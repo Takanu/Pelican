@@ -19,7 +19,7 @@ public enum ChatMemberStatus: String, Codable {
 /**
 Contains information about one member of a chat.
 */
-final public class ChatMember: Codable {
+public struct ChatMember: Codable {
 	
 	// BASIC INFORMATION
 	/// Information about the user.

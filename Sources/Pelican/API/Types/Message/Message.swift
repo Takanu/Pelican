@@ -8,9 +8,7 @@
 import Foundation
 
 
-
-
-final public class Message: Codable, UpdateModel {
+public class Message: Codable, UpdateModel {
 	
 	// BASICS
 	// Unique identifier for the Telegram message.
@@ -163,7 +161,7 @@ final public class Message: Codable, UpdateModel {
 		self.type = .text
 	}
 	
-	public init(from decoder: Decoder) throws {
+	public required init(from decoder: Decoder) throws {
 		let values = try decoder.container(keyedBy: CodingKeys.self)
 		
 		tgID = try values.decode(Int.self, forKey: .tgID)

@@ -17,7 +17,7 @@ extension PelicanBot {
 			
 		// In this event, the session just needs removing without any other tasks.
 		case .remove:
-			sessions.forEach( { $0.removeSession(tag: event.tag) } )
+			sessionManager.deleteSession(tag: event.tag)
 			
 			
 		// In a blacklist event, first make sure the Session ID type matches.  If not, return.
@@ -32,25 +32,22 @@ extension PelicanBot {
 			default:
 				return
 			}
-			
-			sessions.forEach( { $0.removeSession(tag: event.tag) } )
+			sessionManager.deleteSession(tag: event.tag)
 			
 		}
-		
-		
 	}
 	
 	/**
 	Submits work for a Session's DispatchQueue to handle.
 	*/
 	func requestSessionWork(tag: SessionTag, work: @escaping () -> ()) {
-		
-		sessions.forEach { builder in
-			if let session = builder.findSession(tag: tag) {
-				session.dispatchQueue.async(work)
-				return
-			}
-		}
-		
+		sessionManager.submitSessionWork(withTag: tag, work: work)
+	}
+	
+	/**
+	Allows a Session to create other sessions.
+	*/
+	func createSession(tag: SessionTag, telegramID: String) -> Session? {
+		return sessionManager.createNewSession(tag: tag, bot: self, telegramID: telegramID)
 	}
 }

@@ -13,7 +13,7 @@ Represents either a link to a voice recording in an .ogg container encoded with 
 
 By default, this voice recording will be sent by the user. Alternatively, you can use the `content` property to send a message with the specified content instead of the the voice message.
 */
-struct InlineResultVoice: InlineResult {
+public struct InlineResultVoice: InlineResult {
 	
 	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
 	public var metatype: InlineResultType = .voice

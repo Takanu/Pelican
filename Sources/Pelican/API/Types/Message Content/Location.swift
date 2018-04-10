@@ -12,7 +12,7 @@ import Foundation
 /**
 Represents a real-world location, that when sent as the contents of a message, is represented by a map preview.
 */
-final public class Location: TelegramType, MessageContent {
+public struct Location: TelegramType, MessageContent {
 	
 	// STORAGE AND IDENTIFIERS
 	public var contentType: String = "location"

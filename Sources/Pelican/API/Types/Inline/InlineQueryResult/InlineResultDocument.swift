@@ -15,7 +15,7 @@ By default, this file will be sent by the user with an optional caption. Alterna
 
 - note: Currently, only .PDF and .ZIP files can be sent using this method.
 */
-struct InlineResultDocument: InlineResult {
+public struct InlineResultDocument: InlineResult {
 	
 	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
 	public var metatype: InlineResultType = .document

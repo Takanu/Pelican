@@ -12,7 +12,7 @@ import Foundation
 /** 
 This object represents an animation file to be displayed in a Telegram message containing a game, used for additional visual flair and to better preview what your game is to 
 */
-final public class Animation: Codable {
+public struct Animation: Codable {
 	
 	/// A unique file identifier for the animation.
 	public var fileID: String

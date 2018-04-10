@@ -11,13 +11,13 @@ import Foundation
 /**
 Contains information about an incoming pre-checked query for the Telegram Payment API.
 */
-public class PreCheckoutQuery: Codable {
+public struct PreCheckoutQuery: Codable, UpdateModel {
 	
 	/// A unique query identifier.
 	var id: String = ""
 	
 	/// The user who sent the query.
-	var from: User = User(id: 0, isBot: false, firstName: "fixme")
+	var from: User = User(id: "0", isBot: false, firstName: "fixme")
 	
 	/// Three-letter [ISO 4217 currency code](https://core.telegram.org/bots/payments#supported-currencies).
 	var currency: String = ""

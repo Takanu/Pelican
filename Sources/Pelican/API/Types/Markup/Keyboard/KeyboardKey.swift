@@ -10,7 +10,7 @@ import Foundation
 
 
 /// Represents a single key of a MarkupKeyboard.
-final public class MarkupKeyboardKey: Codable, Equatable {
+public struct MarkupKeyboardKey: Codable, Equatable {
 	
 	/// The text displayed on the button.  If no other optional is used, this will be sent to the bot when pressed.
 	public var text: String

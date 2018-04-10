@@ -9,7 +9,7 @@ import Foundation
 
 
 
-final public class UserProfilePhotos: Codable {
+public struct UserProfilePhotos: Codable {
 	
 	/// The total number of photos the user has on their profile.
 	public var totalCount: Int

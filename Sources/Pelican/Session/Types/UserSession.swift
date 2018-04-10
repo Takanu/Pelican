@@ -24,7 +24,7 @@ open class UserSession: Session {
 	public private(set) var info: User
 	
 	/// The ID of the user associated with this session.
-	public private(set) var userID: Int
+	public private(set) var userID: String
 	
 	/// The chat sessions this user is currently actively occupying.
 	/// -- Not currently functional, undecided if it will be implemented
@@ -33,10 +33,13 @@ open class UserSession: Session {
 	
 	// API REQUESTS
 	// Shortcuts for API requests.
-	public private(set) var requests: SessionRequest
+	public private(set) var requests: MethodRequest
 	
 	
 	// DELEGATES / CONTROLLERS
+	/// Delegate for creating, modifying and getting other Sessions.
+	public private(set) var sessions: SessionRequest
+	
 	/// Handles and matches user requests to available bot functions.
 	public private(set) var baseRoute: Route
 	
@@ -60,12 +63,15 @@ open class UserSession: Session {
 	public private(set) var timeStarted = Date()
 	
 	
-	public required init(bot: PelicanBot, tag: SessionTag, update: Update) {
+	public required init?(bot: PelicanBot, tag: SessionTag) {
+		
+		if tag.user == nil { return nil }
 		
 		self.tag = tag
 		
-		self.info = update.from!
-		self.userID = update.from!.tgID
+		self.info = tag.user!
+		self.userID = tag.user!.tgID
+		self.sessions = SessionRequest(bot: bot)
 		self.baseRoute = Route(name: "base", routes: [])
 		
 		self.mod = SessionModerator(tag: tag, moderator: bot.mod)!
@@ -75,7 +81,7 @@ open class UserSession: Session {
 		
 		self.schedule = bot.schedule
 		
-		self.requests = SessionRequest(tag: tag)
+		self.requests = MethodRequest(tag: tag)
 		self.dispatchQueue = SessionDispatchQueue(tag: tag, label: "com.pelican.usersession_\(tag.sessionID)",qos: .userInitiated)
 	}
 	

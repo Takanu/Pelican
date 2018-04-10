@@ -12,11 +12,11 @@ import Foundation
 /**
 Represents a Telegram user or bot.
 */
-final public class User: Codable {
+public struct User: Codable {
 	public var messageTypeName = "user"
 	
 	/// Unique identifier for the user or bot.
-	public var tgID: Int
+	public var tgID: String
 	
 	/// If true, this user is a bot.
 	public var isBot: Bool
@@ -43,7 +43,7 @@ final public class User: Codable {
 		case languageCode = "language_code"
 	}
 	
-	public init(id: Int, isBot: Bool, firstName: String) {
+	public init(id: String, isBot: Bool, firstName: String) {
 		self.tgID = id
 		self.isBot = isBot
 		self.firstName = firstName
@@ -52,7 +52,7 @@ final public class User: Codable {
 	public init(from decoder: Decoder) throws {
 		let values = try decoder.container(keyedBy: CodingKeys.self)
 		
-		tgID = try values.decode(Int.self, forKey: .tgID)
+		tgID = try String(values.decode(Int.self, forKey: .tgID))
 		isBot = try values.decodeIfPresent(Bool.self, forKey: .isBot) ?? false
 		
 		firstName = try values.decode(String.self, forKey: .firstName)

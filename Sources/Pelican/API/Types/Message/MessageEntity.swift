@@ -28,7 +28,7 @@ public enum MessageEntityType: String, Codable {
 	case unknown
 }
 
-final public class MessageEntity: Codable {
+public struct MessageEntity: Codable {
 	
 	/// Type of the entity.  Can be a mention, hashtag, bot command, URL, email, special text formatting or a text mention.
 	public var type: MessageEntityType

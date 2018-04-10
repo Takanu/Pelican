@@ -12,7 +12,7 @@ import Foundation
 /**
 Represents a Voice type, which will appear as if it was a user-recorded voice message if sent.
 */
-final public class Voice: TelegramType, MessageFile {
+public struct Voice: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
 	public var contentType: String = "voice"

@@ -12,7 +12,7 @@ import Foundation
 /**
 Contains basic information about an invoice for the Telegram Payment API.
 */
-public class Invoice: Codable {
+public struct Invoice: Codable {
 	
 	/// Product name.
 	var title: String = ""

@@ -11,7 +11,7 @@ import Foundation
 /**
 Contains basic information about a successful payment for the Telegram Payment API.
 */
-public class SuccessfulPayment: Codable {
+public struct SuccessfulPayment: Codable {
 	
 	/// Three-letter [ISO 4217 currency code](https://core.telegram.org/bots/payments#supported-currencies).
 	var currency: String = ""

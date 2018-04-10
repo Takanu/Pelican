@@ -12,7 +12,7 @@ import Foundation
 /**
 Represents a VideoNote type, introduced in Telegram 4.0.
 */
-final public class VideoNote: TelegramType, MessageContent, MessageFile {
+public struct VideoNote: TelegramType, MessageContent, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
 	public var contentType: String = "video_note"

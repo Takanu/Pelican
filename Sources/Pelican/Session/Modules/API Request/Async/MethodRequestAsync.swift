@@ -1,5 +1,5 @@
 //
-//  SessionRequestAsync.swift
+//  MethodRequestAsync.swift
 //  Pelican
 //
 //  Created by Ido Constantine on 18/03/2018.
@@ -14,7 +14,7 @@ where your code execution will continue immediately after the request is made an
 Use this if you don't need to handle the response immediately after making the request or don't need to know
 the result of a request.
 */
-public struct SessionRequestAsync {
+public struct MethodRequestAsync {
 	
 	public typealias CallbackBoolean = ((Bool) -> ())?
 	public typealias CallbackString = ((String?) -> ())?

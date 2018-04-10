@@ -12,7 +12,7 @@ Represents either a link to a video animation (H.264/MPEG-4 AVC video without so
 
 By default, this MP4 GIF will be sent by the user with an optional caption. Alternatively, you can use the `content` property to send a message with the specified content instead of the file.
 */
-struct InlineResultMpeg4GIF: InlineResult {
+public struct InlineResultMpeg4GIF: InlineResult {
 	
 	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
 	public var metatype: InlineResultType = .mpeg4Gif

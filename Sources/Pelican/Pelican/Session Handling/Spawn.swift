@@ -20,7 +20,7 @@ public class Spawn {
 	- parameter updateType: The update types the spawner is looking for.  If nil, all update types will be accepted.
 	- parameter chatType: The types of chat the update originated from that the spawner is looking for.  If nil, all chat types will be accepted.
 	*/
-	public static func perChatID(updateType: [UpdateType]?, chatType: [ChatType]?) -> ((Update) -> Int?) {
+	public static func perChatID(updateType: [UpdateType]?, chatType: [ChatType]?) -> ((Update) -> String?) {
 		
 		return { update in
 			
@@ -45,7 +45,7 @@ public class Spawn {
 	- parameter updateType: The update types the spawner is looking for.  If nil, all update types will be accepted.
 	- parameter chatType: The types of chat the update originated from that the spawner is looking for.  If nil, all chat types will be accepted.
 	*/
-	public static func perChatID(include: [Int], updateType: [UpdateType]?, chatType: [ChatType]?) -> ((Update) -> Int?) {
+	public static func perChatID(include: [String], updateType: [UpdateType]?, chatType: [ChatType]?) -> ((Update) -> String?) {
 		
 		return { update in
 			
@@ -73,7 +73,7 @@ public class Spawn {
 	- parameter updateType: The update types the spawner is looking for.  If nil, all update types will be accepted.
 	- parameter chatType: The types of chat the update originated from that the spawner is looking for.  If nil, all chat types will be accepted.
 	*/
-	public static func perChatID(exclude: [Int], updateType: [UpdateType]?, chatType: [ChatType]?) -> ((Update) -> Int?) {
+	public static func perChatID(exclude: [String], updateType: [UpdateType]?, chatType: [ChatType]?) -> ((Update) -> String?) {
 		
 		return { update in
 			
@@ -95,7 +95,7 @@ public class Spawn {
 		}
 	}
 	
-	public static func perUserID(updateType: [UpdateType]?) -> ((Update) -> Int?) {
+	public static func perUserID(updateType: [UpdateType]?) -> ((Update) -> String?) {
 		
 		return { update in
 			
@@ -106,7 +106,7 @@ public class Spawn {
 		}
 	}
 	
-	public static func perUserID(include: [Int], updateType: [UpdateType]?) -> ((Update) -> Int?) {
+	public static func perUserID(include: [String], updateType: [UpdateType]?) -> ((Update) -> String?) {
 		
 		return { update in
 			
@@ -124,7 +124,7 @@ public class Spawn {
 		}
 	}
 	
-	public static func perUserID(exclude: [Int], updateType: [UpdateType]?) -> ((Update) -> Int?) {
+	public static func perUserID(exclude: [String], updateType: [UpdateType]?) -> ((Update) -> String?) {
 		
 		return { update in
 			

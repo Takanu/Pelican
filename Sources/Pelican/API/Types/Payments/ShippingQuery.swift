@@ -11,13 +11,13 @@ import Foundation
 /**
 Contains information about an incoming shipping query for the Telegram Payment API.
 */
-public class ShippingQuery: Codable {
+public struct ShippingQuery: Codable, UpdateModel {
 	
 	/// Unique query identifier.
 	var id: String = ""
 	
 	/// The user who sent this query.
-	var from: User = User(id: 0, isBot: false, firstName: "fixme")
+	var from: User = User(id: "0", isBot: false, firstName: "fixme")
 	
 	/// The bot-specified invoice payload.
 	var invoicePayload: String = ""

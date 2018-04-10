@@ -15,7 +15,7 @@ The TelegramRequest type also contains via static declarations all possible meth
 can be used to fabricate a TelegramRequest for a specific method call.
 
 To send a TelegramRequest, use `Client.syncRequest` or `Client.asyncRequest`.  Alternatively if programming bot events in a Session, just use the included
-SessionRequest type to make the `TelegramRequest`, send it and return you the right result.
+MethodRequest type to make the `TelegramRequest`, send it and return you the right result.
 */
 public class TelegramRequest {
 	

@@ -19,10 +19,10 @@ public class SessionModerator {
 	/// The session the moderator is delegating for, as identified by it's tag.
 	private var tag: SessionTag
 	
-	private var changeTitleCallback: (SessionIDType, String, [Int], Bool) -> ()
-	private var checkTitleCallback: (Int, SessionIDType) -> ([String])
+	private var changeTitleCallback: (SessionIDType, String, [String], Bool) -> ()
+	private var checkTitleCallback: (String, SessionIDType) -> ([String])
 	
-	public var getID: Int { return tag.id }
+	public var getID: String { return tag.id }
 	public var getTitles: [String] { return checkTitleCallback(tag.id, tag.idType) }
 	
 	

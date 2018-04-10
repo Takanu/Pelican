@@ -11,7 +11,7 @@ import Foundation
 /**
 Defines a wrapper for the InlineResult protocol, that allows ambiguous InlineResult types to be encoded and decoded.
 */
-public class InlineResultAny: Codable {
+public struct InlineResultAny: Codable {
 	
 	public var base: InlineResult
 	public var type: InlineResultType
@@ -26,7 +26,7 @@ public class InlineResultAny: Codable {
 		self.type = base.metatype
 	}
 	
-	public required init(from decoder: Decoder) throws {
+	public init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		
 		/// Create a new result type from the convenient "type" property.

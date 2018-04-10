@@ -10,7 +10,7 @@ import Foundation
 /**
 Represents a link to an article or web page.  This type is also ideal for setting the contents to a simple message by using the `content` property, for sending messages to a chat.
 */
-final public class InlineResultArticle: InlineResult {
+public struct InlineResultArticle: InlineResult {
 	
 	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
 	public var metatype: InlineResultType = .article

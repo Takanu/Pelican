@@ -12,7 +12,7 @@ import Foundation
 /**
 Represents a video file.  Go figure.
 */
-final public class Video: TelegramType, MessageFile {
+public struct Video: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
 	public var contentType: String = "video"

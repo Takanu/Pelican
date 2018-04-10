@@ -1,5 +1,5 @@
 //
-//  SessionRequest+Answer.swift
+//  MethodRequest+Answer.swift
 //  Pelican
 //
 //  Created by Takanu Kyriako on 17/12/2017.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension SessionRequestSync {
+extension MethodRequestAsync {
 	
 	/**
 	???
@@ -21,7 +21,7 @@ extension SessionRequestSync {
 		
 		let request = TelegramRequest.answerCallbackQuery(queryID: queryID, text: text, showAlert: showAlert, url: url, cacheTime: cacheTime)
 		let response = tag.sendSyncRequest(request)
-		return SessionRequest.decodeResponse(response) ?? false
+		return MethodRequest.decodeResponse(response) ?? false
 	}
 	
 	/**
@@ -46,7 +46,7 @@ extension SessionRequestSync {
 		
 		if request != nil {
 			let response = tag.sendSyncRequest(request!)
-			return SessionRequest.decodeResponse(response) ?? false
+			return MethodRequest.decodeResponse(response) ?? false
 		}
 		
 		return false

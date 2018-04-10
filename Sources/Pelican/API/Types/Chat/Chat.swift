@@ -31,10 +31,10 @@ public enum ChatType: String, Codable {
 /**
 Represents a Telegram chat.  Includes private chats, any kind of supergroup and channels.
 */
-final public class Chat: TelegramType, Codable {
+public struct Chat: TelegramType, Codable {
 	
 	/// Unique identifier for the chat, 52-bit integer when received.
-	public var tgID: Int
+	public var tgID: String
 	
 	/// Type of chat, can be either "private", "group", "supergroup", or "channel".
 	public var type: ChatType
@@ -90,7 +90,7 @@ final public class Chat: TelegramType, Codable {
 	}
 	
 	
-	public init(id: Int, type: ChatType) {
+	public init(id: String, type: ChatType) {
 		self.tgID = id
 		self.type = type
 	}

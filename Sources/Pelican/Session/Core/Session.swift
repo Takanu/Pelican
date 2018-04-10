@@ -42,7 +42,7 @@ public protocol Session {
 	/**
 	A standard initialiser for a Session, which includes all the required information to setup any delegates it might have.
 	*/
-	init(bot: PelicanBot, tag: SessionTag, update: Update)
+	init?(bot: PelicanBot, tag: SessionTag)
 	
 	/**
 	Performs any post-initialiser setup, like setting initial routes.
@@ -58,7 +58,7 @@ public protocol Session {
 	func cleanup()
 	
 	/**
-	Receives updates from Pelican to be used to find matching Routes and Prompts (in ChatSessions only).  Returns SessionRequest which
+	Receives updates from Pelican to be used to find matching Routes and Prompts (in ChatSessions only).  Returns MethodRequest which
 	Pelican uses to make requests to Telegram with.
 	*/
 	func update(_ update: Update)

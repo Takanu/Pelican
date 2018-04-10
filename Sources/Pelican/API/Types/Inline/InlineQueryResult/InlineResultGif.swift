@@ -12,13 +12,13 @@ Represents either a link to an animated GIF stored on the Telegram servers, or a
 
 By default, this GIF will be sent by the user with an optional caption. Alternatively, you can use the `content` property to send a message with the specified content instead of the file.
 */
-struct InlineResultGIF: InlineResult {
+public struct InlineResultGIF: InlineResult {
 	
 	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
 	public var metatype: InlineResultType = .gif
 	
 	// Type of the result being given.
-	var type: String = "gif"
+	public var type: String = "gif"
 	
 	// Unique Identifier for the result, 1-64 bytes.
 	var id: String

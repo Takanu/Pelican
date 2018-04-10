@@ -7,7 +7,7 @@
 
 import Foundation
 
-final public class InputMessageContent_Contact: InputMessageContent_Any {
+public struct InputMessageContent_Contact: InputMessageContent_Any {
 	
 	// The type of the input content, used for Codable.
 	public static var type: InputMessageContentType = .contact

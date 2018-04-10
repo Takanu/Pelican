@@ -9,7 +9,7 @@ import Foundation
 
 
 
-final public class Contact: TelegramType, MessageContent {
+public struct Contact: TelegramType, MessageContent {
 	
 	// STORAGE AND IDENTIFIERS
 	public var contentType: String = "contact"

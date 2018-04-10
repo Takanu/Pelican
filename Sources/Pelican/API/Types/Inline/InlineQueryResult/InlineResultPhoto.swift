@@ -13,7 +13,7 @@ Represents either a link to a photo that's stored on the Telegram servers, or an
 
 By default, this photo will be sent by the user with an optional caption. Alternatively, you can use the `content` property to send a message with the specified content instead of the file.
 */
-struct InlineResultPhoto: InlineResult {
+public struct InlineResultPhoto: InlineResult {
 	
 	/// A metatype, used to Encode and Decode itself as part of the InlineResult protocol.
 	public var metatype: InlineResultType = .photo

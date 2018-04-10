@@ -11,7 +11,7 @@ import Foundation
 /**
 Represents a shipping address for the Telegram Payment API.
 */
-public class ShippingAddress: Codable {
+public struct ShippingAddress: Codable {
 	
 	/// ISO 3166-1 alpha-2 country code.
 	var countryCode: String = ""

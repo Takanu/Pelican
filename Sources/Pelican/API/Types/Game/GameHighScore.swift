@@ -11,7 +11,7 @@ import Foundation
 
 /** This object represents one row of the high scores table for a game.
 */
-final public class GameHighScore: Codable {
+public struct GameHighScore: Codable {
 	
 	/// The position in the high score table for the game.
 	public var position: Int

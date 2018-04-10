@@ -10,7 +10,7 @@ import Foundation
 /**
 Represents a photo to be sent in the context of an album.
 */
-class InputMediaPhoto: InputMedia {
+struct InputMediaPhoto: InputMedia {
 	
 	// PROTOCOL INHERITANCE
 	public var type = "photo"

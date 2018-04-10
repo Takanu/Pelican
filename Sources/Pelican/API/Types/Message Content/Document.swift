@@ -12,7 +12,7 @@ import Foundation
 /**
 Represents a generic file type, typically not covered by other Telegram file types (like Audio, Voice or Photo).
 */
-final public class Document: TelegramType, MessageFile {
+public struct Document: TelegramType, MessageFile {
 	
 	// STORAGE AND IDENTIFIERS
 	public var contentType: String = "document"

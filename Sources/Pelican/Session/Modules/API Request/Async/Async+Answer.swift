@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension SessionRequestAsync {
+extension MethodRequestAsync {
 	
 	/**
 	???
@@ -23,7 +23,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response) ?? false)
+				callback!(MethodRequest.decodeResponse(response) ?? false)
 			}
 		}
 	}
@@ -46,7 +46,7 @@ extension SessionRequestAsync {
 			tag.sendAsyncRequest(request!) { response in
 				
 				if callback != nil {
-					callback!(SessionRequest.decodeResponse(response) ?? false)
+					callback!(MethodRequest.decodeResponse(response) ?? false)
 					return
 				}
 			}

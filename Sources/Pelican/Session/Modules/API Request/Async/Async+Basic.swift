@@ -1,5 +1,5 @@
 //
-//  SessionRequestAsync+Send.swift
+//  MethodRequestAsync+Send.swift
 //  Pelican
 //
 //  Created by Ido Constantine on 18/03/2018.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension SessionRequestAsync {
+extension MethodRequestAsync {
 	
 	/**
 	A basic function for testing authorisation tokens, that returns your bot as a user if successful.
@@ -17,7 +17,7 @@ extension SessionRequestAsync {
 		let request = TelegramRequest.getMe()
 		tag.sendAsyncRequest(request) { response in
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response))
+				callback!(MethodRequest.decodeResponse(response))
 			}
 		}
 	}
@@ -47,7 +47,7 @@ extension SessionRequestAsync {
 			// Define the type we wish to decode and see if we can make it happen.
 			let message: Message?
 			if response != nil {
-				message = SessionRequest.decodeResponse(response!)
+				message = MethodRequest.decodeResponse(response!)
 			} else {
 				message = nil
 			}
@@ -72,7 +72,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response))
+				callback!(MethodRequest.decodeResponse(response))
 			}
 		}
 	}
@@ -107,7 +107,7 @@ extension SessionRequestAsync {
 			
 			// If we have a callback, return whatever the result was.
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response!))
+				callback!(MethodRequest.decodeResponse(response!))
 			}
 		}
 	}
@@ -124,7 +124,7 @@ extension SessionRequestAsync {
 			
 			// Define the type we wish to decode and see if we can make it happen.
 			let returnValue: Bool
-			returnValue = SessionRequest.decodeResponse(response!) ?? false
+			returnValue = MethodRequest.decodeResponse(response!) ?? false
 			
 			// If we have a callback, return whatever the result was.
 			if callback != nil {
@@ -146,7 +146,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response))
+				callback!(MethodRequest.decodeResponse(response))
 			}
 		}
 	}
@@ -163,7 +163,7 @@ extension SessionRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(SessionRequest.decodeResponse(response))
+				callback!(MethodRequest.decodeResponse(response))
 			}
 		}
 	}
