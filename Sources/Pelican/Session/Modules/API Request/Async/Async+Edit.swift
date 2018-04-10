@@ -11,7 +11,7 @@ extension MethodRequestAsync {
 													messageID: Int?,
 													inlineMessageID: Int?,
 													markup: MarkupType? = nil,
-													chatID: Int,
+													chatID: String,
 													parseMode: MessageParseMode = .markdown,
 													disableWebPreview: Bool = false,
 													callback: CallbackBoolean) {
@@ -38,7 +38,7 @@ extension MethodRequestAsync {
 	public func editCaption(messageID: Int = 0,
 													caption: String,
 													markup: MarkupType? = nil,
-													chatID: Int,
+													chatID: String,
 													callback: CallbackBoolean) {
 		
 		let request = TelegramRequest.editMessageCaption(chatID: chatID,
@@ -60,7 +60,7 @@ extension MethodRequestAsync {
 	public func editReplyMarkup(_ markup: MarkupType?,
 															messageID: Int = 0,
 															inlineMessageID: Int = 0,
-															chatID: Int,
+															chatID: String,
 															callback: CallbackBoolean) {
 		
 		let request = TelegramRequest.editMessageReplyMarkup(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, markup: markup)
@@ -80,7 +80,7 @@ extension MethodRequestAsync {
 	- If the bot is an administrator of a group, it can delete any message there.
 	- If the bot has can_delete_messages permission in a supergroup or a channel, it can delete any message there.
 	*/
-	public func deleteMessage(_ messageID: Int, chatID: Int, callback: CallbackBoolean) {
+	public func deleteMessage(_ messageID: Int, chatID: String, callback: CallbackBoolean) {
 		
 		let request = TelegramRequest.deleteMessage(chatID: chatID, messageID: messageID)
 		tag.sendAsyncRequest(request) { response in

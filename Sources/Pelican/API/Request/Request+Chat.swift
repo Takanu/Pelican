@@ -15,7 +15,7 @@ Adds an extension that deals in fetching information from Telegram.
 extension TelegramRequest {
 	
 	/* Use this method for your bot to leave a group, supergroup or channel. Returns True on success. */
-	public func leaveChat(chatID: Int, userID: Int) {
+	public func leaveChat(chatID: String, userID: String) {
 		
 		query = [
 			"chat_id":chatID,
@@ -35,7 +35,7 @@ extension TelegramRequest {
 	Use this method to get up to date information about the chat (current name of the user for one-on-one conversations, 
 	current username of a user, group or channel, etc.). Returns a Chat object on success.
 	*/
-	public static func getChat(chatID: Int) -> TelegramRequest {
+	public static func getChat(chatID: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -59,7 +59,7 @@ extension TelegramRequest {
 	contains information about all chat administrators except other bots. If the chat is a group or a supergroup and 
 	no administrators were appointed, only the creator will be returned.
 	*/
-	public static func getChatAdministrators(chatID: Int) -> TelegramRequest {
+	public static func getChatAdministrators(chatID: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -81,7 +81,7 @@ extension TelegramRequest {
 	## API Description
 	Use this method to get the number of members in a chat. Returns Int on success.
 	*/
-	public static func getChatMemberCount(chatID: Int) -> TelegramRequest {
+	public static func getChatMemberCount(chatID: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -103,7 +103,7 @@ extension TelegramRequest {
 	## API Description
 	Use this method to get information about a member of a chat. Returns a ChatMember object on success.
 	*/
-	public static func getChatMember(chatID: Int, userID: Int) -> TelegramRequest {
+	public static func getChatMember(chatID: String, userID: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		

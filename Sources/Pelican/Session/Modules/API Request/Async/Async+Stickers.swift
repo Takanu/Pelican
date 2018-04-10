@@ -27,7 +27,7 @@ extension MethodRequestAsync {
 	Use this method to upload a .png file with a sticker for later use in createNewStickerSet and addStickerToSet
 	methods (can be used multiple times).
 	*/
-	public func uploadStickerFile(_ sticker: Sticker, userID: Int, callback: ((FileDownload?) -> ())? ) {
+	public func uploadStickerFile(_ sticker: Sticker, userID: String, callback: ((FileDownload?) -> ())? ) {
 		
 		guard let request = TelegramRequest.uploadStickerFile(userID: userID, sticker: sticker) else {
 			PLog.error("Can't create uploadStickerFile request.")
@@ -49,7 +49,7 @@ extension MethodRequestAsync {
 	/**
 	Use this method to create new sticker set owned by a user. The bot will be able to edit the created sticker set.
 	*/
-	public func createNewStickerSet(userID: Int,
+	public func createNewStickerSet(userID: String,
 																	name: String,
 																	title: String,
 																	sticker: Sticker,
@@ -76,7 +76,7 @@ extension MethodRequestAsync {
 	/**
 	Adds a sticker to a sticker set created by the bot.
 	*/
-	public func addStickerToSet(userID: Int,
+	public func addStickerToSet(userID: String,
 															name: String,
 															pngSticker: Sticker,
 															emojis: String,

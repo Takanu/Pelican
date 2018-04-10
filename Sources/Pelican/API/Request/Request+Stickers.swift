@@ -35,7 +35,11 @@ extension TelegramRequest {
 	## Function Description
 	Use this method to create new sticker set owned by a user. The bot will be able to edit the created sticker set. Returns True on success.
 	*/
-	public static func addStickerToSet(userID: Int, name: String, pngSticker: Sticker, emojis: String, maskPosition: MaskPosition? = nil) -> TelegramRequest {
+	public static func addStickerToSet(userID: String,
+																		 name: String,
+																		 pngSticker: Sticker,
+																		 emojis: String,
+																		 maskPosition: MaskPosition? = nil) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -71,7 +75,13 @@ extension TelegramRequest {
 	## Function Description
 	Use this method to create new sticker set owned by a user. The bot will be able to edit the created sticker set. Returns True on success.
 	*/
-	public static func createNewStickerSet(userID: Int, name: String, title: String, sticker: Sticker, emojis: String, containsMasks: Bool? = nil, maskPosition: MaskPosition? = nil) -> TelegramRequest {
+	public static func createNewStickerSet(userID: String,
+																				 name: String,
+																				 title: String,
+																				 sticker: Sticker,
+																				 emojis: String,
+																				 containsMasks: Bool? = nil,
+																				 maskPosition: MaskPosition? = nil) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -149,7 +159,7 @@ extension TelegramRequest {
 	## Function Description
 	Use this method to upload a .png file with a sticker for later use in createNewStickerSet and addStickerToSet methods (can be used multiple times). Returns the uploaded File on success.
 	*/
-	public static func uploadStickerFile(userID: Int, sticker: Sticker) -> TelegramRequest? {
+	public static func uploadStickerFile(userID: String, sticker: Sticker) -> TelegramRequest? {
 		
 		let request = TelegramRequest()
 		

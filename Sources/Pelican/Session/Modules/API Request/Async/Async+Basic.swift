@@ -27,7 +27,7 @@ extension MethodRequestAsync {
 	*/
 	public func sendMessage(_ message: String,
 													markup: MarkupType?,
-													chatID: Int,
+													chatID: String,
 													parseMode: MessageParseMode = .markdown,
 													replyID: Int = 0,
 													useWebPreview: Bool = false,
@@ -62,8 +62,8 @@ extension MethodRequestAsync {
 	/**
 	Forward a message of any kind.
 	*/
-	public func forwardMessage(toChatID: Int,
-														 fromChatID: Int,
+	public func forwardMessage(toChatID: String,
+														 fromChatID: String,
 														 fromMessageID: Int,
 														 disableNotification: Bool = false,
 														 callback: ((Message?) -> ())? = nil) {
@@ -83,7 +83,7 @@ extension MethodRequestAsync {
 	public func sendFile(_ file: MessageFile,
 											 caption: String,
 											 markup: MarkupType?,
-											 chatID: Int,
+											 chatID: String,
 											 replyID: Int = 0,
 											 disableNotification: Bool = false,
 											 callback: ((Message?) -> ())? = nil) {
@@ -117,7 +117,7 @@ extension MethodRequestAsync {
 	Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status).
 	- returns: True on success.
 	*/
-	public func sendChatAction(_ actionType: ChatAction, chatID: Int, callback: ((Bool) -> ())? = nil) {
+	public func sendChatAction(_ actionType: ChatAction, chatID: String, callback: ((Bool) -> ())? = nil) {
 		
 		let request = TelegramRequest.sendChatAction(action: actionType, chatID: chatID)
 		tag.sendAsyncRequest(request) { response in
@@ -137,7 +137,7 @@ extension MethodRequestAsync {
 	/**
 	Returns a list of profile pictures for the specified user.
 	*/
-	public func getUserProfilePhotos(userID: Int,
+	public func getUserProfilePhotos(userID: String,
 																	 offset: Int = 0,
 																	 limit: Int = 100,
 																	 callback: ((UserProfilePhotos?) -> ())? = nil) {

@@ -93,7 +93,7 @@ public class ChatSessionQueue {
 	- parameter message: The text message you wish to send.
 	- parameter markup: If any special message functions should be applied.
 	*/
-	public func message(delay: Duration, viewTime: Duration, message: String, markup: MarkupType? = nil, chatID: Int) {
+	public func message(delay: Duration, viewTime: Duration, message: String, markup: MarkupType? = nil, chatID: String) {
 		
 		// Calculate what kind of delay we're using
 		let execTime = bumpEventTime(delay: delay, viewTime: viewTime)
@@ -121,7 +121,7 @@ public class ChatSessionQueue {
 												viewTime: Duration,
 												message: String,
 												markup: MarkupType? = nil,
-												chatID: Int,
+												chatID: String,
 												parseMode: MessageParseMode = .none,
 												replyID: Int = 0,
 												useWebPreview: Bool = false,

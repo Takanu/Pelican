@@ -46,7 +46,7 @@ extension TelegramRequest {
 	## API Description
 	Sends a message.  Must contain a chat ID, message text and an optional MarkupType.
 	*/
-	public static func sendMessage(chatID: Int,
+	public static func sendMessage(chatID: String,
 																 text: String,
 																 markup: MarkupType?,
 																 parseMode: MessageParseMode = .markdown,
@@ -82,8 +82,8 @@ extension TelegramRequest {
 	}
 	
 	// Forwards a message of any kind.  On success, the sent Message is returned.
-	static public func forwardMessage(toChatID: Int,
-																		fromChatID: Int,
+	static public func forwardMessage(toChatID: String,
+																		fromChatID: String,
 																		fromMessageID: Int,
 																		disableNotification: Bool = false) -> TelegramRequest {
 		
@@ -115,7 +115,7 @@ extension TelegramRequest {
 	Photo, Video, Document and Voice message file types - you wont see a caption appear with any other uploaded file type.
 	*/
 	public static func sendFile(file: MessageFile,
-															chatID: Int,
+															chatID: String,
 															markup: MarkupType?,
 															caption: String = "",
 															disableNotification: Bool = false,
@@ -161,7 +161,7 @@ extension TelegramRequest {
 	## API Description
 	Use this method to get a list of profile pictures for a user. Returns a UserProfilePhotos object.
 	*/
-	public static func getUserProfilePhotos(userID: Int, offset: Int = 0, limit: Int = 100) -> TelegramRequest {
+	public static func getUserProfilePhotos(userID: String, offset: Int = 0, limit: Int = 100) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -182,7 +182,7 @@ extension TelegramRequest {
 	
 	
 	/* Use this method to kick a user from a group or a supergroup. In the case of supergroups, the user will not be able to return to the group on their own using invite links, etc., unless unbanned first. The bot must be an administrator in the group for this to work. Returns True on success. */
-	public static func sendChatAction(action: ChatAction, chatID: Int) -> TelegramRequest {
+	public static func sendChatAction(action: ChatAction, chatID: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		

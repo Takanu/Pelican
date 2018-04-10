@@ -19,7 +19,13 @@ extension TelegramRequest {
 	## API Description
 	Use this method to edit text and game messages sent by the bot or via the bot (for inline bots). On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
 	*/
-	public static func editMessageText(chatID: Int?, messageID: Int?, inlineMessageID: Int?, text: String, markup: MarkupType?, parseMode: MessageParseMode = .markdown, disableWebPreview: Bool = false) -> TelegramRequest {
+	public static func editMessageText(chatID: String?,
+																		 messageID: Int?,
+																		 inlineMessageID: Int?,
+																		 text: String,
+																		 markup: MarkupType?,
+																		 parseMode: MessageParseMode = .markdown,
+																		 disableWebPreview: Bool = false) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -53,7 +59,7 @@ extension TelegramRequest {
 	Use this method to edit captions of messages sent by the bot or via the bot (for inline bots). On success, 
 	if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
 	*/
-	public static func editMessageCaption(chatID: Int, messageID: Int = 0, caption: String, markup: MarkupType?) -> TelegramRequest {
+	public static func editMessageCaption(chatID: String, messageID: Int = 0, caption: String, markup: MarkupType?) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -86,7 +92,7 @@ extension TelegramRequest {
 	Use this method to edit only the reply markup of messages sent by the bot or via the bot (for inline bots). On success, 
 	if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
 	*/
-	public static func editMessageReplyMarkup(chatID: Int, messageID: Int = 0, inlineMessageID: Int = 0, markup: MarkupType?) -> TelegramRequest {
+	public static func editMessageReplyMarkup(chatID: String, messageID: Int = 0, inlineMessageID: Int = 0, markup: MarkupType?) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -124,7 +130,7 @@ extension TelegramRequest {
 	- If the bot has can_delete_messages permission in a supergroup or a channel, it can delete any message there.
 	Returns True on success.
 	*/
-	public static func deleteMessage(chatID: Int, messageID: Int) -> TelegramRequest {
+	public static func deleteMessage(chatID: String, messageID: Int) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		

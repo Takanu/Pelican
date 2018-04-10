@@ -21,7 +21,11 @@ extension TelegramRequest {
 	
 	Alternatively, the user can be redirected to the specified Game URL. For this option to work, you must first create a game for your bot via BotFather and accept the terms. Otherwise, you may use links like t.me/your_bot start=XXXX that open your bot with a parameter.
 	*/
-	public static func answerCallbackQuery(queryID: String, text: String?, showAlert: Bool, url: String?, cacheTime: Int = 0) -> TelegramRequest {
+	public static func answerCallbackQuery(queryID: String,
+																				 text: String?,
+																				 showAlert: Bool,
+																				 url: String?,
+																				 cacheTime: Int = 0) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -51,7 +55,13 @@ extension TelegramRequest {
 	Use this method to send answers to an inline query. On success, True is returned.
 	No more than 50 results per query are allowed.
 	*/
-	public static func answerInlineQuery(queryID: String, results: [InlineResult], cacheTime: Int = 0, isPersonal: Bool = false, nextOffset: String?, switchPM: String?, switchPMParam: String?) -> TelegramRequest? {
+	public static func answerInlineQuery(queryID: String,
+																			 results: [InlineResult],
+																			 cacheTime: Int = 0,
+																			 isPersonal: Bool = false,
+																			 nextOffset: String?,
+																			 switchPM: String?,
+																			 switchPMParam: String?) -> TelegramRequest? {
 		
 		let request = TelegramRequest()
 		

@@ -24,12 +24,12 @@ extension MethodRequestAsync {
 	*/
 	@discardableResult
 	public func sendMessage(_ message: String,
-				markup: MarkupType? = nil,
-				chatID: Int,
-				parseMode: MessageParseMode = .markdown,
-				replyID: Int = 0,
-				useWebPreview: Bool = false,
-				disableNotification: Bool = false) -> Message? {
+													markup: MarkupType? = nil,
+													chatID: String,
+													parseMode: MessageParseMode = .markdown,
+													replyID: Int = 0,
+													useWebPreview: Bool = false,
+													disableNotification: Bool = false) -> Message? {
 		
 		let request = TelegramRequest.sendMessage(chatID: chatID,
 																							text: message,
@@ -47,7 +47,10 @@ extension MethodRequestAsync {
 	Forward a message of any kind.
 	*/
 	@discardableResult
-	public func forwardMessage(toChatID: Int, fromChatID: Int, fromMessageID: Int, disableNotification: Bool = false) -> Message? {
+	public func forwardMessage(toChatID: String,
+														 fromChatID: String,
+														 fromMessageID: Int,
+														 disableNotification: Bool = false) -> Message? {
 		
 		let request = TelegramRequest.forwardMessage(toChatID: toChatID, fromChatID: fromChatID, fromMessageID: fromMessageID, disableNotification: disableNotification)
 		let response = tag.sendSyncRequest(request)
@@ -61,7 +64,7 @@ extension MethodRequestAsync {
 	public func sendFile(_ file: MessageFile,
 											 caption: String,
 											 markup: MarkupType?,
-											 chatID: Int,
+											 chatID: String,
 											 replyID: Int = 0,
 											 disableNotification: Bool = false) -> Message? {
 		
@@ -78,7 +81,7 @@ extension MethodRequestAsync {
 	Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status).
 	- returns: True on success.
 	*/
-	public func sendChatAction(_ actionType: ChatAction, chatID: Int) -> Bool {
+	public func sendChatAction(_ actionType: ChatAction, chatID: String) -> Bool {
 		
 		let request = TelegramRequest.sendChatAction(action: actionType, chatID: chatID)
 		let response = tag.sendSyncRequest(request)
@@ -89,7 +92,7 @@ extension MethodRequestAsync {
 	/**
 	Returns a list of profile pictures for the specified user.
 	*/
-	public func getUserProfilePhotos(userID: Int, offset: Int = 0, limit: Int = 100) -> UserProfilePhotos? {
+	public func getUserProfilePhotos(userID: String, offset: Int = 0, limit: Int = 100) -> UserProfilePhotos? {
 		
 		let request = TelegramRequest.getUserProfilePhotos(userID: userID, offset: offset, limit: limit)
 		let response = tag.sendSyncRequest(request)

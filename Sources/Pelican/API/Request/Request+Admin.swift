@@ -20,7 +20,7 @@ extension TelegramRequest {
 	Use this method to kick a user from a group or a supergroup. In the case of supergroups, the user will not be able to return to the group on their own using invite links, etc., unless unbanned first. The bot must be an administrator
 	in the group for this to work. Returns True on success.
 	*/
-	public static func kickChatMember(chatID: Int, userID: Int) -> TelegramRequest {
+	public static func kickChatMember(chatID: String, userID: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -42,7 +42,7 @@ extension TelegramRequest {
 	Use this method to unban a previously kicked user in a supergroup. The user will not return to the group automatically, but will be able to join via link, etc. The bot must be an administrator in the group for this to work. Returns
 	True on success.
 	*/
-	public static func unbanChatMember(chatID: Int, userID: Int) -> TelegramRequest {
+	public static func unbanChatMember(chatID: String, userID: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -63,7 +63,10 @@ extension TelegramRequest {
 	Use this method to restrict a user in a supergroup. The bot must be an administrator in the supergroup for this to work and must have the appropriate admin rights. Pass True for all boolean parameters to lift restrictions from a
 	user. Returns True on success.
 	*/
-	public static func restrictChatMember(chatID: Int, userID: Int, restrictUntil: Int?, restrictions: (msg: Bool, media: Bool, stickers: Bool, useWebPreview: Bool)?) -> TelegramRequest {
+	public static func restrictChatMember(chatID: String,
+																				userID: String,
+																				restrictUntil: Int?,
+																				restrictions: (msg: Bool, media: Bool, stickers: Bool, useWebPreview: Bool)?) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -94,7 +97,9 @@ extension TelegramRequest {
 	Use this method to promote or demote a user in a supergroup or a channel. The bot must be an administrator in the chat for this to work and must have the appropriate admin rights. Pass False for all boolean parameters to demote a
 	user. Returns True on success.
 	*/
-	public static func promoteChatMember(chatID: Int, userID: Int, rights: (info: Bool, msg: Bool, edit: Bool, delete: Bool, invite: Bool, restrict: Bool, pin: Bool, promote: Bool)?) -> TelegramRequest {
+	public static func promoteChatMember(chatID: String,
+																			 userID: String,
+																			 rights: (info: Bool, msg: Bool, edit: Bool, delete: Bool, invite: Bool, restrict: Bool, pin: Bool, promote: Bool)?) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -126,7 +131,7 @@ extension TelegramRequest {
 	## API Description
 	Use this method to export an invite link to a supergroup or a channel. The bot must be an administrator in the chat for this to work and must have the appropriate admin rights. Returns exported invite link as String on success.
 	*/
-	public static func exportChatInviteLink(chatID: Int) -> TelegramRequest {
+	public static func exportChatInviteLink(chatID: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -147,7 +152,7 @@ extension TelegramRequest {
 	
 	- note: In regular groups (non-supergroups), this method will only work if the ‘All Members Are Admins’ setting is off in the target group.
 	*/
-	public static func setChatPhoto(chatID: Int, file: MessageFile) -> TelegramRequest {
+	public static func setChatPhoto(chatID: String, file: MessageFile) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -167,7 +172,7 @@ extension TelegramRequest {
 	
 	- note: In regular groups (non-supergroups), this method will only work if the ‘All Members Are Admins’ setting is off in the target group.
 	*/
-	public static func deleteChatPhoto(chatID: Int) -> TelegramRequest {
+	public static func deleteChatPhoto(chatID: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -186,7 +191,7 @@ extension TelegramRequest {
 	## API Description
 	Use this method to change the title of a chat. Titles can't be changed for private chats. The bot must be an administrator in the chat for this to work and must have the appropriate admin rights. Returns True on success.
 	*/
-	public static func setChatTitle(chatID: Int, title: String) -> TelegramRequest {
+	public static func setChatTitle(chatID: String, title: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -206,7 +211,7 @@ extension TelegramRequest {
 	## API Description
 	Use this method to change the description of a supergroup or a channel. The bot must be an administrator in the chat for this to work and must have the appropriate admin rights. Returns True on success.
 	*/
-	public static func setChatDescription(chatID: Int, description: String) -> TelegramRequest {
+	public static func setChatDescription(chatID: String, description: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -226,7 +231,7 @@ extension TelegramRequest {
 	## API Description
 	Use this method to pin a message in a supergroup. The bot must be an administrator in the chat for this to work and must have the appropriate admin rights. Returns True on success.
 	*/
-	public static func pinChatMessage(chatID: Int, messageID: Int, disableNotification: Bool = false) -> TelegramRequest {
+	public static func pinChatMessage(chatID: String, messageID: Int, disableNotification: Bool = false) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
@@ -247,7 +252,7 @@ extension TelegramRequest {
 	## API Description
 	Use this method to unpin a message in a supergroup chat. The bot must be an administrator in the chat for this to work and must have the appropriate admin rights. Returns True on success.
 	*/
-	public static func unpinChatMessage(chatID: Int) -> TelegramRequest {
+	public static func unpinChatMessage(chatID: String) -> TelegramRequest {
 		
 		let request = TelegramRequest()
 		
