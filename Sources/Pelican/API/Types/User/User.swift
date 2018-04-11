@@ -13,7 +13,7 @@ import Foundation
 Represents a Telegram user or bot.
 */
 public struct User: Codable {
-	public var messageTypeName = "user"
+	public let messageTypeName = "user"
 	
 	/// Unique identifier for the user or bot.
 	public var tgID: String
@@ -59,6 +59,18 @@ public struct User: Codable {
 		lastName = try values.decodeIfPresent(String.self, forKey: .lastName)
 		username = try values.decodeIfPresent(String.self, forKey: .username)
 		languageCode = try values.decodeIfPresent(String.self, forKey: .languageCode)
+	}
+	
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		
+		let intID = Int(tgID)
+		try container.encode(intID, forKey: .tgID)
+		try container.encodeIfPresent(isBot, forKey: .isBot)
+		try container.encode(firstName, forKey: .firstName)
+		try container.encodeIfPresent(lastName, forKey: .lastName)
+		try container.encodeIfPresent(username, forKey: .username)
+		try container.encodeIfPresent(languageCode, forKey: .languageCode)
 	}
 	
 }

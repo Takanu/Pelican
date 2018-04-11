@@ -70,7 +70,7 @@ public struct Chat: TelegramType, Codable {
 	public var stickerSetName: String?
 	
 	/// Whether a bot is able to change the group sticket set.  Will only be returned only in the `getChat` method.
-	public var canSetStickerSet: String?
+	public var canSetStickerSet: Bool?
 	
 	/// Coding keys to map values when Encoding and Decoding.
 	enum CodingKeys: String, CodingKey {
@@ -93,5 +93,46 @@ public struct Chat: TelegramType, Codable {
 	public init(id: String, type: ChatType) {
 		self.tgID = id
 		self.type = type
+	}
+	
+	
+	public init(from decoder: Decoder) throws {
+		let values = try decoder.container(keyedBy: CodingKeys.self)
+		
+		tgID = try String(values.decode(Int.self, forKey: .tgID))
+		type = try values.decode(ChatType.self, forKey: .type)
+		title = try values.decodeIfPresent(String.self, forKey: .title)
+		username = try values.decodeIfPresent(String.self, forKey: .username)
+		firstName = try values.decodeIfPresent(String.self, forKey: .firstName)
+		lastName = try values.decodeIfPresent(String.self, forKey: .lastName)
+		
+		areAllMembersAdmins = try values.decodeIfPresent(Bool.self, forKey: .areAllMembersAdmins)
+		photo = try values.decodeIfPresent(ChatPhoto.self, forKey: .photo)
+		description = try values.decodeIfPresent(String.self, forKey: .description)
+		inviteLink = try values.decodeIfPresent(String.self, forKey: .inviteLink)
+		pinnedMessage = try values.decodeIfPresent(String.self, forKey: .pinnedMessage)
+		stickerSetName = try values.decodeIfPresent(String.self, forKey: .stickerSetName)
+		canSetStickerSet = try values.decodeIfPresent(Bool.self, forKey: .canSetStickerSet)
+	}
+	
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		
+		let intID = Int(tgID)
+		try container.encode(intID, forKey: .tgID)
+		try container.encode(type, forKey: .type)
+		try container.encodeIfPresent(title, forKey: .title)
+		try container.encodeIfPresent(username, forKey: .username)
+		try container.encodeIfPresent(firstName, forKey: .firstName)
+		try container.encodeIfPresent(lastName, forKey: .lastName)
+		
+		try container.encodeIfPresent(areAllMembersAdmins, forKey: .areAllMembersAdmins)
+		try container.encodeIfPresent(photo, forKey: .photo)
+		try container.encodeIfPresent(description, forKey: .description)
+		try container.encodeIfPresent(inviteLink, forKey: .inviteLink)
+		try container.encodeIfPresent(pinnedMessage, forKey: .pinnedMessage)
+		try container.encodeIfPresent(stickerSetName, forKey: .stickerSetName)
+		try container.encodeIfPresent(canSetStickerSet, forKey: .canSetStickerSet)
+		
 	}
 }
