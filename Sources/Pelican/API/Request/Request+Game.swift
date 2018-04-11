@@ -18,7 +18,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id":chatID,
+			"chat_id": Int(chatID),
 			"game_short_name": gameName
 		]
 		
@@ -51,7 +51,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"user_id":userID,
+			"user_id": Int(userID),
 			"score": score
 		]
 		
@@ -61,7 +61,7 @@ extension TelegramRequest {
 		
 		// THIS NEEDS EDITING PROBABLY, NOT NICE DESIGN
 		if inlineMessageID == 0 {
-			request.query["chat_id"] = chatID
+			request.query["chat_id"] = Int(chatID)
 			request.query["message_id"] = messageID
 		}
 			
@@ -85,12 +85,12 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"user_id":userID
+			"user_id": Int(userID)
 		]
 		
 		// THIS NEEDS EDITING PROBABLY, NOT NICE DESIGN
 		if inlineMessageID == 0 {
-			request.query["chat_id"] = chatID
+			request.query["chat_id"] = Int(chatID)
 			request.query["message_id"] = messageID
 		}
 			

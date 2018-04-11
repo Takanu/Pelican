@@ -18,8 +18,8 @@ extension TelegramRequest {
 	public func leaveChat(chatID: String, userID: String) {
 		
 		query = [
-			"chat_id":chatID,
-			"user_id": userID
+			"chat_id": Int(chatID),
+			"user_id": Int(userID),
 		]
 		
 		// Set the Request, Method and Content
@@ -40,7 +40,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id":chatID,
+			"chat_id": Int(chatID),
 		]
 		
 		// Set the Request, Method and Content
@@ -64,7 +64,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id":chatID,
+			"chat_id": Int(chatID),
 		]
 		
 		// Set the Request, Method and Content
@@ -86,7 +86,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id":chatID,
+			"chat_id": Int(chatID),
 		]
 		
 		// Set the Request, Method and Content
@@ -108,8 +108,8 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id":chatID,
-			"user_id": userID
+			"chat_id": Int(chatID),
+			"user_id": Int(userID),
 		]
 		
 		// Set the Request, Method and Content

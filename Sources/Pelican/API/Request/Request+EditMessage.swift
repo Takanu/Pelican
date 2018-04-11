@@ -29,7 +29,7 @@ extension TelegramRequest {
 		
 		let request = TelegramRequest()
 		
-		if chatID != nil { request.query["chat_id"] = chatID }
+		if chatID != nil { request.query["chat_id"] = Int(chatID!) }
 		if messageID != nil { request.query["message_id"] = messageID }
 		if inlineMessageID != nil { request.query["inline_message_id"] = inlineMessageID }
 		
@@ -64,7 +64,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id":chatID,
+			"chat_id": Int(chatID),
 			"caption": caption,
 		]
 		
@@ -97,7 +97,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id":chatID,
+			"chat_id": Int(chatID),
 		]
 		
 		// Check whether any other query needs to be added
@@ -135,7 +135,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id": chatID,
+			"chat_id": Int(chatID),
 			"message_id": messageID
 		]
 

@@ -25,8 +25,8 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id": chatID,
-			"user_id": userID
+			"chat_id": Int(chatID),
+			"user_id": Int(userID)
 		]
 		
 		// Set the Request, Method and Content
@@ -47,8 +47,8 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id": chatID,
-			"user_id": userID
+			"chat_id": Int(chatID),
+			"user_id": Int(userID)
 		]
 		
 		// Set the Request, Method and Content
@@ -71,8 +71,8 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id": chatID,
-			"user_id": userID,
+			"chat_id": Int(chatID),
+			"user_id": Int(userID),
 			"until_date": restrictUntil
 		]
 		
@@ -104,8 +104,8 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id": chatID,
-			"user_id": userID,
+			"chat_id": Int(chatID),
+			"user_id": Int(userID),
 		]
 		
 		if rights != nil {
@@ -136,7 +136,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id": chatID
+			"chat_id": Int(chatID),
 		]
 		
 		// Set the Request, Method and Content
@@ -156,11 +156,13 @@ extension TelegramRequest {
 		
 		let request = TelegramRequest()
 		
-		//request.form["chat_id"] = Field(name: "chat_id", filename: nil, part: Part(headers: [:], body: String(chatID).bytes))
-		//form[link.type.rawValue] = Field(name: link.type.rawValue, filename: link.name, part: Part(headers: [:], body: data!))
+		request.query = [
+			"chat_id": Int(chatID),
+		]
 		
 		// Set the Request, Method and Content
 		request.method = "setChatPhoto"
+		request.file = file
 		return request
 	}
 	
@@ -177,7 +179,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id": chatID
+			"chat_id": Int(chatID),
 		]
 		
 		// Set the Request, Method and Content
@@ -196,7 +198,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id": chatID,
+			"chat_id": Int(chatID),
 			"title": title
 		]
 		
@@ -216,7 +218,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id": chatID,
+			"chat_id": Int(chatID),
 			"description": description
 		]
 		
@@ -236,7 +238,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id": chatID,
+			"chat_id": Int(chatID),
 			"message_id": messageID,
 			"disable_notification": disableNotification
 		]
@@ -257,7 +259,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id": chatID
+			"chat_id": Int(chatID),
 		]
 		
 		// Set the Request, Method and Content

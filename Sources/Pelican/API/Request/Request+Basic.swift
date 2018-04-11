@@ -57,7 +57,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id":chatID,
+			"chat_id": Int(chatID),
 			"text": text,
 			"disable_web_page_preview": disableWebPreview,
 			"disable_notification": disableNotification
@@ -91,7 +91,7 @@ extension TelegramRequest {
 		request.method = "forwardMessage"
 		
 		request.query = [
-			"chat_id": toChatID,
+			"chat_id": Int(toChatID),
 			"from_chat_id": fromChatID,
 			"message_id": fromMessageID,
 			"disable_notification": disableNotification
@@ -123,7 +123,7 @@ extension TelegramRequest {
 		
 		let request = TelegramRequest()
 		
-		request.query["chat_id"] = chatID
+		request.query["chat_id"] = Int(chatID)
 		
 		// Check whether any other query needs to be added as form data.
 		let captionTypes = ["audio", "photo", "video", "document", "voice"]
@@ -169,7 +169,7 @@ extension TelegramRequest {
 		let adjustedLimit = max(0, min(100, limit))
 		
 		request.query = [
-			"user_id": userID,
+			"user_id": Int(userID),
 			"offset": offset,
 			"limit": adjustedLimit
 		]
@@ -187,7 +187,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"chat_id": chatID,
+			"chat_id": Int(chatID),
 			"action": action.rawValue
 		]
 		

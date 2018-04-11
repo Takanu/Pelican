@@ -44,7 +44,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"user_id": userID,
+			"user_id": Int(userID),
 			"name": name,
 			"emojis": emojis
 		]
@@ -86,7 +86,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"user_id": userID,
+			"user_id": Int(userID),
 			"name": name,
 			"title": title,
 			"emojis": emojis
@@ -164,7 +164,7 @@ extension TelegramRequest {
 		let request = TelegramRequest()
 		
 		request.query = [
-			"user_id": userID
+			"user_id": Int(userID)
 		]
 		
 		guard sticker.fileID == nil else {

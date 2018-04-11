@@ -33,7 +33,7 @@ extension TelegramRequest {
 			"start_parameter": startParameter,
 			"currency": currency,
 			"prices": prices,
-			"chat_id": chatID
+			"chat_id": Int(chatID)
 		]
 		
 		// Set the query
