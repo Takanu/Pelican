@@ -58,6 +58,9 @@ public struct SessionTag: Equatable {
 			 chat: Chat? = nil) {
 		
 		self.id = id
+		self.user = user
+		self.chat = chat
+		
 		self.idType = builder.idType
 		self.sessionType = builder.sessionType
 		self.sessionID = UUID()
