@@ -16,7 +16,7 @@ public struct ChatPhoto: Codable {
 	/// Unique file identifier of big (640x640) chat photo. This file_id can be used only for photo download.
 	public var bigFileID: String
 	
-	init(smallFileID: String, bigFileID: String) {
+	public init(smallFileID: String, bigFileID: String) {
 		self.smallFileID = smallFileID
 		self.bigFileID = bigFileID
 	}

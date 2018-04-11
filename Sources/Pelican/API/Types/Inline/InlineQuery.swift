@@ -28,7 +28,7 @@ public struct InlineQuery: UpdateModel, Codable {
 	// Sender location, only for bots that request it.
 	public var location: Location?
 	
-	init(id: String, user: User, query: String, offset: String, location: Location? = nil) {
+	public init(id: String, user: User, query: String, offset: String, location: Location? = nil) {
 		self.id = id
 		self.from = user
 		self.query = query

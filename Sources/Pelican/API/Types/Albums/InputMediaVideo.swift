@@ -38,7 +38,12 @@ struct InputMediaVideo: InputMedia {
 		case duration
 	}
 	
-	init(mediaLink media: String, caption: String?) {
+	public init(mediaLink media: String,
+							caption: String?,
+							width: Int? = nil,
+							height: Int? = nil,
+							duration: Int? = nil) {
+		
 		self.media = media
 		self.caption = caption
 	}

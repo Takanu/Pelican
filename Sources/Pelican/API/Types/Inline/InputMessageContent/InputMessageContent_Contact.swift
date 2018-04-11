@@ -29,7 +29,7 @@ public struct InputMessageContent_Contact: InputMessageContent_Any {
 		case lastName = "last_name"
 	}
 	
-	init(phoneNumber: String, firstName: String, lastName: String) {
+	public init(phoneNumber: String, firstName: String, lastName: String) {
 		self.phoneNumber = phoneNumber
 		self.firstName = firstName
 		self.lastName = lastName

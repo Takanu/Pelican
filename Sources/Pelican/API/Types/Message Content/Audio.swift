@@ -56,7 +56,13 @@ public struct Audio: TelegramType, MessageFile {
 	/**
 	Initialises an Audio object based on a Telegram File ID and any optional parameters.
 	*/
-	public init(fileID: String, duration: Int = 0, performer: String? = nil, title: String? = nil, mimeType: String? = nil, fileSize: Int? = 0) {
+	public init(fileID: String,
+							duration: Int = 0,
+							performer: String? = nil,
+							title: String? = nil,
+							mimeType: String? = nil,
+							fileSize: Int? = 0) {
+		
 		self.fileID = fileID
 		self.duration = duration
 		self.performer = performer
@@ -71,7 +77,12 @@ public struct Audio: TelegramType, MessageFile {
 	
 	- warning: The URL must link to a MP3 formatted file, this is the only file type that can be sent using this type.
 	*/
-	public init?(url: String, duration: Int = 0, performer: String? = nil, title: String? = nil, mimeType: String? = nil, fileSize: Int? = 0) {
+	public init?(url: String,
+							 duration: Int = 0,
+							 performer: String? = nil,
+							 title: String? = nil,
+							 mimeType: String? = nil,
+							 fileSize: Int? = 0) {
 		
 		if url.checkURLValidity(acceptedExtensions: ["mp3"]) == false { return nil }
 		

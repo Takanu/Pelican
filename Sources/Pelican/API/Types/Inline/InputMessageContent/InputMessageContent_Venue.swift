@@ -40,7 +40,7 @@ public struct InputMessageContent_Venue: InputMessageContent_Any {
 		case foursquareID = "foursquare_id"
 	}
 	
-	init(latitude: Float, longitude: Float, title: String, address: String, foursquareID: String?) {
+	public init(latitude: Float, longitude: Float, title: String, address: String, foursquareID: String?) {
 		self.latitude = latitude
 		self.longitude = longitude
 		self.title = title

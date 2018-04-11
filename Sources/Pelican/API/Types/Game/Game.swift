@@ -44,9 +44,18 @@ public struct Game: Codable {
 	}
 	
 	
-	init(title: String, description: String, photo: [Photo]) {
+	public init(title: String,
+							description: String,
+							photo: [Photo],
+							text: String? = nil,
+							textEntities: [MessageEntity]? = nil,
+							animation: Animation? = nil) {
+		
 		self.title = title
 		self.description = description
 		self.photo = photo
+		self.text = text
+		self.textEntities = textEntities
+		self.animation = animation
 	}
 }

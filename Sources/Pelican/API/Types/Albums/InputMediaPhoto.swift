@@ -24,7 +24,7 @@ struct InputMediaPhoto: InputMedia {
 		case caption
 	}
 	
-	init(mediaLink media: String, caption: String?) {
+	public init(mediaLink media: String, caption: String?) {
 		self.media = media
 		self.caption = caption
 	}

@@ -55,7 +55,14 @@ public struct Video: TelegramType, MessageFile {
 	}
 	
 	
-	public init(fileID: String, width: Int? = nil, height: Int? = nil, duration: Int? = nil, thumb: Photo? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
+	public init(fileID: String,
+							width: Int? = nil,
+							height: Int? = nil,
+							duration: Int? = nil,
+							thumb: Photo? = nil,
+							mimeType: String? = nil,
+							fileSize: Int? = nil) {
+		
 		self.fileID = fileID
 		self.width = width
 		self.height = height
@@ -65,7 +72,14 @@ public struct Video: TelegramType, MessageFile {
 		self.fileSize = fileSize
 	}
 	
-	public init?(url: String, width: Int? = nil, height: Int? = nil, duration: Int? = nil, thumb: Photo? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
+	
+	public init?(url: String,
+							 width: Int? = nil,
+							 height: Int? = nil,
+							 duration: Int? = nil,
+							 thumb: Photo? = nil,
+							 mimeType: String? = nil,
+							 fileSize: Int? = nil) {
 		
 		if url.checkURLValidity(acceptedExtensions: ["mp4"]) == false { return nil }
 		

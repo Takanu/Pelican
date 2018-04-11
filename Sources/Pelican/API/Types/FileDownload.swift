@@ -27,4 +27,10 @@ public struct FileDownload: Codable {
 		case fileSize = "file_size"
 		case filePath = "file_path"
 	}
+	
+	public init(fileID: String, fileSize: Int? = nil, filePath: String? = nil) {
+		self.fileID = fileID
+		self.fileSize = fileSize
+		self.filePath = filePath
+	}
 }

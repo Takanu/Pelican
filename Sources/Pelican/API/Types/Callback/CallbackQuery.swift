@@ -25,11 +25,11 @@ final public class CallbackQuery: UpdateModel {
 	/// Message with the callback button that originated from the query.  This will not be available if it's too old.
 	public var message: Message?
 	
-	/// Identifier of the message sent via the bot in inline mode that originated the query.
-	public var inlineMessageID: String?
-	
 	/// Global identifier, uniquely corresponding to the chat to which the message with the callback button was sent.  Useful for high scores in games.
 	public var chatInstance: String
+	
+	/// Identifier of the message sent via the bot in inline mode that originated the query.
+	public var inlineMessageID: String?
 	
 	/// Data associated with the callback button.  Be aware that a bad client can send arbitrary data here.
 	public var data: String?
@@ -50,7 +50,14 @@ final public class CallbackQuery: UpdateModel {
 	}
 	
 	
-	public init(id: String, from: User, chatInstance: String) {
+	public init(id: String,
+							from: User,
+							messahe: Message? = nil,
+							chatInstance: String,
+							inlineMessageID: String? = nil,
+							data: String? = nil,
+							gameShortName: String? = nil) {
+		
 		self.id = id
 		self.from = from
 		self.chatInstance = chatInstance

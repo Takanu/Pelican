@@ -24,7 +24,7 @@ public struct InputMessageContent_Text: InputMessageContent_Any {
 	/// Disables link previews for links in the sent message.
 	public var disableWebPreview: Bool?
 	
-	init(text: String, parseMode: String?, disableWebPreview: Bool?) {
+	public init(text: String, parseMode: String?, disableWebPreview: Bool?) {
 		self.text = text
 		self.parseMode = parseMode
 		self.disableWebPreview = disableWebPreview

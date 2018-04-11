@@ -31,7 +31,7 @@ public struct InputMessageContent_Location: InputMessageContent_Any {
 		case livePeriod = "live_period"
 	}
 	
-	init(latitude: Float, longitude: Float, livePeriod: Int?) {
+	public init(latitude: Float, longitude: Float, livePeriod: Int?) {
 		self.latitude = latitude
 		self.longitude = longitude
 		self.livePeriod = livePeriod

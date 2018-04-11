@@ -7,8 +7,6 @@
 
 import Foundation
 
-
-
 /**
 Represents a VideoNote type, introduced in Telegram 4.0.
 */
@@ -46,7 +44,13 @@ public struct VideoNote: TelegramType, MessageContent, MessageFile {
 		case fileSize = "file_size"
 	}
 	
-	public init(fileID: String, length: Int? = nil, duration: Int? = nil, thumb: Photo? = nil, fileSize: Int? = nil) {
+	
+	public init(fileID: String,
+							length: Int? = nil,
+							duration: Int? = nil,
+							thumb: Photo? = nil,
+							fileSize: Int? = nil) {
+		
 		self.fileID = fileID
 		self.length = length
 		self.duration = duration
@@ -54,7 +58,12 @@ public struct VideoNote: TelegramType, MessageContent, MessageFile {
 		self.fileSize = fileSize
 	}
 	
-	public init?(url: String, length: Int? = nil, duration: Int? = nil, thumb: Photo? = nil, fileSize: Int? = nil) {
+	
+	public init?(url: String,
+							 length: Int? = nil,
+							 duration: Int? = nil,
+							 thumb: Photo? = nil,
+							 fileSize: Int? = nil) {
 		
 		if url.checkURLValidity(acceptedExtensions: ["mp4"]) == false { return nil }
 		

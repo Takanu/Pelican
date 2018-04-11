@@ -47,7 +47,12 @@ public struct Document: TelegramType, MessageFile {
 	}
 	
 	
-	public init(fileID: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
+	public init(fileID: String,
+							thumb: Photo? = nil,
+							fileName: String? = nil,
+							mimeType: String? = nil,
+							fileSize: Int? = nil) {
+		
 		self.fileID = fileID
 		self.thumb = thumb
 		self.fileName = fileName
@@ -55,7 +60,11 @@ public struct Document: TelegramType, MessageFile {
 		self.fileSize = fileSize
 	}
 	
-	public init?(url: String, thumb: Photo? = nil, fileName: String? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
+	public init?(url: String,
+							 thumb: Photo? = nil,
+							 fileName: String? = nil,
+							 mimeType: String? = nil,
+							 fileSize: Int? = nil) {
 		
 		if url.checkURLValidity(acceptedExtensions: []) == false { return nil }
 		

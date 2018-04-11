@@ -40,8 +40,17 @@ public struct Animation: Codable {
 	}
 	
 	
-	init(fileID: String) {
+	public init(fileID: String,
+							thumb: Photo? = nil,
+							fileName: String? = nil,
+							mimeType: String? = nil,
+							fileSize: Int? = nil) {
+		
 		self.fileID = fileID
+		self.thumb = thumb
+		self.fileName = fileName
+		self.mimeType = mimeType
+		self.fileSize = fileSize
 	}
 	
 }

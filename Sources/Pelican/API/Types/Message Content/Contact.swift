@@ -37,7 +37,11 @@ public struct Contact: TelegramType, MessageContent {
 		
 	}
 	
-	public init(phoneNumber: String, firstName: String, lastName: String? = nil, userID: Int? = nil) {
+	public init(phoneNumber: String,
+							firstName: String,
+							lastName: String? = nil,
+							userID: Int? = nil) {
+		
 		self.phoneNumber = phoneNumber
 		self.firstName = firstName
 		self.lastName = lastName

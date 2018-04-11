@@ -42,14 +42,21 @@ public struct Voice: TelegramType, MessageFile {
 		case fileSize = "file_size"
 	}
 	
-	public init(fileID: String, duration: Int? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
+	public init(fileID: String,
+							duration: Int? = nil,
+							mimeType: String? = nil,
+							fileSize: Int? = nil) {
+		
 		self.fileID = fileID
 		self.duration = duration
 		self.mimeType = mimeType
 		self.fileSize = fileSize
 	}
 	
-	public init?(url: String, duration: Int? = nil, mimeType: String? = nil, fileSize: Int? = nil) {
+	public init?(url: String,
+							 duration: Int? = nil,
+							 mimeType: String? = nil,
+							 fileSize: Int? = nil) {
 		
 		if url.checkURLValidity(acceptedExtensions: ["ogg"]) == false { return nil }
 		
