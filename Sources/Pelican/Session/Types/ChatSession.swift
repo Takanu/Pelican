@@ -37,7 +37,7 @@ open class ChatSession: Session {
 	public private(set) var sessions: SessionRequest
 	
 	/// Handles and matches user requests to available bot functions.
-	public private(set) var baseRoute: Route
+	public var baseRoute: Route
 	
 	/// Stores what Moderator-controlled titles the Chat Session has.
 	public private(set) var mod: SessionModerator

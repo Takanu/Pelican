@@ -41,7 +41,7 @@ open class UserSession: Session {
 	public private(set) var sessions: SessionRequest
 	
 	/// Handles and matches user requests to available bot functions.
-	public private(set) var baseRoute: Route
+	public var baseRoute: Route
 	
 	/// Stores what Moderator-controlled permissions the User Session has.
 	public private(set) var mod: SessionModerator
