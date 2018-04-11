@@ -144,13 +144,13 @@ public class SessionBuilder {
 				// If the setup function exists, use it
 				if setup != nil {
 					
-					let tag = SessionTag(bot: bot, builder: self, id: id)
+					let tag = SessionTag(bot: bot, builder: self, id: update.id, user: update.from, chat: update.chat)
 					newSession = setup!(bot, tag)
 				}
 					
 				// If it doesn't, use the default initialiser.
 				else {
-					let tag = SessionTag(bot: bot, builder: self, id: id)
+					let tag = SessionTag(bot: bot, builder: self, id: update.id, user: update.from, chat: update.chat)
 					newSession = self.sessionType.init(bot: bot, tag: tag)
 					newSession?.postInit()
 				}
