@@ -54,7 +54,7 @@ public class Update {
 		if data is Message {
 			
 			let message = data as! Message
-			self.id = String(message.tgID)
+			self.id = String(message.chat.tgID)
 			self.content = message.text ?? ""
 			self.chat = message.chat
 			
