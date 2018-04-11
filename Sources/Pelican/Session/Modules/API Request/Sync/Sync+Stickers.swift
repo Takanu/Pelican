@@ -10,7 +10,7 @@ import Foundation
 /**
 This extension handles any kinds of operations involving stickers (including setting group sticker packs).
 */
-extension MethodRequestAsync {
+extension MethodRequestSync {
 	
 	/**
 	Returns a StickerSet type for the name of the sticker set given, if successful.

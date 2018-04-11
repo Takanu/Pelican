@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension MethodRequestAsync {
+extension MethodRequestSync {
 	
 	/**
 	A basic function for testing authorisation tokens, that returns your bot as a user if successful.

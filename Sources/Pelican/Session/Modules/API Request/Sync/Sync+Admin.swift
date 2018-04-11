@@ -10,7 +10,7 @@ import Foundation
 /**
 This extension handles any kinds of operations involving group moderation and how the group details are presented and changed.
 */
-extension MethodRequestAsync {
+extension MethodRequestSync {
 	
 	/**
 	Kicks a user from the chat.

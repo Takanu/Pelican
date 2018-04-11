@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension MethodRequestAsync {
+extension MethodRequestSync {
 	
 	/**
 	???

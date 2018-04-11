@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension MethodRequestAsync {
+extension MethodRequestSync {
 	
 	/**
 	Edits a text based message.
