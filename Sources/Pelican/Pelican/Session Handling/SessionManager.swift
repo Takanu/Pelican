@@ -78,6 +78,18 @@ class SessionManager {
 	}
 	
 	/**
+	Attempts to return one or more sessions from a specific builder, using the builder's name and a Telegram ID.
+	
+	- returns: A Session array that corresponds with the given information if available, or nil if not.
+	*/
+	public func getSessions(forBuilder builderName: String, telegramID: String) -> [Session]? {
+		if let builder = builders.first(where: {$0.name == builderName}) {
+			return builder.getSessions(telegramID: telegramID)
+		}
+		return nil
+	}
+	
+	/**
 	Submit work to be performed on a specific session's DispatchQueue.
 	
 	- returns: True if the work could be submitted, false if not.

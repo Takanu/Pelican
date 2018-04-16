@@ -22,6 +22,9 @@ pelican.addBuilder(SessionBuilder(spawner: chatSpawner, session: ChatSession.sel
 */
 public class SessionBuilder {
 	
+	/// The name of the builder.
+	public private(set) var name: String
+	
 	/** The identifier for the Builder, to allow Pelican to identify and send events to it from an individual Session.
 	This is an internal ID and should not be changed. */
 	public private(set) var id = UUID()
@@ -53,17 +56,21 @@ public class SessionBuilder {
 	/**
 	Creates a SessionBuilder, responsible for automatically generating different session types.
 	
+	- parameter name: The name of the builder, used to fetch, add and delete sessions from it at
+	a later date.  Ensure the names you provide are unique for each builder.
 	- parameter spawner: A function that checks an update to see whether or not it matches given
 	criteria in that function, returning a non-nil ID value if true.
 	- parameter setup: An optional function type that can be used to setup Sessions when created
 	to be given anything else that isn't available during initialisation, such as specific Flood
 	Limits and Timeouts.
 	*/
-	public init(spawner: @escaping (Update) -> String?,
+	public init(name: String,
+							spawner: @escaping (Update) -> String?,
 							idType: SessionIDType,
 							sessionType: Session.Type,
 							setup: ((PelicanBot, SessionTag) -> (Session))?) {
 		
+		self.name = name
 		self.spawner = spawner
 		self.idType = idType
 		self.sessionType = sessionType
