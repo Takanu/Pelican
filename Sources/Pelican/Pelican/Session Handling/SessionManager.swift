@@ -104,12 +104,32 @@ class SessionManager {
 		return false
 	}
 	
+	/**
+	Deletes any sessions in the specified builder (using a SessionTag) that matches the given Telegram ID and type.
 	
+	- warning: It's not advised to delete the session requesting the deletion, just use close() instead.
+	*/
 	@discardableResult
 	public func deleteSession(fromBuilder tag: SessionTag, telegramID: String) -> Bool {
 		var result = false
 		
 		if let builder = builders.first(where: {$0.id == tag.builderID}) {
+			result = builder.deleteSessions(telegramID: telegramID)
+		}
+		
+		return result
+	}
+	
+	/**
+	Deletes any sessions in the specified builder (using a SessionTag) that matches the given Telegram ID and type.
+	
+	- warning: It's not advised to delete the session requesting the deletion, just use close() instead.
+	*/
+	@discardableResult
+	public func deleteSession(builderName: String, telegramID: String) -> Bool {
+		var result = false
+		
+		if let builder = builders.first(where: {$0.name == builderName}) {
 			result = builder.deleteSessions(telegramID: telegramID)
 		}
 		
