@@ -56,6 +56,15 @@ public class SessionRequest {
 	}
 	
 	/**
+	Attempts to return one or more sessions from a specific builder, using the builder's name and a Telegram ID.
+	
+	- returns: A Session array that corresponds with the given information if available, or nil if not.
+	*/
+	public func getSessions(builderName: String, telegramID: String) -> [Session]? {
+		return manager.getSessions(builderName: builderName, telegramID: telegramID)
+	}
+	
+	/**
 	Submit work to be performed on a specific session's DispatchQueue.
 	
 	- returns: True if the work could be submitted, false if not.
@@ -69,6 +78,16 @@ public class SessionRequest {
 	@discardableResult
 	public func deleteSession(fromBuilder tag: SessionTag, telegramID: String) -> Bool {
 		return manager.deleteSession(fromBuilder: tag, telegramID: telegramID)
+	}
+	
+	/**
+	Deletes any sessions in the specified builder (using a SessionTag) that matches the given Telegram ID and type.
+	
+	- warning: It's not advised to delete the session requesting the deletion, just use close() instead.
+	*/
+	@discardableResult
+	public func deleteSession(builderName: String, telegramID: String) -> Bool {
+		return manager.deleteSession(builderName: builderName, telegramID: telegramID)
 	}
 	
 	/**
