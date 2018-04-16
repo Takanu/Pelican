@@ -82,7 +82,7 @@ class SessionManager {
 	
 	- returns: A Session array that corresponds with the given information if available, or nil if not.
 	*/
-	public func getSessions(forBuilder builderName: String, telegramID: String) -> [Session]? {
+	public func getSessions(builderName: String, telegramID: String) -> [Session]? {
 		if let builder = builders.first(where: {$0.name == builderName}) {
 			return builder.getSessions(telegramID: telegramID)
 		}
