@@ -2,13 +2,15 @@
 //  SynchronisedArray.swift
 //  Pelican
 //
-//  Created by Takanu Kyriako on 05/03/2018.
-//
+//  Thanks to Basem Emara for the code <3
+//  (http://basememara.com/creating-thread-safe-arrays-in-swift/)
 
 import Foundation
 import Dispatch     // Linux thing.
 
-/// A thread-safe array.
+/*
+An array that allows for thread-safe concurrent access.
+*/
 public class SynchronizedArray<Element> {
 	fileprivate let queue = DispatchQueue(label: "com.Pelican.SynthronizedArray", attributes: .concurrent)
 	fileprivate var array = [Element]()
@@ -23,7 +25,7 @@ public extension SynchronizedArray {
 		queue.sync { result = self.array.first }
 		return result
 	}
-	
+
 	/// The last element of the collection.
 	var last: Element? {
 		var result: Element?

@@ -14,7 +14,7 @@ Sessions to also directly access other sessions with reduced API access.
 class SessionManager {
 	
 	/// The session builders that the PelicanBot currently has.
-	fileprivate var builders: [SessionBuilder] = []
+	fileprivate var builders = SynchronizedArray<SessionBuilder>()
 	
 	init() { }
 	
@@ -25,7 +25,7 @@ class SessionManager {
 	- returns: A Session array that corresponds with the given information if available, or nil if not.
 	*/
 	func addBuilders(_ incomingBuilders: SessionBuilder...) {
-		builders.append(contentsOf: incomingBuilders)
+		builders.append(incomingBuilders)
 	}
 	
 	/**
@@ -35,7 +35,7 @@ class SessionManager {
 	- returns: A Session array that corresponds with the given information if available, or nil if not.
 	*/
 	func addBuilders(_ incomingBuilders: [SessionBuilder]) {
-		builders.append(contentsOf: incomingBuilders)
+		builders.append(incomingBuilders)
 	}
 	
 	/**

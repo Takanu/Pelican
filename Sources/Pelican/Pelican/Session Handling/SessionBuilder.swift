@@ -44,7 +44,7 @@ public class SessionBuilder {
 	
 	/** The sessions that have been spawned by the builder and are currently active.  Sessions are categorised by their
 	Telegram ID, followed by their UUID if more than one session has been created for the same Telegram ID. */
-	var sessions: [String: [Session]] = [:]
+	var sessions = SynchronisedDictionary<String, [Session]>()
 	
 	/// Returns the number of sessions being managed by the builder.
 	public var getSessionCount: Int { return sessions.count }
