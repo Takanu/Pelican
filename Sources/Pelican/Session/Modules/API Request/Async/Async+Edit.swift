@@ -27,7 +27,11 @@ extension MethodRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(MethodRequest.decodeResponse(response) ?? false)
+				var result = false
+				if response!.result?["chat"] != nil { result = true }
+				else { result = MethodRequest.decodeResponse(response) ?? false }
+				
+				callback!(result)
 			}
 		}
 	}
@@ -49,7 +53,11 @@ extension MethodRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(MethodRequest.decodeResponse(response) ?? false)
+				var result = false
+				if response!.result?["chat"] != nil { result = true }
+				else { result = MethodRequest.decodeResponse(response) ?? false }
+				
+				callback!(result)
 			}
 		}
 	}
@@ -67,7 +75,11 @@ extension MethodRequestAsync {
 		tag.sendAsyncRequest(request) { response in
 			
 			if callback != nil {
-				callback!(MethodRequest.decodeResponse(response) ?? false)
+				var result = false
+				if response!.result?["chat"] != nil { result = true }
+				else { result = MethodRequest.decodeResponse(response) ?? false }
+				
+				callback!(result)
 			}
 		}
 	}

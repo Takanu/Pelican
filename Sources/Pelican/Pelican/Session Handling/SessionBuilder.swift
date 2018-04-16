@@ -145,7 +145,7 @@ public class SessionBuilder {
 			}
 				
 			// If not, build one
-			else {
+			if foundSessions.count == 0 {
 				var newSession: Session?
 				
 				// If the setup function exists, use it

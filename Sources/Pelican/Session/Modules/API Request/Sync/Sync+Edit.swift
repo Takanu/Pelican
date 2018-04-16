@@ -30,7 +30,10 @@ extension MethodRequestSync {
 																									disableWebPreview: disableWebPreview)
 		
 		let response = tag.sendSyncRequest(request)
-		return MethodRequest.decodeResponse(response) ?? false
+		if response == nil { return false }
+		
+		if response!.result?["chat"] != nil { return true }
+		else { return MethodRequest.decodeResponse(response) ?? false }
 	}
 	
 	/**
@@ -47,7 +50,10 @@ extension MethodRequestSync {
 																										 caption: caption,
 																										 markup: markup)
 		let response = tag.sendSyncRequest(request)
-		return MethodRequest.decodeResponse(response) ?? false
+		if response == nil { return false }
+		
+		if response!.result?["chat"] != nil { return true }
+		else { return MethodRequest.decodeResponse(response) ?? false }
 	}
 	
 	/**
@@ -61,7 +67,10 @@ extension MethodRequestSync {
 		
 		let request = TelegramRequest.editMessageReplyMarkup(chatID: chatID, messageID: messageID, inlineMessageID: inlineMessageID, markup: markup)
 		let response = tag.sendSyncRequest(request)
-		return MethodRequest.decodeResponse(response) ?? false
+		if response == nil { return false }
+		
+		if response!.result?["chat"] != nil { return true }
+		else { return MethodRequest.decodeResponse(response) ?? false }
 	}
 	
 	/**
@@ -81,3 +90,4 @@ extension MethodRequestSync {
 	}
 	
 }
+
