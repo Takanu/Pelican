@@ -14,7 +14,12 @@ Pelican in basic ways (such as removing the Session from active use if a Timeout
 
 - note: The data contained cannot be changed once created, this is strictly a reference and callback type.
 */
-public struct SessionTag: Equatable {
+public struct SessionTag: Equatable, CustomStringConvertible {
+	
+	public var description: String {
+        return "\(idType.rawValue) Tag: \(id) | Session: \(sessionID) | Builder: \(builderID)"
+	}
+	
 	
 	// DATA
 	/// The Telegram ID that a session represents.  Could be a user ID, chat ID or a different, arbitrary type of session identification.

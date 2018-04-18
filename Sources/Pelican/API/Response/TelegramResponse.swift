@@ -12,7 +12,7 @@ import SwiftyJSON
 /**
 Represents a response from Telegram servers once a request has been made.
 */
-public class TelegramResponse {
+public class TelegramResponse: CustomStringConvertible {
 
 	// HTTP CORE
 	/// The HTTP Version.
@@ -43,6 +43,23 @@ public class TelegramResponse {
 	
 	/// The result of the request, if successful.
 	public private(set) var result: JSON?
+    
+    public var description: String {
+        
+        if success == true {
+            return """
+            Telegram Response: Successful
+            Date: \(date)
+            """
+            
+        } else {
+            return """
+            Telegram Response: Error (\(responseCode ?? "No Error Code"))
+            Date: \(date)
+            Status: \(responseStatus ?? "No Status Received")
+            """
+        }
+    }
 	
 
 	/**

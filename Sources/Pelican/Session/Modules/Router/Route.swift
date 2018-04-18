@@ -15,7 +15,7 @@ The base class for filtering incoming updates either to functions or other route
 This base route class will handle all updates and perform no filtering, for pre-built Routes that do filter and
 cover all common use-cases, see `RoutePass`, `RouteCommand`, `RouteListen` and `RouteManual`.
 */
-open class Route {
+open class Route: CustomStringConvertible {
 	
 	/// The name of the route instance.  This must be assigned on initialisation to allow for fetching nested routed in subscripts.
 	public var name: String
@@ -34,6 +34,16 @@ open class Route {
 	
 	/// The route to use if all other routes or actions are unable to handle the update.
 	public var fallbackRoute: Route?
+    
+    
+    public var description: String {
+        return """
+        \(name) Route
+        Enabled = \(enabled) | Action = \(action != nil) |
+        Routes = \(nextRoutes.map { $0.name }) | Fallback Route = \(fallbackRoute != nil)
+        """
+    }
+    
 	
 	/**
 	Initialises a blank route that performs no filtering.

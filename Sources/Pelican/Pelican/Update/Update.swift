@@ -12,8 +12,8 @@ import SwiftyJSON
 /**
 Encapsulates a single update received from a Telegram bot.
 */
-public class Update {
-	
+public class Update: CustomStringConvertible {
+    
 	// RAW DATA
 	/// The type of data being carried by the update.
 	public var type: UpdateType
@@ -40,6 +40,13 @@ public class Update {
 	
 	/// The chat the update came from, if the update is a Message type.  If it isn't, it'll return nil.
 	public var chat: Chat?
+    
+    
+    public var description: String {
+        return """
+        \(type.rawValue) | ID: \(id) | Content: \(content)
+        """
+    }
 	
 	
 	
