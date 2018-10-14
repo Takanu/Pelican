@@ -30,7 +30,7 @@ extension MethodRequestAsync {
 													chatID: String,
 													parseMode: MessageParseMode = .markdown,
 													replyID: Int = 0,
-													useWebPreview: Bool = false,
+													disableWebPreview: Bool = false,
 													disableNotification: Bool = false,
 													callback: ((Message?) -> ())? = nil) {
 		
@@ -38,7 +38,7 @@ extension MethodRequestAsync {
 																							text: message,
 																							markup: markup,
 																							parseMode: parseMode,
-																							disableWebPreview: useWebPreview,
+																							disableWebPreview: disableWebPreview,
 																							disableNotification: disableNotification,
 																							replyMessageID: replyID)
 		

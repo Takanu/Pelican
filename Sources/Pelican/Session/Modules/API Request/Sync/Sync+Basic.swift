@@ -28,14 +28,14 @@ extension MethodRequestSync {
 													chatID: String,
 													parseMode: MessageParseMode = .markdown,
 													replyID: Int = 0,
-													useWebPreview: Bool = false,
+													disableWebPreview: Bool = false,
 													disableNotification: Bool = false) -> Message? {
 		
 		let request = TelegramRequest.sendMessage(chatID: chatID,
 																							text: message,
 																							markup: markup,
 																							parseMode: parseMode,
-																							disableWebPreview: useWebPreview,
+																							disableWebPreview: disableWebPreview,
 																							disableNotification: disableNotification,
 																							replyMessageID: replyID)
 		
