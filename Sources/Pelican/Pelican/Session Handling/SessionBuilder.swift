@@ -125,6 +125,49 @@ public class SessionBuilder {
 		
 		return newSession
 	}
+    
+    /**
+     Creates a new session based on the given Telegram ID.  This will happen even if a Session already
+     exists with the given ID.
+    */
+    func createSession(withID newID: String, type: SessionIDType, bot: PelicanBot) -> Session? {
+        
+        var newSession: Session?
+        var tag: SessionTag?
+        
+        // Build the right tag.
+        switch type {
+        case .temporary:
+            return nil
+        case .chat:
+            tag = SessionTag(bot: bot, builder: self, id: newID, user: nil, chat: nil)
+        case .user:
+            tag = SessionTag(bot: bot, builder: self, id: newID, user: nil, chat: nil)
+        }
+        
+        // If the setup function exists, use it
+        if setup != nil {
+            newSession = setup!(bot, tag!)
+        }
+            
+        // If it doesn't, use the default initialiser.
+        else {
+            newSession = self.sessionType.init(bot: bot, tag: tag!)
+            newSession?.postInit()
+        }
+        
+        // Work out if we need to append or make a new array
+        if newSession != nil {
+            if sessions[newID] != nil {
+                sessions[newID]?.append(newSession!)
+            } else {
+                sessions[newID] = [newSession!]
+            }
+        }
+        
+        return newSession
+        
+    }
 	
 	/**
 	Attempts to handle the giving update by either passing it onto any existing sessions with a matching Telegram ID,

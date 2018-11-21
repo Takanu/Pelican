@@ -18,6 +18,7 @@ public class SessionManager {
 	
 	init() { }
 	
+    // MARK: - Add Builders
 	/**
 	Attempts to return a session based on the given Telegram ID and type.  This function will return any
 	session that matches the given ID and type across any builder.
@@ -49,6 +50,16 @@ public class SessionManager {
 		}
 		return nil
 	}
+    
+    /**
+    Attempts to create a new Session based on a given Telegram ID, ID Type and Builder name.
+    */
+    public func createNewSession(bot: PelicanBot, id: String, type: SessionIDType, builderName: String) -> Session? {
+        if let builder = builders.first(where: {$0.name == builderName}) {
+            return builder.createSession(withID: id, type: type, bot: bot)
+        }
+        return nil
+    }
 	
 	/**
 	Attempts to return a session based on the given Telegram ID and type.  This function will return any
