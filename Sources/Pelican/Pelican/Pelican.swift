@@ -484,9 +484,6 @@ public final class PelicanBot {
         PLog.info("Handling updates...")
         sessionManager.handleUpdates(updates, bot: self)
         
-        // Collect a list of sessionManager that will accept the update.
-        var captures: [SessionBuilder] = []
-        
         // Update the last active time.
         timeLastUpdate = Date()
         PLog.info("Updates handled.")
