@@ -4,12 +4,15 @@ import Dispatch     // Required on Linux platforms.
 
 
 /**
-The king-daddy of Pelican, Sessions encapsulates communication between you and a type of
+The king-daddy of Pelican, Sessions bridge communication between you and a type of
 interaction point on Telegram such as a chat or user.
 
 The protocol is a shell that defines the minimum amount of content required in order to function.
-Extend it's functionality by adding modules to your own custom sessions.  Alternatively, use
+Extend it's functionality by adding types and functions to your own custom sessions.  Alternatively, use
 `ChatSession` and `UserSession` which cover most common bot use cases.
+
+Sessions should be used to route and check incoming updates between Telegram and your custom types, use
+'SessionDelegate' and modify the Session's routing and state using 'SessionHandle'.
 */
 public protocol Session {
 	

@@ -22,6 +22,7 @@ pelican.addBuilder(SessionBuilder(spawner: chatSpawner, session: ChatSession.sel
 */
 public class SessionBuilder {
 	
+	// MARK: - Properties
 	/// The name of the builder.
 	public private(set) var name: String
 	
@@ -29,14 +30,15 @@ public class SessionBuilder {
 	This is an internal ID and should not be changed. */
 	public private(set) var id = UUID()
 	
-	/// A function that checks an update to see whether or not it matches given criteria in that function, returning a non-nil value if true.
-	public var spawner: (Update) -> String?
-	
 	/// The type of identification the spawner function generates, which is then used to identify a Session.
 	public private(set) var idType: SessionIDType
 	
 	/// The session type that the builder creates for handling updates.
 	public private(set) var sessionType: Session.Type
+	
+	/// A function that checks an update to see whether or not it matches given criteria in that function, returning a non-nil value if true.
+	public var spawner: (Update) -> String?
+
 	
 	/** An optional function type that can be used to initialise a Session type in a custom way, such as if it has any additional initialisation paramaters. 
 	If left empty, the default Session initialiser will be used. */
@@ -53,6 +55,7 @@ public class SessionBuilder {
 	public var getSessionCount: Int { return sessions.count }
 	
 	
+	// MARK: - Methods
 	/**
 	Creates a SessionBuilder, responsible for automatically generating different session types.
 	

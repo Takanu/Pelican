@@ -11,7 +11,7 @@ import Foundation
 This type both manages and allows simplified internal access to all the builders that the bot has, while enabling
 Sessions to also directly access other sessions with reduced API access.
 */
-class SessionManager {
+public class SessionManager {
 	
 	/// The session builders that the PelicanBot currently has.
 	fileprivate var builders = SynchronizedArray<SessionBuilder>()

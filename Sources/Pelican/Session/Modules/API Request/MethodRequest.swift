@@ -55,7 +55,7 @@ public struct MethodRequest {
 				return nil
 			}
 		} else {
-			PLog.error("Unable to decode result, no response")
+			PLog.error("Pelican Response Decode Error: Unable to decode result, no response.")
 			return nil
 		}
 	}
