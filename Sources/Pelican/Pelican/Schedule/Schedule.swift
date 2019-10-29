@@ -66,6 +66,7 @@ public class Schedule {
 	private func popExpiredEvent() -> ScheduleEvent? {
 		
 		if queue.count == 0 { return nil }
+        if queue[0] == nil { return nil }
 		
 		if queue[0]!.executeTime.timeIntervalSince1970 < runTime.timeIntervalSince1970 + fluctuationRange {
 			let event = queue[0]!
